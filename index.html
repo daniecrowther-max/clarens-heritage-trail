@@ -289,13 +289,14 @@ var SITES = [
      'The Deeds Registry records a succession of owners: Van der Merwe (1914), Naude (1926), Luyt (1949), before Juan Max "Jack" Frost acquired it in 1974. Jack — a WWII RAF veteran, former racing car driver, and owner of the Clarens supply store — gave the house his name. He served on the Clarens Town Council and as deacon of the DR Church. By 1978, when artist Annetjie Muller sketched the house, it was still well maintained. After Jack sold in 1980 it passed through several hands and fell into serious disrepair.',
      'In 2015 Adrian Smallpeice and Richard Pender bought the house with the specific aim of rescuing it from ruin. Working with architect Jaap Boonstra, they removed only two internal walls and retained the original timber windows, wooden floors, and vaulted ceilings. The footprint remains almost unchanged apart from a patio at the back.',
      'The original wooden floor — nearly a century old — survived the years of neglect largely undamaged. The owners insisted the builder Jacques Viljoen not sand it down, preserving its extraordinary patina. The village butcher "Riempies" donated the doorbell. The late Helen Boucher, a local farmer, designed the garden using grasses and plants transplanted from her farm wetland, with an indigenous hedgerow connecting the house to the surrounding landscape.']},
-  {id:'ou-kliphuis', name:'Ou Kliphuis', year:1927, address:'Main Street, opp. Church Hall', icon:'&#129704;', ac:'ac-gold', dot:'#c8a052',
+  {id:'ou-kliphuis', name:'Ou Kliphuis', year:1927, address:'Main Street, opp. Church Hall (Erven 177 & 178)', icon:'&#129704;', ac:'ac-gold', dot:'#c8a052',
    map:'https://maps.google.com/?q=Ou+Kliphuis,+Main+Street,+Clarens',
-   facts:[{l:'Built',v:'~1927'},{l:'Material',v:'Sandstone'},{l:'Original use',v:'Nagmaal dorpshuisie'},{l:'Current use',v:'Guest house'},{l:'Notable resident',v:'Nancy Whittaker'}],
-   story:['The Ou Kliphuis is a typical small one-bedroom sandstone house, likely built around 1927. Positioned opposite the church hall on Main Street, it likely served as a dorpshuisie for farming families attending nagmaal.',
-     'From the 1950s it was used as a holiday home for over three decades. In 1990, a new owner undertook sensitive restoration, retaining the absence of electricity and keeping the large coal stove in the kitchen.',
-     'By 2014, architect Jaap Boonstra planned careful renovations using repurposed sandstone from Beginsel farm. Three doors, four windows, and the original sandstone facade remain unchanged.',
-     'Nancy Whittaker — artist, writer, chef and gardener — lived here from 2014 to 2022 and created the beautiful cottage garden still enjoyed today. Her son is Bruce Fordyce, the celebrated South African marathon runner.']},
+   facts:[{l:'Built',v:'~1927 (no original records)'},{l:'Erven',v:'177 & 178, Main Street'},{l:'Material',v:'Sandstone'},{l:'Original use',v:'Nagmaal dorpshuisie'},{l:'Architect (2013–14)',v:'Jaap Boonstra'},{l:'Builder (2013–14)',v:'Bruce Marx'},{l:'Current use',v:'Guest house'},{l:'Status',v:'Section 34(1), NHRA (60+ years)'}],
+   story:['The Ou Kliphuis — Erven 177 and 178 on Main Street, opposite the Church Hall — is a typical small one-bedroom sandstone house, built around 1927 according to former Clarens mayor Martie Lotz, though no original Deeds Office records confirm the exact date. It likely served as a dorpshuisie for farming families attending nagmaal and church.',
+     'In the late 1950s, (Awat) Eduard Christiaan Daniel Bruwer (1905–1979) and his half-sister Elsje van Zyl (1898–1966) bought the house — nicknamed “Saal-maar-af.” Bruwer was born on the nearby farm Beginsel and had deep ties to Clarens. The family kept it as a holiday home for more than thirty years; in 1970 the house still had no electricity.',
+     'In 1990, Rika Susanna Raats (daughter of E C D Bruwer) became owner. Erven 177 measured 798 m², valued at R7 500, with the house at R11 400. She did sensitive restoration around 2000, maintaining the absence of electricity and the Dover coal stove in the small kitchen.',
+     'In 2014, Nancy Whittaker’s daughter Oonagh Wohanka purchased the house. Architect Jaap Boonstra drew the renovation plans and Bruce Marx was the builder. The kitchen, scullery, and en-suite bedrooms were extended; a new gable was constructed using repurposed sandstone from Beginsel farm to mirror the original. Only three doors, four windows, and the front sandstone façade remain unchanged.',
+     'Nancy Whittaker — artist, writer, chef, and enthusiastic gardener — lived in the house until her death in 2022, creating the beautiful cottage garden still enjoyed today. Her son Bruce Fordyce, the celebrated South African marathon runner, has close ties with Clarens. The family continues to own and operate Ou Kliphuis as a guest house.']},
   {id:'methodist-church', name:'Methodist Church', year:1936, address:'Cnr Roos & Bester Streets', icon:'&#9962;', ac:'ac-mid', dot:'#5c6650',
    map:'https://maps.google.com/?q=Methodist+Church,+Clarens,+Free+State',
    facts:[{l:'First services',v:'1866 (Joseph Liddell, Bethel farm)'},{l:'Cornerstone laid',v:'3 August 1936'},{l:'Total cost',v:'650 pounds'},{l:'Donor',v:'Bethlehem Methodist Church'},{l:'Stone from',v:'Liddell & Walker families'},{l:'Carpenter',v:'Hugo Walker (lost three fingers)'},{l:'Status',v:'Section 38, NHRA'}],
@@ -512,12 +513,11 @@ function renderMap() {
   SITES.forEach(function(s) {
     html += '<a class="map-row" href="' + s.map + '" target="_blank">' +
       '<div class="map-dot" style="background:' + s.dot + '"></div>' +
-      '<div class="map-info"><div class="map-name">' + s.name + '</div><div class="map-addr">' + s.address + '</div></div>' +
-      '<span class="map-arrow">&#8599;</span>' +
+      '<div class="map-info"><div class="map-name">' + s.name + '</div>' +
+      '<div class="map-addr">' + s.address + '</div></div>' +
+      '<div class="map-arrow">&#8599;</div>' +
     '</a>';
   });
   document.getElementById('mapList').innerHTML = html;
 }
-</script>
-</body>
-</html>
+</script></body></html>
