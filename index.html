@@ -161,12 +161,12 @@ nav::-webkit-scrollbar{display:none}
 </div>
 
 <div id="splash">
-  <div class="splash-beta">Beta v0.2</div>
+  <div class="splash-beta">v1.0</div>
   <img class="splash-logo" id="splash-logo" src="" alt="Clarens Heritage Association">
   <h1 class="splash-title">Heritage<br>Trail</h1>
   <p class="splash-sub">Clarens &middot; Free State &middot; Est. 1912</p>
   <button class="btn-start" id="btnStart">Begin Your Journey</button>
-  <p class="splash-footer">clarensheritage.org &middot; Beta v0.2 &middot; &copy; 2025</p>
+  <p class="splash-footer">clarensheritage.org &middot; v1.0 &middot; &copy; 2025</p>
 </div>
 
 <div class="stamp-burst" id="stampBurst">
@@ -183,7 +183,7 @@ nav::-webkit-scrollbar{display:none}
         <span class="hdr-sub">Clarens Heritage Association</span>
       </div>
     </div>
-    <div class="hdr-beta">Beta v0.2</div>
+    <div class="hdr-beta">v1.0</div>
   </header>
   <nav>
     <div class="nav-tab active" id="tab-trail">Trail</div>
@@ -224,8 +224,8 @@ nav::-webkit-scrollbar{display:none}
   <div class="panel" id="panel-map">
     <div class="map-wrap">
       <div class="map-ph">
-        <h3>&#128506; Interactive Map</h3>
-        <p>Full GPS navigation coming in v1.0. Use the links below to open each heritage site in Google Maps.</p>
+        <h3>&#128506; Navigate the Trail</h3>
+        <p>Use the links below to open each heritage site directly in Google Maps for turn-by-turn directions. A full interactive trail map is coming in v1.1.</p>
       </div>
       <span class="section-label">Open in Google Maps</span>
       <div class="map-list" id="mapList"></div>
@@ -238,8 +238,8 @@ nav::-webkit-scrollbar{display:none}
         <p>The Clarens Heritage Trail brings the stories of historic buildings, rock art, and landscapes to life &mdash; right in your hands as you walk the village streets.</p>
       </div>
       <div class="beta-bar">
-        <h4>&#9879; Beta Version 0.2</h4>
-        <p>This is an early prototype for internal review. Full v1.0 will include GPS navigation, audio guides, and a complete site database.</p>
+        <h4>&#10003; Version 1.0</h4>
+        <p>14 heritage sites with authentic stories, photographs, Quick Facts, and a Heritage Passport to collect stamps as you explore.</p>
       </div>
       <div class="about-card">
         <h3>About the CHA</h3>
@@ -256,13 +256,38 @@ nav::-webkit-scrollbar{display:none}
         <a href="https://clarensheritage.org/wp-content/uploads/2025/05/CHA_Membership_Form_2025.pdf" target="_blank">Download Membership Form 2025 &#8599;</a></p>
       </div>
       <div class="about-card">
-        <h3>Coming in v1.0</h3>
-        <p>&#8226; Full GPS trail navigation<br>&#8226; Audio guides at each site<br>&#8226; Historic photo comparisons<br>&#8226; All CHA buildings, farms &amp; people<br>&#8226; Offline mode<br>&#8226; Online donations &amp; membership</p>
+        <h3>Coming in v1.1</h3>
+        <p>&#8226; Interactive trail map with GPS<br>&#8226; Audio guides at each site<br>&#8226; Historic photo comparisons<br>&#8226; Additional CHA buildings, farms &amp; people<br>&#8226; Online donations &amp; membership</p>
       </div>
     </div>
   </div>
 </div>
 
+<div id="donateModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(30,35,24,.55);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--cream);border-radius:14px;padding:28px 24px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.25)">
+    <button id="donateClose" style="position:absolute;top:14px;right:14px;background:rgba(74,82,64,.1);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;color:var(--olive);display:flex;align-items:center;justify-content:center">&#215;</button>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:6px">Support the CHA</div>
+    <p style="font-size:.82rem;color:var(--text-light);line-height:1.65;margin-bottom:20px">Help us preserve the buildings, stories, and culture that define Clarens for future generations.</p>
+    <div style="background:var(--sage-pale);border:1px solid var(--sage);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text-light)">EFT Banking Details</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--sage);padding-bottom:7px;font-size:.8rem">
+          <span style="color:var(--text-light)">Account name</span>
+          <span style="color:var(--text);font-weight:600;text-align:right">Clarens Heritage Association</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--sage);padding-bottom:7px;font-size:.8rem">
+          <span style="color:var(--text-light)">Bank</span>
+          <span style="color:var(--text);font-weight:600">Standard Bank</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.8rem">
+          <span style="color:var(--text-light)">Account number</span>
+          <span style="color:var(--text);font-weight:600;font-family:monospace;letter-spacing:.06em">10 23 335 098 3</span>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:.75rem;color:var(--text-light);text-align:center;margin-top:14px;line-height:1.55">Please use your name as reference.<br>Thank you for supporting Clarens heritage.</p>
+  </div>
+</div>
 <div id="detail-view">
   <div class="detail-header">
     <button class="btn-back" id="btnBack">&#8592;</button>
@@ -406,7 +431,16 @@ document.getElementById('btnStart').addEventListener('click', function() {
 document.getElementById('btnBack').addEventListener('click', closeDetail);
 
 document.getElementById('btnDonate').addEventListener('click', function() {
-  alert('Donation functionality coming in v1.0.\n\nVisit clarensheritage.org to support the CHA.');
+  var modal = document.getElementById('donateModal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+});
+document.getElementById('donateClose').addEventListener('click', function() {
+  document.getElementById('donateModal').style.display = 'none';
+  document.body.style.overflow = '';
+});
+document.getElementById('donateModal').addEventListener('click', function(e) {
+  if (e.target === this) { this.style.display = 'none'; document.body.style.overflow = ''; }
 });
 
 ['trail','passport','map','about'].forEach(function(name) {
