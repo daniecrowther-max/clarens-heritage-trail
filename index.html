@@ -140,6 +140,20 @@ nav::-webkit-scrollbar{display:none}
 .burst-text{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-top:4px;color:var(--sage)}
 
 </style>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#484E32">
+  <link rel="apple-touch-icon" href="/icon-192x192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Heritage Trail">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
+  </script>
 </head>
 <body>
 

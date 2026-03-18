@@ -1,0 +1,26 @@
+{
+  "name": "Clarens Heritage Trail",
+  "short_name": "Heritage Trail",
+  "description": "Walk the streets of Clarens with a digital guide to 14 heritage and Blue Plaque sites. Authentic stories, historic photos, and a digital passport.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2e3220",
+  "theme_color": "#484E32",
+  "lang": "en",
+  "categories": ["travel", "education", "lifestyle"],
+  "icons": [
+    {
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
