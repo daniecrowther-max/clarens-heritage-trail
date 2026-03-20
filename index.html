@@ -426,7 +426,11 @@ var SITES = [
      'The Clarens Heritage Association is gathering archive material and oral histories to document the full story of this building. If you have memories or photographs, the CHA would welcome your contribution at info@clarensheritage.org.']}
 ];
 
-var visited = {};
+var visited = JSON.parse(localStorage.getItem('cht_visited') || '{}');
+
+function saveVisited() {
+  try { localStorage.setItem('cht_visited', JSON.stringify(visited)); } catch(e) {}
+}
 
 function getImg(id) {
   var el = document.getElementById('img-' + id);
@@ -489,7 +493,7 @@ function renderTrail() {
   });
   document.getElementById('sitesList').innerHTML = html;
   document.querySelectorAll('.site-card').forEach(function(card) {
-    card.addEventListener('click', function() { openDetail(this.dataset.id); });
+    card.addEventListener('click', function() { openDetailWithHistory(this.dataset.id); });
   });
 }
 
@@ -514,7 +518,7 @@ function openDetail(id) {
   document.getElementById('detailContent').innerHTML =
     photoHtml +
     '<div class="detail-body">' +
-      '<div class="plaque-badge">' + (s.bp ? '&#128309; Blue Plaque Site' : '&#128309; Heritage Site') + '</div>' +
+      '<div class="plaque-badge">' + (s.bp ? '&#128308; Blue Plaque Site' : '&#128309; Heritage Site') + '</div>' +
       '<h1 class="detail-title">' + s.name + '</h1>' +
       '<div class="detail-addr">&#128205; ' + s.address + '</div>' +
       '<div class="facts-box"><h4>Quick Facts</h4>' + factsHtml + '</div>' +
@@ -531,10 +535,26 @@ function openDetail(id) {
   dv.scrollTop = 0;
 }
 
-function closeDetail() { document.getElementById('detail-view').classList.remove('open'); }
+function closeDetail() {
+  document.getElementById('detail-view').classList.remove('open');
+  if (history.state && history.state.detailOpen) history.back();
+}
+
+function openDetailWithHistory(id) {
+  history.pushState({ detailOpen: true }, '');
+  openDetail(id);
+}
+
+window.addEventListener('popstate', function(e) {
+  var dv = document.getElementById('detail-view');
+  if (dv.classList.contains('open')) {
+    dv.classList.remove('open');
+  }
+});
 
 function collectStamp(id) {
   visited[id] = true;
+  saveVisited();
   renderTrail(); renderPassport();
   var btn = document.getElementById('stamp-btn');
   if (btn) { btn.classList.add('stamped'); btn.innerHTML = '&#10003; Stamp Already Collected'; }
