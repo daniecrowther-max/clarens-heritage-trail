@@ -462,12 +462,17 @@ document.getElementById('donateModal').addEventListener('click', function(e) {
   if (e.target === this) { this.style.display = 'none'; document.body.style.overflow = ''; }
 });
 
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
 ['trail','passport','map','about'].forEach(function(name) {
   document.getElementById('tab-' + name).addEventListener('click', function() {
-    document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
-    document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
-    document.getElementById('panel-' + name).classList.add('active');
-    document.getElementById('tab-' + name).classList.add('active');
+    history.pushState({ tab: name }, '');
+    switchTab(name);
   });
 });
 
@@ -549,6 +554,10 @@ window.addEventListener('popstate', function(e) {
   var dv = document.getElementById('detail-view');
   if (dv.classList.contains('open')) {
     dv.classList.remove('open');
+  } else if (e.state && e.state.tab) {
+    switchTab(e.state.tab);
+  } else {
+    switchTab('trail');
   }
 });
 
