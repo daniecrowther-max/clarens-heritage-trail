@@ -370,11 +370,11 @@ nav::-webkit-scrollbar{display:none}
     <button id="tokenClose" style="position:absolute;top:14px;right:14px;background:rgba(74,82,64,.1);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;color:var(--olive);display:flex;align-items:center;justify-content:center">&#215;</button>
     <div style="font-size:2rem;text-align:center;margin-bottom:10px">&#128274;</div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:6px;text-align:center">Phase 2 — Unlock</div>
-    <p style="font-size:.82rem;color:var(--text-light);line-height:1.65;margin-bottom:20px;text-align:center">Hierdie terrein is deel van Phase 2.<br>Voer jou unlock-token in om toegang te kry tot al 14 terreine.</p>
-    <input id="tokenInput" type="text" placeholder="Voer token in (bv. CHA2025)" style="width:100%;padding:12px 14px;border:1.5px solid var(--sage);border-radius:8px;font-family:'Jost',sans-serif;font-size:.9rem;color:var(--text);background:#fff;outline:none;margin-bottom:10px;box-sizing:border-box;text-transform:uppercase;letter-spacing:.1em">
+    <p style="font-size:.82rem;color:var(--text-light);line-height:1.65;margin-bottom:20px;text-align:center">This site is part of Phase 2.<br>Enter your unlock token to access all 14 sites.</p>
+    <input id="tokenInput" type="text" placeholder="Enter token (e.g. CHA2025)" style="width:100%;padding:12px 14px;border:1.5px solid var(--sage);border-radius:8px;font-family:'Jost',sans-serif;font-size:.9rem;color:var(--text);background:#fff;outline:none;margin-bottom:10px;box-sizing:border-box;text-transform:uppercase;letter-spacing:.1em">
     <div id="tokenMsg" style="font-size:.75rem;color:#c0392b;text-align:center;min-height:18px;margin-bottom:10px"></div>
-    <button id="tokenSubmit" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Ontsluit Nou</button>
-    <p style="font-size:.72rem;color:var(--text-light);text-align:center;margin-top:14px;line-height:1.55">Geen token nie? Besoek <a href="https://clarensheritage.org/trail" target="_blank" style="color:var(--olive);font-weight:700">clarensheritage.org/trail</a><br>om Phase 2 te koop vir R49.</p>
+    <button id="tokenSubmit" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Unlock Now</button>
+    <p style="font-size:.72rem;color:var(--text-light);text-align:center;margin-top:14px;line-height:1.55">Don't have a token? Visit <a href="https://clarensheritage.org/trail" target="_blank" style="color:var(--olive);font-weight:700">clarensheritage.org/trail</a><br>to purchase Phase 2 for R49.</p>
   </div>
 </div>
 
@@ -389,24 +389,24 @@ nav::-webkit-scrollbar{display:none}
       <div id="voucherReward" style="font-size:.82rem;color:var(--text-light);margin-bottom:20px"></div>
       <div id="voucherActiveSection">
         <div style="background:var(--sage-pale);border:2px dashed var(--olive);border-radius:12px;padding:20px 16px;margin-bottom:16px">
-          <div style="font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text-light);margin-bottom:8px">Voucher Kode</div>
+          <div style="font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text-light);margin-bottom:8px">Voucher Code</div>
           <div id="voucherCode" style="font-family:monospace;font-size:1.15rem;font-weight:700;color:var(--olive);letter-spacing:.12em;word-break:break-all;line-height:1.5"></div>
         </div>
         <div id="voucherConfirmSection" style="display:none">
           <div style="background:#fff3cd;border-left:3px solid #e6a817;border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:14px;font-size:.78rem;color:var(--text-mid);line-height:1.6">
-            &#9888; Sodra jy bevestig, word hierdie voucher gekanselleer en kan dit <strong>nie weer gebruik word nie</strong>.
+            &#9888; Once confirmed, this voucher will be cancelled and <strong>cannot be used again</strong>.
           </div>
           <div style="display:flex;gap:8px">
-            <button id="voucherCancelBtn" style="flex:1;background:var(--sage-pale);color:var(--olive);border:1.5px solid var(--sage);padding:13px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer">&#8592; Terug</button>
-            <button id="voucherConfirmBtn" style="flex:2;background:var(--gold);color:#fff;border:none;padding:13px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer">&#10003; Bevestig &amp; Gebruik</button>
+            <button id="voucherCancelBtn" style="flex:1;background:var(--sage-pale);color:var(--olive);border:1.5px solid var(--sage);padding:13px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer">&#8592; Back</button>
+            <button id="voucherConfirmBtn" style="flex:2;background:var(--gold);color:#fff;border:none;padding:13px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer">&#10003; Confirm &amp; Use</button>
           </div>
         </div>
         <div id="voucherShowBtn" style="margin-top:4px">
-          <button id="voucherRevealBtn" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">&#127981; Wys Kode &amp; Gebruik Voucher</button>
+          <button id="voucherRevealBtn" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">&#127981; Show Code &amp; Use Voucher</button>
         </div>
       </div>
       <div id="voucherUsedMsg" style="display:none;background:#f8f0e8;border:1.5px solid var(--gold);border-radius:8px;padding:16px;font-size:.82rem;color:var(--text);margin-bottom:16px;text-align:center;line-height:1.6">
-        &#10003; Hierdie voucher is reeds gebruik.<br>Dankie dat jy Clarens Coffee Co. besoek het!
+        &#10003; This voucher has already been used.<br>Thank you for visiting Clarens Coffee Co.!
       </div>
     </div>
   </div>
@@ -610,7 +610,7 @@ document.getElementById('tokenSubmit').addEventListener('click', function() {
     msg.textContent = '&#10003; Ontsluit!';
   } else {
     msg.style.color = '#c0392b';
-    msg.textContent = 'Ongeldige token. Probeer weer.';
+    msg.textContent = 'Invalid token. Please try again.';
     document.getElementById('tokenInput').focus();
   }
 });
