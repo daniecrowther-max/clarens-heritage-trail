@@ -387,13 +387,27 @@ nav::-webkit-scrollbar{display:none}
     <div style="padding:24px 20px;text-align:center">
       <div id="voucherPartnerName" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--olive);margin-bottom:4px"></div>
       <div id="voucherReward" style="font-size:.82rem;color:var(--text-light);margin-bottom:20px"></div>
-      <div id="voucherQR" style="display:inline-block;padding:12px;background:#fff;border:2px solid var(--sage);border-radius:10px;margin-bottom:16px"></div>
-      <div id="voucherCode" style="font-family:monospace;font-size:.85rem;color:var(--text-light);letter-spacing:.1em;margin-bottom:20px"></div>
-      <div id="voucherUsedMsg" style="display:none;background:#f8f0e8;border:1.5px solid var(--gold);border-radius:8px;padding:12px;font-size:.82rem;color:var(--text);margin-bottom:16px">
-        &#10003; This voucher has already been used. Thank you for visiting Clarens Coffee Co.!
+      <div id="voucherActiveSection">
+        <div style="background:var(--sage-pale);border:2px dashed var(--olive);border-radius:12px;padding:20px 16px;margin-bottom:16px">
+          <div style="font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text-light);margin-bottom:8px">Voucher Kode</div>
+          <div id="voucherCode" style="font-family:monospace;font-size:1.15rem;font-weight:700;color:var(--olive);letter-spacing:.12em;word-break:break-all;line-height:1.5"></div>
+        </div>
+        <div id="voucherConfirmSection" style="display:none">
+          <div style="background:#fff3cd;border-left:3px solid #e6a817;border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:14px;font-size:.78rem;color:var(--text-mid);line-height:1.6">
+            &#9888; Sodra jy bevestig, word hierdie voucher gekanselleer en kan dit <strong>nie weer gebruik word nie</strong>.
+          </div>
+          <div style="display:flex;gap:8px">
+            <button id="voucherCancelBtn" style="flex:1;background:var(--sage-pale);color:var(--olive);border:1.5px solid var(--sage);padding:13px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer">&#8592; Terug</button>
+            <button id="voucherConfirmBtn" style="flex:2;background:var(--gold);color:#fff;border:none;padding:13px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer">&#10003; Bevestig &amp; Gebruik</button>
+          </div>
+        </div>
+        <div id="voucherShowBtn" style="margin-top:4px">
+          <button id="voucherRevealBtn" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">&#127981; Wys Kode &amp; Gebruik Voucher</button>
+        </div>
       </div>
-      <button id="voucherUseBtn" style="width:100%;background:var(--gold);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;margin-bottom:8px">&#10003; Mark as Used</button>
-      <p style="font-size:.72rem;color:var(--text-light);line-height:1.55">Ask the cashier to scan your QR code,<br>then tap <strong>Mark as Used</strong> to confirm.</p>
+      <div id="voucherUsedMsg" style="display:none;background:#f8f0e8;border:1.5px solid var(--gold);border-radius:8px;padding:16px;font-size:.82rem;color:var(--text);margin-bottom:16px;text-align:center;line-height:1.6">
+        &#10003; Hierdie voucher is reeds gebruik.<br>Dankie dat jy Clarens Coffee Co. besoek het!
+      </div>
     </div>
   </div>
 </div>
@@ -870,71 +884,48 @@ function showVoucher(partnerId) {
   var p = PARTNERS.find(function(x) { return x.id === partnerId; });
   if (!p) return;
   var used = isVoucherUsed(partnerId);
-  var code = generateVoucherQR(partnerId);
   document.getElementById('voucherPartnerName').textContent = p.name;
   document.getElementById('voucherReward').textContent = p.offerLabel + ' — ' + p.offerSub;
-  document.getElementById('voucherCode').textContent = code;
-  document.getElementById('voucherUsedMsg').style.display = used ? 'block' : 'none';
-  document.getElementById('voucherUseBtn').style.display = used ? 'none' : 'block';
-  var qrDiv = document.getElementById('voucherQR');
-  qrDiv.innerHTML = '';
-  var qrSize = 160;
-  var canvas = document.createElement('canvas');
-  canvas.width = qrSize; canvas.height = qrSize;
-  drawSimpleQR(canvas, code, qrSize);
-  qrDiv.appendChild(canvas);
+  if (!used) {
+    var code = generateVoucherQR(partnerId);
+    document.getElementById('voucherCode').textContent = code;
+    document.getElementById('voucherActiveSection').style.display = 'block';
+    document.getElementById('voucherUsedMsg').style.display = 'none';
+    document.getElementById('voucherConfirmSection').style.display = 'none';
+    document.getElementById('voucherShowBtn').style.display = 'block';
+  } else {
+    document.getElementById('voucherActiveSection').style.display = 'none';
+    document.getElementById('voucherUsedMsg').style.display = 'block';
+  }
   var modal = document.getElementById('voucherModal');
   modal.style.display = 'flex';
   modal.dataset.partnerId = partnerId;
   document.body.style.overflow = 'hidden';
 }
 
-function drawSimpleQR(canvas, text, size) {
-  var ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, size, size);
-  var n = 21;
-  var cell = Math.floor(size / (n + 2));
-  var offset = Math.floor((size - cell * n) / 2);
-  var hash = 0;
-  for (var i = 0; i < text.length; i++) { hash = ((hash << 5) - hash) + text.charCodeAt(i); hash |= 0; }
-  ctx.fillStyle = '#1e2318';
-  for (var r = 0; r < n; r++) {
-    for (var c = 0; c < n; c++) {
-      var isCorner = (r < 7 && c < 7) || (r < 7 && c > n-8) || (r > n-8 && c < 7);
-      var val;
-      if (isCorner) {
-        val = !((r === 1 || r === 5) && c >= 1 && c <= 5) &&
-              !((r === 1 || r === 5) && c >= n-6 && c <= n-2) &&
-              !((r > n-7 && r < n-1) && (c === 1 || c === 5));
-        var inInner = (r >= 2 && r <= 4 && c >= 2 && c <= 4) ||
-                      (r >= 2 && r <= 4 && c >= n-5 && c <= n-3) ||
-                      (r >= n-5 && r <= n-3 && c >= 2 && c <= 4);
-        val = isCorner && (r === 0 || r === 6 || c === 0 || c === 6 || inInner);
-      } else {
-        val = (Math.abs(hash * (r + 1) * (c + 7)) % 3) !== 0;
-      }
-      if (val) ctx.fillRect(offset + c * cell, offset + r * cell, cell, cell);
-    }
-  }
-}
-
 document.getElementById('voucherClose').addEventListener('click', function() {
   document.getElementById('voucherModal').style.display = 'none';
   document.body.style.overflow = '';
 });
-document.getElementById('voucherModal').addEventListener('click', function(e) {
-  if (e.target === this) { this.style.display = 'none'; document.body.style.overflow = ''; }
+document.getElementById('voucherRevealBtn').addEventListener('click', function() {
+  document.getElementById('voucherShowBtn').style.display = 'none';
+  document.getElementById('voucherConfirmSection').style.display = 'block';
 });
-document.getElementById('voucherUseBtn').addEventListener('click', function() {
+document.getElementById('voucherCancelBtn').addEventListener('click', function() {
+  document.getElementById('voucherConfirmSection').style.display = 'none';
+  document.getElementById('voucherShowBtn').style.display = 'block';
+});
+document.getElementById('voucherConfirmBtn').addEventListener('click', function() {
   var partnerId = document.getElementById('voucherModal').dataset.partnerId;
   if (!partnerId) return;
   markVoucherUsed(partnerId);
-  document.getElementById('voucherUsedMsg').style.display = 'block';
-  document.getElementById('voucherUseBtn').style.display = 'none';
   renderPartners();
+  document.getElementById('voucherActiveSection').style.display = 'none';
+  document.getElementById('voucherUsedMsg').style.display = 'block';
 });
-
+document.getElementById('voucherModal').addEventListener('click', function(e) {
+  if (e.target === this) { this.style.display = 'none'; document.body.style.overflow = ''; }
+});
 var leafletMap = null;
 
 function renderMap() {
