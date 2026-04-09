@@ -155,6 +155,32 @@ nav::-webkit-scrollbar{display:none}
 .burst-icon{font-size:2.4rem}
 .burst-text{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-top:4px;color:var(--sage)}
 
+.partners-wrap{padding:16px}
+.partners-hero{background:var(--olive);border-radius:12px;padding:26px 20px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden}
+.partners-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 24px,rgba(200,212,184,.04) 24px,rgba(200,212,184,.04) 48px)}
+.partners-hero-icon{font-size:2.4rem;margin-bottom:8px;position:relative}
+.partners-hero h2{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:#fff;margin-bottom:8px;position:relative}
+.partners-hero p{color:var(--sage);font-size:.82rem;line-height:1.7;position:relative}
+.partner-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;border:1.5px solid var(--sage)}
+.partner-card-header{background:linear-gradient(135deg,var(--olive),var(--olive-mid));padding:18px 18px 14px;display:flex;align-items:center;gap:12px}
+.partner-logo{width:48px;height:48px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0}
+.partner-card-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:#fff}
+.partner-card-type{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--sage);margin-top:2px}
+.partner-card-body{padding:16px 18px}
+.partner-offer{background:var(--sage-pale);border:1px solid var(--sage);border-radius:8px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.partner-offer-pct{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--olive);line-height:1;flex-shrink:0}
+.partner-offer-detail{flex:1}
+.partner-offer-label{font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.partner-offer-sub{font-size:.72rem;color:var(--text-light);line-height:1.5}
+.partner-desc{font-size:.82rem;color:var(--text-mid);line-height:1.72;margin-bottom:14px}
+.partner-addr{font-size:.75rem;color:var(--text-light);margin-bottom:14px;display:flex;align-items:center;gap:5px}
+.btn-voucher{width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-voucher:hover{background:var(--olive-mid)}
+.btn-voucher.used{background:var(--text-light);cursor:default}
+.btn-voucher.locked{background:#aaa;cursor:not-allowed}
+.partners-note{background:#fffbea;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:12px 14px;margin-top:6px}
+.partners-note p{font-size:.75rem;color:var(--text-light);line-height:1.6}
+
 </style>
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
@@ -221,6 +247,7 @@ nav::-webkit-scrollbar{display:none}
     <div class="nav-tab" id="tab-passport">Passport</div>
     <div class="nav-tab" id="tab-map">Map</div>
     <div class="nav-tab" id="tab-about">About</div>
+    <div class="nav-tab" id="tab-partners">Partners</div>
   </nav>
   <div class="panel active" id="panel-trail">
     <div class="trail-hero">
@@ -256,6 +283,20 @@ nav::-webkit-scrollbar{display:none}
     <div class="map-wrap">
       <div id="leaflet-map"></div>
       <button class="map-locate-btn" id="btnLocate" title="My location">&#x25CE;</button>
+    </div>
+  </div>
+  <div class="panel" id="panel-partners">
+    <div class="partners-wrap">
+      <div class="partners-hero">
+        <div class="partners-hero-icon">&#127968;</div>
+        <h2>Business Partners</h2>
+        <p>Support local businesses that partner with the Clarens Heritage Association — and enjoy exclusive rewards as you explore the trail.</p>
+      </div>
+      <span class="section-label">Active Partners</span>
+      <div id="partnersList"></div>
+      <div class="partners-note">
+        <p>&#9432; Vouchers are for Phase 2 trail users only. Each voucher can be used once. Present your voucher screen to the cashier.</p>
+      </div>
     </div>
   </div>
   <div class="panel" id="panel-about">
@@ -334,6 +375,26 @@ nav::-webkit-scrollbar{display:none}
     <div id="tokenMsg" style="font-size:.75rem;color:#c0392b;text-align:center;min-height:18px;margin-bottom:10px"></div>
     <button id="tokenSubmit" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Ontsluit Nou</button>
     <p style="font-size:.72rem;color:var(--text-light);text-align:center;margin-top:14px;line-height:1.55">Geen token nie? Besoek <a href="https://clarensheritage.org/trail" target="_blank" style="color:var(--olive);font-weight:700">clarensheritage.org/trail</a><br>om Phase 2 te koop vir R49.</p>
+  </div>
+</div>
+
+<div id="voucherModal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(30,35,24,.7);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--cream);border-radius:14px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.3);overflow:hidden">
+    <div style="background:var(--olive);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:#fff">Your Voucher</div>
+      <button id="voucherClose" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">&#215;</button>
+    </div>
+    <div style="padding:24px 20px;text-align:center">
+      <div id="voucherPartnerName" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--olive);margin-bottom:4px"></div>
+      <div id="voucherReward" style="font-size:.82rem;color:var(--text-light);margin-bottom:20px"></div>
+      <div id="voucherQR" style="display:inline-block;padding:12px;background:#fff;border:2px solid var(--sage);border-radius:10px;margin-bottom:16px"></div>
+      <div id="voucherCode" style="font-family:monospace;font-size:.85rem;color:var(--text-light);letter-spacing:.1em;margin-bottom:20px"></div>
+      <div id="voucherUsedMsg" style="display:none;background:#f8f0e8;border:1.5px solid var(--gold);border-radius:8px;padding:12px;font-size:.82rem;color:var(--text);margin-bottom:16px">
+        &#10003; This voucher has already been used. Thank you for visiting Clarens Coffee Co.!
+      </div>
+      <button id="voucherUseBtn" style="width:100%;background:var(--gold);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;margin-bottom:8px">&#10003; Mark as Used</button>
+      <p style="font-size:.72rem;color:var(--text-light);line-height:1.55">Ask the cashier to scan your QR code,<br>then tap <strong>Mark as Used</strong> to confirm.</p>
+    </div>
   </div>
 </div>
 
@@ -503,7 +564,7 @@ document.getElementById('btnStart').addEventListener('click', function() {
   setTimeout(function() {
     s.style.display = 'none';
     document.getElementById('app').classList.add('visible');
-    renderTrail(); renderPassport(); renderMap();
+    renderTrail(); renderPassport(); renderMap(); renderPartners();
   }, 680);
 });
 
@@ -558,7 +619,7 @@ function switchTab(name) {
   }
 }
 
-['trail','passport','map','about'].forEach(function(name) {
+['trail','passport','map','about','partners'].forEach(function(name) {
   document.getElementById('tab-' + name).addEventListener('click', function() {
     history.pushState({ tab: name }, '');
     switchTab(name);
@@ -743,6 +804,136 @@ function renderPassport() {
   });
   document.getElementById('stampsGrid').innerHTML = html;
 }
+
+
+var PARTNERS = [
+  {
+    id: 'clarens-coffee-co',
+    name: 'Clarens Coffee Co.',
+    type: 'Café & Bakery',
+    icon: '&#9749;',
+    offer: '10%',
+    offerLabel: '10% Discount',
+    offerSub: 'On your total bill — valid once per Phase 2 user',
+    desc: 'Nestled on the corner of Church Street, Clarens Coffee Co. serves single-origin coffee, freshly baked pastries, and light meals. The perfect stop after exploring the heritage trail.',
+    address: 'Corner Church & Piet Retief Streets, Clarens',
+    voucherKey: 'cht_voucher_clarens-coffee-co'
+  }
+];
+
+function isVoucherUsed(partnerId) {
+  return !!localStorage.getItem('cht_voucher_' + partnerId);
+}
+
+function markVoucherUsed(partnerId) {
+  localStorage.setItem('cht_voucher_' + partnerId, Date.now().toString());
+}
+
+function generateVoucherQR(partnerId) {
+  var token = localStorage.getItem('cht_token') || 'FREE';
+  return 'CHT-' + token + '-' + partnerId.toUpperCase().replace(/-/g,'') + '-10PCT';
+}
+
+function renderPartners() {
+  var unlocked = isUnlocked();
+  var html = '';
+  PARTNERS.forEach(function(p) {
+    var used = isVoucherUsed(p.id);
+    var btnClass = !unlocked ? 'btn-voucher locked' : (used ? 'btn-voucher used' : 'btn-voucher');
+    var btnText = !unlocked ? '&#128274; Phase 2 Required' : (used ? '&#10003; Voucher Used' : '&#127981; Show My Voucher');
+    html += '<div class="partner-card">' +
+      '<div class="partner-card-header">' +
+        '<div class="partner-logo">' + p.icon + '</div>' +
+        '<div><div class="partner-card-title">' + p.name + '</div>' +
+        '<div class="partner-card-type">' + p.type + '</div></div>' +
+      '</div>' +
+      '<div class="partner-card-body">' +
+        '<div class="partner-offer">' +
+          '<div class="partner-offer-pct">' + p.offer + '</div>' +
+          '<div class="partner-offer-detail">' +
+            '<div class="partner-offer-label">' + p.offerLabel + '</div>' +
+            '<div class="partner-offer-sub">' + p.offerSub + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<p class="partner-desc">' + p.desc + '</p>' +
+        '<div class="partner-addr">&#128205; ' + p.address + '</div>' +
+        '<button class="' + btnClass + '" ' + (!unlocked || used ? 'disabled' : '') + ' data-partner="' + p.id + '">' + btnText + '</button>' +
+      '</div></div>';
+  });
+  document.getElementById('partnersList').innerHTML = html;
+  document.querySelectorAll('.btn-voucher:not(.locked):not(.used)').forEach(function(btn) {
+    btn.addEventListener('click', function() { showVoucher(this.dataset.partner); });
+  });
+}
+
+function showVoucher(partnerId) {
+  var p = PARTNERS.find(function(x) { return x.id === partnerId; });
+  if (!p) return;
+  var used = isVoucherUsed(partnerId);
+  var code = generateVoucherQR(partnerId);
+  document.getElementById('voucherPartnerName').textContent = p.name;
+  document.getElementById('voucherReward').textContent = p.offerLabel + ' — ' + p.offerSub;
+  document.getElementById('voucherCode').textContent = code;
+  document.getElementById('voucherUsedMsg').style.display = used ? 'block' : 'none';
+  document.getElementById('voucherUseBtn').style.display = used ? 'none' : 'block';
+  var qrDiv = document.getElementById('voucherQR');
+  qrDiv.innerHTML = '';
+  var qrSize = 160;
+  var canvas = document.createElement('canvas');
+  canvas.width = qrSize; canvas.height = qrSize;
+  drawSimpleQR(canvas, code, qrSize);
+  qrDiv.appendChild(canvas);
+  var modal = document.getElementById('voucherModal');
+  modal.style.display = 'flex';
+  modal.dataset.partnerId = partnerId;
+  document.body.style.overflow = 'hidden';
+}
+
+function drawSimpleQR(canvas, text, size) {
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, size, size);
+  var n = 21;
+  var cell = Math.floor(size / (n + 2));
+  var offset = Math.floor((size - cell * n) / 2);
+  var hash = 0;
+  for (var i = 0; i < text.length; i++) { hash = ((hash << 5) - hash) + text.charCodeAt(i); hash |= 0; }
+  ctx.fillStyle = '#1e2318';
+  for (var r = 0; r < n; r++) {
+    for (var c = 0; c < n; c++) {
+      var isCorner = (r < 7 && c < 7) || (r < 7 && c > n-8) || (r > n-8 && c < 7);
+      var val;
+      if (isCorner) {
+        val = !((r === 1 || r === 5) && c >= 1 && c <= 5) &&
+              !((r === 1 || r === 5) && c >= n-6 && c <= n-2) &&
+              !((r > n-7 && r < n-1) && (c === 1 || c === 5));
+        var inInner = (r >= 2 && r <= 4 && c >= 2 && c <= 4) ||
+                      (r >= 2 && r <= 4 && c >= n-5 && c <= n-3) ||
+                      (r >= n-5 && r <= n-3 && c >= 2 && c <= 4);
+        val = isCorner && (r === 0 || r === 6 || c === 0 || c === 6 || inInner);
+      } else {
+        val = (Math.abs(hash * (r + 1) * (c + 7)) % 3) !== 0;
+      }
+      if (val) ctx.fillRect(offset + c * cell, offset + r * cell, cell, cell);
+    }
+  }
+}
+
+document.getElementById('voucherClose').addEventListener('click', function() {
+  document.getElementById('voucherModal').style.display = 'none';
+  document.body.style.overflow = '';
+});
+document.getElementById('voucherModal').addEventListener('click', function(e) {
+  if (e.target === this) { this.style.display = 'none'; document.body.style.overflow = ''; }
+});
+document.getElementById('voucherUseBtn').addEventListener('click', function() {
+  var partnerId = document.getElementById('voucherModal').dataset.partnerId;
+  if (!partnerId) return;
+  markVoucherUsed(partnerId);
+  document.getElementById('voucherUsedMsg').style.display = 'block';
+  document.getElementById('voucherUseBtn').style.display = 'none';
+  renderPartners();
+});
 
 var leafletMap = null;
 
