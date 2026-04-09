@@ -831,6 +831,8 @@ var PARTNERS = [
     offerSub: 'On your total bill — valid once per Phase 2 user',
     desc: 'Nestled on the corner of Church Street, Clarens Coffee Co. serves single-origin coffee, freshly baked pastries, and light meals. The perfect stop after exploring the heritage trail.',
     address: 'Corner Church & Piet Retief Streets, Clarens',
+    lat: -28.51387909278704,
+    lng: 28.420386355507794,
     voucherKey: 'cht_voucher_clarens-coffee-co'
   }
 ];
@@ -965,6 +967,26 @@ function renderMap() {
       '<div class="map-popup-name">' + s.icon + ' ' + s.name + '</div>' +
       '<div class="map-popup-addr">' + s.address + '</div>' +
       '<button class="map-popup-btn" onclick="openSiteFromMap(&#39;' + s.id + '&#39;)">View Site</button>'
+    );
+  });
+
+  PARTNERS.forEach(function(p) {
+    if (!p.lat || !p.lng) return;
+    var partnerIcon = L.divIcon({
+      className: '',
+      html: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="38" viewBox="0 0 28 38">' +
+        '<path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 24 14 24s14-14.67 14-24C28 6.27 21.73 0 14 0z" fill="#c0392b"/>' +
+        '<circle cx="14" cy="14" r="6" fill="#fff"/>' +
+        '</svg>',
+      iconSize: [28, 38],
+      iconAnchor: [14, 38],
+      popupAnchor: [0, -38]
+    });
+    var marker = L.marker([p.lat, p.lng], { icon: partnerIcon }).addTo(leafletMap);
+    marker.bindPopup(
+      '<div class="map-popup-name">&#9749; ' + p.name + '</div>' +
+      '<div class="map-popup-addr">' + p.address + '</div>' +
+      '<div style="font-size:.72rem;color:#c0392b;font-weight:700;margin-top:4px">&#127981; ' + p.offerLabel + '</div>'
     );
   });
 
