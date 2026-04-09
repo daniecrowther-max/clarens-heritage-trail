@@ -589,7 +589,7 @@ document.getElementById('tokenSubmit').addEventListener('click', function() {
   if (VALID_TOKENS.indexOf(val) !== -1) {
     localStorage.setItem('cht_token', val);
     hideTokenModal();
-    renderTrail(); renderPassport();
+    renderTrail(); renderPassport(); renderPartners();
     var pendingId = document.getElementById('tokenModal').dataset.pendingId;
     if (pendingId) { openDetailWithHistory(pendingId); }
     msg.style.color = '#27ae60';
