@@ -1004,6 +1004,24 @@ function openSiteFromMap(id) {
 var _locateMarker = null;
 var _locateWatch = null;
 
+function showMapMsg(msg, isError) {
+  var el = document.getElementById('mapMsg');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'mapMsg';
+    el.style.cssText = 'position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:999;' +
+      'background:#fff;border-radius:8px;padding:9px 16px;font-size:.78rem;font-family:Jost,sans-serif;' +
+      'box-shadow:0 2px 12px rgba(0,0,0,.18);max-width:260px;text-align:center;pointer-events:none;';
+    document.querySelector('.map-wrap').appendChild(el);
+  }
+  el.style.color = isError ? '#c0392b' : '#4E5530';
+  el.style.borderLeft = isError ? '3px solid #c0392b' : '3px solid #4285F4';
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.style.display = 'none'; }, 4000);
+}
+
 function updateLocateMarker(pos) {
   var latlng = [pos.coords.latitude, pos.coords.longitude];
   if (_locateMarker) {
@@ -1019,22 +1037,31 @@ function updateLocateMarker(pos) {
 }
 
 document.getElementById('btnLocate').addEventListener('click', function() {
-  if (!navigator.geolocation) { alert('Location not available on this device.'); return; }
+  if (!navigator.geolocation) {
+    showMapMsg('Location not available on this device.', true);
+    return;
+  }
   if (_locateWatch) {
     navigator.geolocation.clearWatch(_locateWatch);
     _locateWatch = null;
     if (_locateMarker) { leafletMap.removeLayer(_locateMarker); _locateMarker = null; }
+    showMapMsg('Location tracking stopped.', false);
     return;
   }
+  showMapMsg('Finding your location…', false);
   navigator.geolocation.getCurrentPosition(function(pos) {
     updateLocateMarker(pos);
+    showMapMsg('Location found.', false);
     _locateWatch = navigator.geolocation.watchPosition(
       updateLocateMarker,
       function() {},
       { enableHighAccuracy: true, maximumAge: 5000 }
     );
-  }, function() {
-    alert('Could not get your location. Please check your device settings.');
-  }, { enableHighAccuracy: true, timeout: 10000 });
+  }, function(err) {
+    var msg = 'Could not get your location.';
+    if (err.code === 1) msg = 'Location access denied. Please enable it in your browser settings.';
+    if (err.code === 3) msg = 'Location request timed out. Try again.';
+    showMapMsg(msg, true);
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
 });
 </script></body></html>
