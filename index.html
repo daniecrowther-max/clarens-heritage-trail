@@ -64,6 +64,11 @@ nav::-webkit-scrollbar{display:none}
 .card-stamp.earned{border-style:solid;border-color:var(--olive);background:var(--olive);color:#fff;opacity:1}
 
 .site-card.locked-site .card-stamp { border-color: #bbb; color: #bbb; }
+.status-badge { display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:10px;font-size:.6rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;flex-shrink:0 }
+.status-bp   { background:var(--plaque-blue);color:#fff }
+.status-her  { background:var(--olive-light);color:#fff }
+.status-par  { background:#c0392b;color:#fff }
+.card-meta-row { display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px }
 .lock-badge { background: #888; color: #fff; padding: 1px 7px; border-radius: 10px; font-size: .62rem; font-weight: 700; letter-spacing: .05em; display: inline-flex; align-items: center; gap: 3px; }
 
 #detail-view{display:none;position:fixed;inset:0;z-index:200;background:var(--cream);overflow-y:auto}
@@ -647,24 +652,64 @@ function renderTrail() {
   document.getElementById('progressFill').style.width = ((n/total)*100) + '%';
   document.getElementById('progressLabel').textContent = n + ' of ' + total + ' sites visited';
   var html = '';
+
+  // Heritage sites
   SITES.forEach(function(s) {
     var v = visited[s.id];
     var free = canAccess(s.id);
     var lockBadge = !free ? '<span class="lock-badge">&#128274; Phase 2</span>' : '';
-    html += '<div class="site-card' + (v ? ' visited' : '') + (!free ? ' locked-site' : '') + '" data-id="' + s.id + '">' +
+    var statusBadge = s.bp
+      ? '<span class="status-badge status-bp">&#128308; Blue Plaque</span>'
+      : '<span class="status-badge status-her">&#128309; Heritage Site</span>';
+    html += '<div class="site-card' + (v ? ' visited' : '') + (!free ? ' locked-site' : '') + '" data-id="' + s.id + '" data-type="site">' +
       '<div class="card-accent ' + s.ac + '"></div>' +
       '<div class="card-body">' +
         '<div class="card-icon">' + (free ? s.icon : '&#128274;') + '</div>' +
         '<div class="card-info">' +
           '<div class="card-name">' + s.name + '</div>' +
-          '<div class="card-meta"><span class="card-year">' + s.year + '</span>' + lockBadge + (!free ? '' : '<span class="card-addr">' + s.address + '</span>') + '</div>' +
+          '<div class="card-meta-row">' + statusBadge + (free ? '<span class="card-year">' + s.year + '</span>' : lockBadge) + '</div>' +
+          (free ? '<div class="card-addr">' + s.address + '</div>' : '') +
         '</div>' +
         '<div class="card-stamp' + (v ? ' earned' : '') + '">' + (v ? '&#10003;' : (free ? '&#9675;' : '&#128274;')) + '</div>' +
       '</div></div>';
   });
+
+  // Partner cards
+  if (PARTNERS && PARTNERS.length) {
+    html += '<span class="section-label" style="display:block;padding:14px 4px 6px">Business Partners</span>';
+    PARTNERS.forEach(function(p) {
+      var used = isVoucherUsed(p.id);
+      var unlocked = isUnlocked();
+      var statusBadge = '<span class="status-badge status-par">&#127981; Partner</span>';
+      var offerBadge = '<span class="card-year" style="background:#fff0f0;color:#c0392b;border-color:#f5c6c6">' + p.offer + ' off</span>';
+      var rightIcon = !unlocked
+        ? '<div class="card-stamp" style="border-color:#bbb;color:#bbb">&#128274;</div>'
+        : used
+          ? '<div class="card-stamp earned" style="background:#c0392b;border-color:#c0392b">&#10003;</div>'
+          : '<div class="card-stamp" style="border-color:#c0392b;color:#c0392b">&#127981;</div>';
+      html += '<div class="site-card" data-id="' + p.id + '" data-type="partner">' +
+        '<div class="card-accent" style="background:#c0392b"></div>' +
+        '<div class="card-body">' +
+          '<div class="card-icon">' + p.icon + '</div>' +
+          '<div class="card-info">' +
+            '<div class="card-name">' + p.name + '</div>' +
+            '<div class="card-meta-row">' + statusBadge + offerBadge + '</div>' +
+            '<div class="card-addr">' + p.address + '</div>' +
+          '</div>' +
+          rightIcon +
+        '</div></div>';
+    });
+  }
+
   document.getElementById('sitesList').innerHTML = html;
-  document.querySelectorAll('.site-card').forEach(function(card) {
+  document.querySelectorAll('.site-card[data-type="site"]').forEach(function(card) {
     card.addEventListener('click', function() { openDetailWithHistory(this.dataset.id); });
+  });
+  document.querySelectorAll('.site-card[data-type="partner"]').forEach(function(card) {
+    card.addEventListener('click', function() {
+      history.pushState({ tab: 'partners' }, '');
+      switchTab('partners');
+    });
   });
 }
 
