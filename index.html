@@ -62,6 +62,10 @@ nav::-webkit-scrollbar{display:none}
 .card-addr{font-size:.7rem;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
 .card-stamp{width:32px;height:32px;border-radius:50%;border:1.5px dashed var(--sage);display:flex;align-items:center;justify-content:center;color:var(--sage);font-size:.9rem;opacity:.5;flex-shrink:0;transition:all .3s}
 .card-stamp.earned{border-style:solid;border-color:var(--olive);background:var(--olive);color:#fff;opacity:1}
+
+.site-card.locked-site .card-stamp { border-color: #bbb; color: #bbb; }
+.lock-badge { background: #888; color: #fff; padding: 1px 7px; border-radius: 10px; font-size: .62rem; font-weight: 700; letter-spacing: .05em; display: inline-flex; align-items: center; gap: 3px; }
+
 #detail-view{display:none;position:fixed;inset:0;z-index:200;background:var(--cream);overflow-y:auto}
 #detail-view.open{display:block;animation:slideUp .28s ease}
 @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -151,6 +155,32 @@ nav::-webkit-scrollbar{display:none}
 .burst-icon{font-size:2.4rem}
 .burst-text{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-top:4px;color:var(--sage)}
 
+.partners-wrap{padding:16px}
+.partners-hero{background:var(--olive);border-radius:12px;padding:26px 20px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden}
+.partners-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 24px,rgba(200,212,184,.04) 24px,rgba(200,212,184,.04) 48px)}
+.partners-hero-icon{font-size:2.4rem;margin-bottom:8px;position:relative}
+.partners-hero h2{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:#fff;margin-bottom:8px;position:relative}
+.partners-hero p{color:var(--sage);font-size:.82rem;line-height:1.7;position:relative}
+.partner-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;border:1.5px solid var(--sage)}
+.partner-card-header{background:linear-gradient(135deg,var(--olive),var(--olive-mid));padding:18px 18px 14px;display:flex;align-items:center;gap:12px}
+.partner-logo{width:48px;height:48px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0}
+.partner-card-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:#fff}
+.partner-card-type{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--sage);margin-top:2px}
+.partner-card-body{padding:16px 18px}
+.partner-offer{background:var(--sage-pale);border:1px solid var(--sage);border-radius:8px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.partner-offer-pct{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--olive);line-height:1;flex-shrink:0}
+.partner-offer-detail{flex:1}
+.partner-offer-label{font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.partner-offer-sub{font-size:.72rem;color:var(--text-light);line-height:1.5}
+.partner-desc{font-size:.82rem;color:var(--text-mid);line-height:1.72;margin-bottom:14px}
+.partner-addr{font-size:.75rem;color:var(--text-light);margin-bottom:14px;display:flex;align-items:center;gap:5px}
+.btn-voucher{width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-voucher:hover{background:var(--olive-mid)}
+.btn-voucher.used{background:var(--text-light);cursor:default}
+.btn-voucher.locked{background:#aaa;cursor:not-allowed}
+.partners-note{background:#fffbea;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:12px 14px;margin-top:6px}
+.partners-note p{font-size:.75rem;color:var(--text-light);line-height:1.6}
+
 </style>
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
@@ -188,12 +218,12 @@ nav::-webkit-scrollbar{display:none}
 </div>
 
 <div id="splash">
-  <div class="splash-beta">v1.0</div>
+  <div class="splash-beta">v2.1</div>
   <img class="splash-logo" id="splash-logo" src="" alt="Clarens Heritage Association">
   <h1 class="splash-title">Heritage<br>Trail</h1>
   <p class="splash-sub">Clarens &middot; Free State &middot; Est. 1912</p>
   <button class="btn-start" id="btnStart">Begin Your Journey</button>
-  <p class="splash-footer">clarensheritage.org &middot; v1.0 &middot; &copy; 2025</p>
+  <p class="splash-footer">clarensheritage.org &middot; v2.1 &middot; &copy; 2025–2026</p>
 </div>
 
 <div class="stamp-burst" id="stampBurst">
@@ -210,13 +240,14 @@ nav::-webkit-scrollbar{display:none}
         <span class="hdr-sub">Clarens Heritage Association</span>
       </div>
     </div>
-    <div class="hdr-beta">v1.0</div>
+    <div class="hdr-beta">v2.1</div>
   </header>
   <nav>
     <div class="nav-tab active" id="tab-trail">Trail</div>
     <div class="nav-tab" id="tab-passport">Passport</div>
     <div class="nav-tab" id="tab-map">Map</div>
     <div class="nav-tab" id="tab-about">About</div>
+    <div class="nav-tab" id="tab-partners">Partners</div>
   </nav>
   <div class="panel active" id="panel-trail">
     <div class="trail-hero">
@@ -252,6 +283,20 @@ nav::-webkit-scrollbar{display:none}
     <div class="map-wrap">
       <div id="leaflet-map"></div>
       <button class="map-locate-btn" id="btnLocate" title="My location">&#x25CE;</button>
+    </div>
+  </div>
+  <div class="panel" id="panel-partners">
+    <div class="partners-wrap">
+      <div class="partners-hero">
+        <div class="partners-hero-icon">&#127968;</div>
+        <h2>Business Partners</h2>
+        <p>Support local businesses that partner with the Clarens Heritage Association — and enjoy exclusive rewards as you explore the trail.</p>
+      </div>
+      <span class="section-label">Active Partners</span>
+      <div id="partnersList"></div>
+      <div class="partners-note">
+        <p>&#9432; Vouchers are for Phase 2 trail users only. Each voucher can be used once. Present your voucher screen to the cashier.</p>
+      </div>
     </div>
   </div>
   <div class="panel" id="panel-about">
@@ -319,6 +364,54 @@ nav::-webkit-scrollbar{display:none}
   <div id="detailContent"></div>
 </div>
 
+
+<div id="tokenModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(30,35,24,.6);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--cream);border-radius:14px;padding:28px 24px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.25)">
+    <button id="tokenClose" style="position:absolute;top:14px;right:14px;background:rgba(74,82,64,.1);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;color:var(--olive);display:flex;align-items:center;justify-content:center">&#215;</button>
+    <div style="font-size:2rem;text-align:center;margin-bottom:10px">&#128274;</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:6px;text-align:center">Phase 2 — Unlock</div>
+    <p style="font-size:.82rem;color:var(--text-light);line-height:1.65;margin-bottom:20px;text-align:center">This site is part of Phase 2.<br>Enter your unlock token to access all 14 sites.</p>
+    <input id="tokenInput" type="text" placeholder="Enter token (e.g. CHA2025)" style="width:100%;padding:12px 14px;border:1.5px solid var(--sage);border-radius:8px;font-family:'Jost',sans-serif;font-size:.9rem;color:var(--text);background:#fff;outline:none;margin-bottom:10px;box-sizing:border-box;text-transform:uppercase;letter-spacing:.1em">
+    <div id="tokenMsg" style="font-size:.75rem;color:#c0392b;text-align:center;min-height:18px;margin-bottom:10px"></div>
+    <button id="tokenSubmit" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Unlock Now</button>
+    <p style="font-size:.72rem;color:var(--text-light);text-align:center;margin-top:14px;line-height:1.55">Don't have a token? Visit <a href="https://clarensheritage.org/trail" target="_blank" style="color:var(--olive);font-weight:700">clarensheritage.org/trail</a><br>to purchase Phase 2 for R49.</p>
+  </div>
+</div>
+
+<div id="voucherModal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(30,35,24,.7);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--cream);border-radius:14px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.3);overflow:hidden">
+    <div style="background:var(--olive);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:#fff">Your Voucher</div>
+      <button id="voucherClose" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">&#215;</button>
+    </div>
+    <div style="padding:24px 20px;text-align:center">
+      <div id="voucherPartnerName" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--olive);margin-bottom:4px"></div>
+      <div id="voucherReward" style="font-size:.82rem;color:var(--text-light);margin-bottom:20px"></div>
+      <div id="voucherActiveSection">
+        <div style="background:var(--sage-pale);border:2px dashed var(--olive);border-radius:12px;padding:20px 16px;margin-bottom:16px">
+          <div style="font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text-light);margin-bottom:8px">Voucher Code</div>
+          <div id="voucherCode" style="font-family:monospace;font-size:1.15rem;font-weight:700;color:var(--olive);letter-spacing:.12em;word-break:break-all;line-height:1.5"></div>
+        </div>
+        <div id="voucherConfirmSection" style="display:none">
+          <div style="background:#fff3cd;border-left:3px solid #e6a817;border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:14px;font-size:.78rem;color:var(--text-mid);line-height:1.6">
+            &#9888; Once confirmed, this voucher will be cancelled and <strong>cannot be used again</strong>.
+          </div>
+          <div style="display:flex;gap:8px">
+            <button id="voucherCancelBtn" style="flex:1;background:var(--sage-pale);color:var(--olive);border:1.5px solid var(--sage);padding:13px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer">&#8592; Back</button>
+            <button id="voucherConfirmBtn" style="flex:2;background:var(--gold);color:#fff;border:none;padding:13px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer">&#10003; Confirm &amp; Use</button>
+          </div>
+        </div>
+        <div id="voucherShowBtn" style="margin-top:4px">
+          <button id="voucherRevealBtn" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">&#127981; Show Code &amp; Use Voucher</button>
+        </div>
+      </div>
+      <div id="voucherUsedMsg" style="display:none;background:#f8f0e8;border:1.5px solid var(--gold);border-radius:8px;padding:16px;font-size:.82rem;color:var(--text);margin-bottom:16px;text-align:center;line-height:1.6">
+        &#10003; This voucher has already been used.<br>Thank you for visiting Clarens Coffee Co.!
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // Set logo on load
@@ -332,21 +425,21 @@ document.getElementById('splash-logo').src = LOGO;
 document.getElementById('hdr-logo').src = LOGO;
 
 var SITES = [
-  {id:'primary-school', bp:true, name:'Clarens Primary School', year:1914, address:'Cnr Main & Malherbe Streets', icon:'&#127979;', ac:'ac-blue', dot:'#1a4a7a', lat:-28.5233, lng:28.4275, radius:30,
+  {id:'primary-school', bp:true, name:'Clarens Primary School', year:1914, address:'Cnr Main & Malherbe Streets', icon:'&#127979;', ac:'ac-blue', dot:'#1a4a7a', lat:-28.519254399590505, lng:28.415812215247215, radius:30,
    map:'https://maps.google.com/?q=Clarens+Primary+School,+Clarens,+Free+State',
    facts:[{l:'Built',v:'1914'},{l:'Material',v:'Sandstone (Kgubetswana quarry)'},{l:'First principal',v:'J.S. (Jimmy) de Leeuw (1914-1944)'},{l:'Opening',v:'2 September 1914 — 42 pupils'},{l:'Windows',v:'Sash replaced 1968; renovated 2014'},{l:'Current use',v:'School administration offices'},{l:'Status',v:'Section 38, NHRA'}],
    story:['In 1914 a new three-classroom sandstone school was built on the corner of Main and Malherbe Streets, with stone hewn from the quarry near Kgubetswana. The townspeople quarried, loaded, and delivered the sandstone blocks by ox-wagon for months. Skilled stonemasons laid the foundations and walls; carpenters fitted the roof, ceilings, sash windows, and wooden doors. At the back were two washing rooms with four basins each. Every classroom was heated by a Queen coal stove.',
      'On 24 August 1914, principal Mr J.S. de Leeuw wrote in the School Journal: "Duties were taken up in the new school building and five more pupils admitted." On 2 September 1914, H. de Villiers — Chairman of the Bethlehem School Board — officially opened the Clarens School with 42 pupils on the roll.',
      'Jimmy de Leeuw served as principal from 1914 to 1944 — thirty years at the helm of the school he helped open. His steady leadership shaped the educational character of the village through its earliest and most formative decades.',
      'The original sash windows were replaced with steel windows in 1968. During the 2014 renovation the sandstone building was retained and carefully converted into school offices using reversible dry-walling, preserving its full heritage value. From 42 founding pupils the school now serves over 1,000 learners.']},
-  {id:'frost-house', bp:true, name:'Frost House', year:1920, address:'264 Church Street (opp. police station)', icon:'&#127968;', ac:'ac-olive', dot:'#4E5530', lat:-28.5251, lng:28.4268, radius:30,
+  {id:'frost-house', bp:true, name:'Frost House', year:1920, address:'264 Church Street (opp. police station)', icon:'&#127968;', ac:'ac-olive', dot:'#4E5530', lat:-28.51503306028405, lng:28.419379144571852, radius:30,
    map:'https://maps.google.com/?q=264+Church+Street+Clarens+Free+State',
    facts:[{l:'Address',v:'264 Church Street, Clarens'},{l:'Built',v:'~Early 1920s (exact date unrecorded)'},{l:'Style',v:'Victorian corrugated iron'},{l:'Notable owner',v:'Juan "Jack" Max Frost (1974-1980)'},{l:'Restoration',v:'2015 — Smallpeice & Pender'},{l:'Architect',v:'Jaap Boonstra'},{l:'Status',v:'Section 38, NHRA'}],
    story:['Frost House at 264 Church Street is one of only two remaining corrugated iron buildings in Clarens still standing and occupied. Architect Jaap Boonstra believed it may originally have been a Victorian flat-pack structure built in the early 1920s — no original council plans survive to confirm the exact date.',
      'The Deeds Registry records a succession of owners: Van der Merwe (1914), Naude (1926), Luyt (1949), before Juan Max "Jack" Frost acquired it in 1974. Jack — a WWII RAF veteran, former racing car driver, and owner of the Clarens supply store — gave the house his name. He served on the Clarens Town Council and as deacon of the DR Church. By 1978, when artist Annetjie Muller sketched the house, it was still well maintained. After Jack sold in 1980 it passed through several hands and fell into serious disrepair.',
      'In 2015 Adrian Smallpeice and Richard Pender bought the house with the specific aim of rescuing it from ruin. Working with architect Jaap Boonstra, they removed only two internal walls and retained the original timber windows, wooden floors, and vaulted ceilings. The footprint remains almost unchanged apart from a patio at the back.',
      'The original wooden floor — nearly a century old — survived the years of neglect largely undamaged. The owners insisted that the builder Jacques Viljoen not sand it down, preserving its extraordinary patina. The village butcher "Riempies" donated the doorbell. The late Helen Boucher, a local farmer, designed the garden using grasses and plants transplanted from her farm wetland, with an indigenous hedgerow connecting the house to the surrounding landscape.']},
-  {id:'ou-kliphuis', bp:true, name:'Ou Kliphuis', year:1927, address:'Main Street, opp. Church Hall (Erven 177 & 178)', icon:'&#129704;', ac:'ac-gold', dot:'#c8a052', lat:-28.5245, lng:28.4261, radius:30,
+  {id:'ou-kliphuis', bp:true, name:'Ou Kliphuis', year:1927, address:'Main Street, opp. Church Hall (Erven 177 & 178)', icon:'&#129704;', ac:'ac-gold', dot:'#c8a052', lat:-28.51797788685787, lng:28.418767887436804, radius:30,
    map:'https://maps.google.com/?q=Ou+Kliphuis,+Main+Street,+Clarens',
    facts:[{l:'Built',v:'~1927 (no original records)'},{l:'Erven',v:'177 & 178, Main Street'},{l:'Material',v:'Sandstone'},{l:'Original use',v:'Nagmaal dorpshuisie'},{l:'Architect (2013–14)',v:'Jaap Boonstra'},{l:'Builder (2013–14)',v:'Bruce Marx'},{l:'Current use',v:'Guest house'},{l:'Status',v:'Section 34(1), NHRA (60+ years)'}],
    story:['The Ou Kliphuis — Erven 177 and 178 on Main Street, opposite the Church Hall — is a typical small one-bedroom sandstone house, built around 1927 according to former Clarens mayor Martie Lotz, though no original Deeds Office records confirm the exact date. It likely served as a dorpshuisie for farming families attending nagmaal and church.',
@@ -354,7 +447,7 @@ var SITES = [
      'In 1990, Rika Susanna Raats (daughter of E C D Bruwer) became owner. Erven 177 measured 798 m², valued at R7 500, with the house at R11 400. She did sensitive restoration around 2000, maintaining the absence of electricity and the Dover coal stove in the small kitchen.',
      'In 2014, Nancy Whittaker’s daughter Oonagh Wohanka purchased the house. Architect Jaap Boonstra drew the renovation plans and Bruce Marx was the builder. The kitchen, scullery, and en-suite bedrooms were extended; a new gable was constructed using repurposed sandstone from Beginsel farm to mirror the original. Only three doors, four windows, and the front sandstone façade remain unchanged.',
      'Nancy Whittaker — artist, writer, chef, and enthusiastic gardener — lived in the house until her death in 2022, creating the beautiful cottage garden still enjoyed today. Her son Bruce Fordyce, the celebrated South African marathon runner, has close ties with Clarens. The family continues to own and operate Ou Kliphuis as a guest house.']},
-  {id:'methodist-church', bp:true, name:'Methodist Church', year:1936, address:'Cnr Roos & Bester Streets', icon:'&#9962;', ac:'ac-mid', dot:'#606e42', lat:-28.5248, lng:28.4272, radius:30,
+  {id:'methodist-church', bp:true, name:'Methodist Church', year:1936, address:'Cnr Roos & Bester Streets', icon:'&#9962;', ac:'ac-mid', dot:'#606e42', lat:-28.517793235203317, lng:28.419465920237750, radius:30,
    map:'https://maps.google.com/?q=Methodist+Church,+Clarens,+Free+State',
    facts:[{l:'First services',v:'1866 (Joseph Liddell, Bethel farm)'},{l:'Cornerstone laid',v:'3 August 1936'},{l:'Total cost',v:'650 pounds'},{l:'Donor',v:'Bethlehem Methodist Church'},{l:'Stone from',v:'Liddell & Walker families'},{l:'Carpenter',v:'Hugo Walker (lost three fingers)'},{l:'Pulpit',v:'Crafted by Hugo Walker'},{l:'Organ',v:'Pumped by Harry Mokoena; now in church hall'},{l:'First permanent minister',v:'Francois Brink'},{l:'Status',v:'Section 38, NHRA'}],
    story:['The Methodist Church on the corner of Roos and Bester Streets is one of the most cherished buildings in Clarens. The first Methodist services in the district were held as far back as 1866, when Joseph Liddell — a Scottish missionary at Bethel farm — conducted services for English, Scottish, and Irish farming families along the Basotho border, long before any town existed.',
@@ -362,35 +455,35 @@ var SITES = [
      'In 1936 the community finally built its own church. The Clarens Council donated the erven; James Strapp of Bethlehem paid off the Bethlehem church debt, and that congregation donated 650 pounds to Clarens. The Liddell brothers carted sandstone from their farms by ox-wagon; Gert van Zyl was the stonemason; Hugo Walker crafted every pew, beam, and fitting by hand — losing three fingers in the process.',
      'Emma Walker of St Fort laid the cornerstone on 3 August 1936, sealing coins, a newspaper, and magazines beneath it. On opening day the final 40 pounds was raised on the spot. Today the building is almost entirely unaltered — original beams, pews, wooden floor, and stained-glass windows all in place. Hugo also crafted the pulpit, completing a remarkable contribution to the building. Memorials to the Liddell brothers and Hugo Walker are mounted on the walls.',
      'The organ, faithfully pumped by Harry Mokoena for many years, now stands in the church hall. The first permanent minister of the congregation was Francois Brink.']},
-  {id:'clementines', name:"Clementine's Restaurant", year:1997, address:'Corner Church & Van Reenen Streets', icon:'&#127869;', ac:'ac-gold', dot:'#c8a052', lat:-28.5242, lng:28.4265, radius:30,
+  {id:'clementines', name:"Clementine's Restaurant", year:1997, address:'Corner Church & Van Reenen Streets', icon:'&#127869;', ac:'ac-gold', dot:'#c8a052', lat:-28.51387909278704, lng:28.420386355507794, radius:30,
    map:'https://maps.google.com/?q=Clementines+Restaurant+Clarens+Free+State',
    facts:[{l:'Original use',v:'SA Railways bus maintenance shed'},{l:'Inspection pit',v:'Original feature — trap door for bus servicing'},{l:'First reuse',v:'1992 — Bruce Weyers; Clarens Weavers (Jenny Roberts)'},{l:'Demolished & rebuilt',v:'1997 — Hugo & Anette Vyfer; The Buffalo Restaurant'},{l:'Clementines opened',v:'1999 — Wolfgang & Annie Bittner (lease)'},{l:'Building purchased',v:'2003 — Wolfgang Bittner'},{l:'Current owner',v:'Shelley Tresidder (since 2010)'},{l:'Mark joined',v:'2015'},{l:'Structure',v:'Corrugated iron retained from 1997 rebuild'}],
    story:["One of Clarens's most beloved landmarks, Clementines Restaurant stands on the corner of Church and Van Reenen Streets in what was originally a South African Railways bus maintenance shed — a corrugated iron structure complete with an inspection pit and a trap door for servicing the buses underneath.",
      'In 1992 Bruce Weyers acquired the old shed, and Jenny Roberts established Clarens Weavers there, giving the industrial space its first creative life. In 1997 Hugo and Anette Vyfer purchased the property, demolished the original shed, and redesigned it as The Buffalo Restaurant, which was run by Marie Verster.',
      "In 1999 Wolfgang and Annie Bittner leased the building and opened a restaurant they named Clementines — a name that would become synonymous with fine dining in the village. They eventually purchased the property in 2003, and Wolfgang made further modifications to the front facade while retaining the building's distinctive corrugated iron character. Tragedy struck when Annie died in a car accident, and Wolfgang gradually lost interest in the business.",
      "In 2010 Shelley Tresidder bought Clementines and has owned and run it ever since, continuing the tradition of exceptional food within the atmospheric iron-roofed dining room. Her husband Mark joined the business in 2015. Today Clementines is as well known for its architecture as for its menu — the corrugated iron walls that once sheltered buses and mechanics now enclose one of the Free State's most celebrated restaurants."]},
-  {id:'posthouse', name:'The Posthouse', year:1921, address:'276 Main Street', icon:'&#9993;', ac:'ac-blue', dot:'#1a4a7a', lat:-28.5238, lng:28.4263, radius:30,
+  {id:'posthouse', name:'The Posthouse', year:1921, address:'276 Main Street', icon:'&#9993;', ac:'ac-blue', dot:'#1a4a7a', lat:-28.515592819935424, lng:28.420186453764980, radius:30,
    map:'https://maps.google.com/?q=276+Main+Street+Clarens+Free+State',
    facts:[{l:'Built',v:'1921'},{l:'Material',v:'Rooiberg sandstone (local quarry)'},{l:'Original use',v:'Clarens Post Office'},{l:'Post office closed',v:'1994 (73 years of service)'},{l:'Restored by',v:'Bruce Marx (long-time resident)'},{l:'Current use',v:'Post House Restaurant & shops'},{l:'Style',v:'Free State vernacular masonry'}],
    story:['Built in 1921 from locally quarried Rooiberg sandstone, the single-storey building at 276 Main Street served as the original Clarens Post Office for 73 years. In its early decades mail arrived by horseback and mail coach, and later by South African Railways buses — making the post office a daily hub of village life until it moved premises in 1994.',
      'The simple Free State village commercial form is an intact example of the vernacular masonry that gives Clarens its characteristic streetscape. Thick sandstone walls provide natural insulation against highveld extremes, and the building’s façade has changed little in over a century.',
      'Long-time resident and builder Bruce Marx — who also worked on the 2013–14 Ou Kliphuis renovation — restored the building, ensuring its fabric was carefully preserved while adapting it for new uses.',
      'Today the building houses the Post House Restaurant and two further shops, continuing its role as a social gathering place for residents and visitors alike. In preserving both its original fabric and its community function, the Posthouse remains one of the most tangible links to Clarens’s early commercial life.']},
-  {id:'titanic-rock', name:'Titanic Rock', year:1912, address:'R711, approx. 2 km north of Clarens', icon:'&#129704;', ac:'ac-blue', dot:'#1a4a7a', lat:-28.5118, lng:28.4301, radius:2000,
+  {id:'titanic-rock', name:'Titanic Rock', year:1912, address:'R711, approx. 2 km north of Clarens', icon:'&#129704;', ac:'ac-blue', dot:'#1a4a7a', lat:-28.49333323304217, lng:28.421603107816587, radius:2000,
    map:'https://maps.google.com/?q=Titanic+Rock+Clarens+Free+State',
    facts:[{l:'Formed',v:'~180 million years ago'},{l:'Named',v:'1912'},{l:'Rock type',v:'Clarens Formation sandstone'},{l:'Location',v:'~2 km north on R711'},{l:'Named for',v:'Titanic disaster & town founding, both 1912'}],
    story:['About two kilometres north of Clarens on the R711, a dramatic natural sandstone formation rises from the landscape in a shape that has long reminded observers of the bow of a great ship cutting through water.',
      'The rock was named in 1912 — the same year Clarens was established and the same year RMS Titanic sank in the North Atlantic. Whether a deliberate tribute or a coincidence of timing, the double anniversary gives the formation a poignant resonance.',
      'The Clarens Formation sandstone was laid down as desert dunes roughly 180 million years ago. The same distinctive amber and cream stone was later quarried by the founders to build the first houses, schools, and churches.',
      "Titanic Rock is a reminder that the heritage of Clarens extends far beyond human history. The landscape itself — its cliffs, caves, and rock formations — shaped where and how people settled, and continues to define the village's remarkable character."]},
-  {id:'basotho-village', name:'Basotho Cultural Village', year:1990, address:'Golden Gate Highlands NP, ~43 km from Clarens', icon:'&#127968;', ac:'ac-olive', dot:'#4E5530', lat:-28.5931, lng:28.6108, radius:30,
+  {id:'basotho-village', name:'Basotho Cultural Village', year:1990, address:'Golden Gate Highlands NP, ~43 km from Clarens', icon:'&#127968;', ac:'ac-olive', dot:'#4E5530', lat:-28.487906648614363, lng:28.744132576455150, radius:30,
    map:'https://maps.google.com/?q=Basotho+Cultural+Village+Golden+Gate+National+Park',
    facts:[{l:'Managed by',v:'SANParks'},{l:'Location',v:'Inside Golden Gate Highlands NP'},{l:'Village tour',v:'7 days a week — 45 min'},{l:'Herbal & rock art trail',v:'Tue–Thu only — 2 hrs'},{l:'Heritage programme',v:'Tue–Thu only — 7 hrs'},{l:'Admission',v:'R60 (SA citizens) / R80 (foreign)'},{l:'Enquiries',v:'+27 58 721 0300'}],
    story:['The Basotho Cultural Village is a living open-air museum inside Golden Gate Highlands National Park, managed by SANParks. It presents Basotho homestead life from the 16th century to the present day through authentically reconstructed homesteads, each representing a different era. Resident guides demonstrate household implements, explain traditional clothing, and offer visitors the chance to meet the local chief and taste mqombothi — sorghum beer brewed on site.',
      'Three tours are on offer. The village tour runs seven days a week and takes 45 minutes. A two-hour herbal and rock art trail, offered Tuesdays to Thursdays, follows the village traditional healer through medicinal plant communities before continuing to a San rock art site. The full heritage programme — also Tuesdays to Thursdays — is a seven-hour immersive journey tracing the footsteps of the earliest inhabitants through the historical sites of QwaQwa.',
      'The village has an art gallery, curio shop, and restaurant. Traditional crafts — pottery, beadwork, shweshwe textiles, and grass baskets — are produced and sold on site, supporting local artisans and the surrounding community.',
      'Standing as a counterpoint to the Dutch-settler sandstone architecture of Clarens, the Basotho Cultural Village reminds visitors that the Maluti foothills have been home to many peoples across many centuries — long before the first wagons crossed the Rooiberge.']},
-  {id:'dinosaur-centre', name:'Kgodumodumo Dinosaur Centre', year:2023, address:'Golden Gate Highlands NP, ~15 km from Clarens', icon:'&#129430;', ac:'ac-gold', dot:'#c8a052', lat:-28.5367, lng:28.5812, radius:30,
+  {id:'dinosaur-centre', name:'Kgodumodumo Dinosaur Centre', year:2023, address:'Golden Gate Highlands NP, ~15 km from Clarens', icon:'&#129430;', ac:'ac-gold', dot:'#c8a052', lat:-28.507347135312564, lng:28.619941407290472, radius:30,
    map:'https://maps.google.com/?q=Kgodumodumo+Dinosaur+Centre+Golden+Gate',
    facts:[{l:'Opened',v:'2023'},{l:'Construction',v:'2019-2023'},{l:'Architects',v:'Mashabane Rose & Associates'},{l:'Client',v:'SANParks'},{l:'Fossil site',v:"World's oldest known dinosaur nesting ground"}],
    story:['The Kgodumodumo Dinosaur Interpretive Centre opened in 2023 inside Golden Gate Highlands National Park. Designed by Mashabane Rose & Associates, its distinctive brickwork was patterned to evoke dinosaur scales.',
@@ -398,28 +491,28 @@ var SITES = [
      'Massospondylus footprints are preserved in the rock surfaces around the centre, allowing visitors to stand where ancient animals once walked. The discovery transformed understanding of dinosaur parental behaviour.',
      'Paired with the Basotho Cultural Village and San rock art sites nearby, the Kgodumodumo Centre completes a remarkable timeline of life in this landscape.']},
 
-  {id:'schaapplaats', name:'Schaapplaats San Rock Art', year:-2000, address:'R711, ~8 km from Clarens (Fouriesburg road)', icon:'&#127775;', ac:'ac-olive', dot:'#4E5530', lat:-28.5489, lng:28.3891, radius:30,
+  {id:'schaapplaats', name:'Schaapplaats San Rock Art', year:-2000, address:'R711, ~8 km from Clarens (Fouriesburg road)', icon:'&#127775;', ac:'ac-olive', dot:'#4E5530', lat:-28.57125147213773, lng:28.450083162816085, radius:30,
    map:'https://maps.google.com/?q=Schaapplaats+Rock+Art+Clarens',
    facts:[{l:'Age',v:'~2,000 years'},{l:'Paintings',v:'35 images incl. 8 therianthropes'},{l:'Status',v:'National Monument'},{l:'Hike',v:'~2.7 km along stream'},{l:'Admission',v:'R50 | Booking essential'}],
    story:["About eight kilometres from Clarens on the R711 towards Fouriesburg, the Schaapplaats rock art site is one of South Africa's twelve declared Rock Art National Monuments, reached by a 2.7-kilometre walk along a stream.",
      'The shelter contains 35 images, including eight therianthropes — part-human, part-animal figures representing the shaman entering the spirit world during a trance dance.',
      'Along the path visitors encounter additional heritage: a dinosaur footprint preserved in the rock, and a small graveyard from a British field hospital during the Anglo-Boer War (1899-1902).',
      'Booking is essential and admission is R50 per person. Schaapplaats offers one of the most complete San art experiences in the Free State.']},
-  {id:'ng-kerk', name:'NG Kerk Clarens', year:1942, address:'Main Street, town square', icon:'&#9962;', ac:'ac-blue', dot:'#1a4a7a', lat:-28.5244, lng:28.4258, radius:30,
+  {id:'ng-kerk', name:'NG Kerk Clarens', year:1942, address:'Main Street, town square', icon:'&#9962;', ac:'ac-blue', dot:'#1a4a7a', lat:-28.51666908239544, lng:28.419260298038452, radius:30,
    map:'https://maps.google.com/?q=Dutch+Reformed+Church+Clarens+Free+State',
    facts:[{l:'Congregation founded',v:'1920'},{l:'First services',v:'Ministers from Bethlehem (Holkrans)'},{l:'First parsonage',v:'Corrugated iron — now The Posthouse'},{l:'Church built',v:'1942'},{l:'Architect',v:'Unknown'},{l:'Status',v:'National Monument'}],
    story:['The Dutch Reformed congregation of Clarens was established in 1920. In the early years ministers from Bethlehem made the long journey on horseback or by gig each month to serve the community in the Holkrans — the dramatic sandstone landscape that defines this part of the Free State Highlands.',
      'The congregation’s first parsonage was a modest corrugated iron house opposite the Post Office. It was there, during a bitterly cold winter night, that a visiting architect named Gerhard Moerdyk nearly froze — an event that would lead directly to the construction of one of Clarens’s finest buildings. You can read that story at the Gerhard Moerdyk Parsonage, just next door.',
      'The sandstone church on the town square was built in 1942, more than two decades after the congregation was founded. The long wait reflected the practical realities of a small rural community raising its own funds. When it finally rose from the ground in local sandstone, it gave the village square the architectural anchor it still has today.',
      'The church and the adjacent Gerhard Moerdyk Parsonage are both national monuments, proudly maintained by the congregation. Together they represent over a century of Dutch Reformed community life in Clarens.']},
-  {id:'pastorie', name:'Gerhard Moerdyk Parsonage', year:1923, address:'Church Street, adj. NG Kerk', icon:'&#127968;', ac:'ac-gold', dot:'#c8a052', lat:-28.5246, lng:28.4257, radius:30,
+  {id:'pastorie', name:'Gerhard Moerdyk Parsonage', year:1923, address:'Church Street, adj. NG Kerk', icon:'&#127968;', ac:'ac-gold', dot:'#c8a052', lat:-28.51724905694763, lng:28.418774178642020, radius:30,
    map:'https://maps.google.com/?q=NG+Kerk+Pastorie+Clarens+Free+State',
    facts:[{l:'Built',v:'1923'},{l:'Architect',v:'Gerhard Moerdyk (1890–1950)'},{l:'Firm',v:'Moerdyk & Louw'},{l:'Builder',v:'Brothers Prinsloo & Naude'},{l:'Plot donated by',v:'Mr D van Zyl'},{l:'Financed by',v:'Mr Keyter, Volksraad member'},{l:'Restored',v:'2020 (church council)'},{l:'Status',v:'National Monument'}],
    story:['One cold winter night in the early 1920s, a rising young architect named Gerhard Moerdyk visited his friend Rev. SJ Stander in Clarens. They slept in the congregation’s first parsonage — a draughty corrugated iron house opposite the Post Office — and nearly froze. The next morning Moerdyk made a promise: he would design a proper home for the minister.',
      'The result, completed in 1923, was a stately sandstone parsonage on a plot donated by Mr D van Zyl. Moerdyk’s firm Moerdyk & Louw drew the plans; brothers Prinsloo and Naude built it; and Mr Keyter, a member of the Volksraad, provided the loan that made it possible. Moerdyk would go on to design the Voortrekker Monument in Pretoria — making his connection to this modest village an extraordinary footnote in South African architectural history.',
      'In the 1980s, rising maintenance costs led the church council to consider selling the building. A local architect and congregation member stepped in, redesigning the interior and adding a roof space with a staircase that made the house significantly warmer and more practical. The building was saved.',
      'In 2020 the church council completed a full restoration, returning the parsonage to its former glory. It is a national monument — and a reminder that great architecture sometimes begins with a freezing cold night and a generous promise.']},
-  {id:'surrender-hill', name:'Surrender Hill', year:1900, address:'R711, ~13 km from Clarens (Fouriesburg road)', icon:'&#127988;', ac:'ac-olive', dot:'#4E5530', lat:-28.5612, lng:28.3748, radius:30,
+  {id:'surrender-hill', name:'Surrender Hill', year:1900, address:'R711, ~13 km from Clarens (Fouriesburg road)', icon:'&#127988;', ac:'ac-olive', dot:'#4E5530', lat:-28.60915934707921, lng:28.386150084926523, radius:30,
    map:'https://maps.google.com/?q=Surrender+Hill+Prinsloo+Clarens+Free+State',
    facts:[{l:'Original name',v:'Slaapkrans / Verliesfontein'},{l:'Date',v:'30 July 1900'},{l:'Boers captured',v:'4,314 men, 3 field guns, 2,800 cattle'},{l:'Ammo destroyed',v:'~6 million rounds (burnt on the hill)'},{l:'Commander',v:'Chief Comdt. Marthinus Prinsloo'},{l:'British general',v:'Gen. Archibald Hunter'},{l:'Notable escape',v:"De Wet & Steyn — ~2,000 men via Slabbert's Nek"},{l:'POW destinations',v:'Ceylon, Bermuda, St Helena'},{l:'Status',v:'National Monument (1986)'}],
    story:['In July 1900, British forces under General Archibald Hunter completed the encirclement of the Brandwater Basin, trapping the bulk of the Free State Boer forces in the mountain country near Fouriesburg. General Christiaan de Wet, escorting President Steyn, had already slipped out through Slabbert’s Nek on the night of 15 July with roughly 2,000 men — one of the most celebrated escapes of the entire war.',
@@ -427,7 +520,7 @@ var SITES = [
      'The total haul was staggering: 4,314 prisoners, three field guns, 2,800 head of cattle, and an estimated six million rounds of ammunition — all burnt on the hill by the British. The bare patches left by the fire and exploding ammunition were long visible as a reminder of the scale of the defeat. It was the largest single surrender of Boer forces in the entire Anglo-Boer War — surpassing even Cronje’s surrender at Paardeberg.',
      'The prisoners were transported by train to Cape Town and shipped to prisoner-of-war camps in Ceylon, Bermuda, and St Helena. They were permitted to return to South Africa only if they swore allegiance to the British Crown. Many refused and never returned. Christiaan de Wet, who had escaped, condemned the surrender as “’n gruwelike moord op regering, land en volk” — a horrible murder of government, country, and people.',
      'Surrender Hill was declared a National Monument in 1986. A memorial marks the site, about 13 kilometres from Clarens on the R711 towards Fouriesburg. Parking is available 130 metres from the monument.']},
-  {id:'ou-slaghuis', name:'Ou Slaghuis', year:1920, address:'Private property — viewed from street only', icon:'&#127830;', ac:'ac-gold', dot:'#c8a052', lat:-28.5250, lng:28.4270, radius:30,
+  {id:'ou-slaghuis', name:'Ou Slaghuis', year:1920, address:'Private property — viewed from street only', icon:'&#127830;', ac:'ac-gold', dot:'#c8a052', lat:-28.513289199014913, lng:28.420288125442127, radius:30,
    map:'https://www.google.com/maps/search/-28.513310,+28.420263',
    facts:[{l:'Built',v:'c. early 1920s'},{l:'Material',v:'Sandstone & corrugated iron roof'},{l:'Original use',v:'Village butchery'},{l:'Access',v:'Private property — street view only'},{l:'Co-ordinates',v:'-28.5133, 28.4203'},{l:'Note',v:'Full history to be confirmed by CHA'}],
    story:["The Ou Slaghuis — the Old Butchery — is one of Clarens's original sandstone commercial buildings, constructed in the early years of the village to serve the practical needs of the farming community. Its thick sandstone walls and corrugated iron roof, with the Rooiberge cliffs as backdrop, make it a striking example of the vernacular building tradition that defines the Clarens streetscape.",
@@ -437,6 +530,38 @@ var SITES = [
 ];
 
 var visited = JSON.parse(localStorage.getItem('cht_visited') || '{}');
+
+var FREE_SITES = ['primary-school','frost-house','methodist-church','ou-kliphuis','ng-kerk'];
+var VALID_TOKENS = ['CHA2025'];
+
+function isUnlocked() {
+  return !!localStorage.getItem('cht_token');
+}
+
+function isFree(id) {
+  return FREE_SITES.indexOf(id) !== -1;
+}
+
+function canAccess(id) {
+  return isFree(id) || isUnlocked();
+}
+
+function showTokenModal(pendingId) {
+  var modal = document.getElementById('tokenModal');
+  modal.style.display = 'flex';
+  modal.dataset.pendingId = pendingId || '';
+  document.body.style.overflow = 'hidden';
+  document.getElementById('tokenMsg').textContent = '';
+  document.getElementById('tokenInput').value = '';
+  setTimeout(function() { document.getElementById('tokenInput').focus(); }, 100);
+}
+
+function hideTokenModal() {
+  document.getElementById('tokenModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+
 
 function saveVisited() {
   try { localStorage.setItem('cht_visited', JSON.stringify(visited)); } catch(e) {}
@@ -453,7 +578,7 @@ document.getElementById('btnStart').addEventListener('click', function() {
   setTimeout(function() {
     s.style.display = 'none';
     document.getElementById('app').classList.add('visible');
-    renderTrail(); renderPassport(); renderMap();
+    renderTrail(); renderPassport(); renderMap(); renderPartners();
   }, 680);
 });
 
@@ -464,6 +589,32 @@ document.getElementById('btnDonate').addEventListener('click', function() {
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 });
+
+document.getElementById('tokenClose').addEventListener('click', hideTokenModal);
+document.getElementById('tokenModal').addEventListener('click', function(e) {
+  if (e.target === this) hideTokenModal();
+});
+document.getElementById('tokenInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('tokenSubmit').click();
+});
+document.getElementById('tokenSubmit').addEventListener('click', function() {
+  var val = document.getElementById('tokenInput').value.trim().toUpperCase();
+  var msg = document.getElementById('tokenMsg');
+  if (VALID_TOKENS.indexOf(val) !== -1) {
+    localStorage.setItem('cht_token', val);
+    hideTokenModal();
+    renderTrail(); renderPassport(); renderPartners();
+    var pendingId = document.getElementById('tokenModal').dataset.pendingId;
+    if (pendingId) { openDetailWithHistory(pendingId); }
+    msg.style.color = '#27ae60';
+    msg.textContent = '&#10003; Ontsluit!';
+  } else {
+    msg.style.color = '#c0392b';
+    msg.textContent = 'Invalid token. Please try again.';
+    document.getElementById('tokenInput').focus();
+  }
+});
+
 document.getElementById('donateClose').addEventListener('click', function() {
   document.getElementById('donateModal').style.display = 'none';
   document.body.style.overflow = '';
@@ -482,7 +633,7 @@ function switchTab(name) {
   }
 }
 
-['trail','passport','map','about'].forEach(function(name) {
+['trail','passport','map','about','partners'].forEach(function(name) {
   document.getElementById('tab-' + name).addEventListener('click', function() {
     history.pushState({ tab: name }, '');
     switchTab(name);
@@ -498,15 +649,17 @@ function renderTrail() {
   var html = '';
   SITES.forEach(function(s) {
     var v = visited[s.id];
-    html += '<div class="site-card' + (v ? ' visited' : '') + '" data-id="' + s.id + '">' +
+    var free = canAccess(s.id);
+    var lockBadge = !free ? '<span class="lock-badge">&#128274; Phase 2</span>' : '';
+    html += '<div class="site-card' + (v ? ' visited' : '') + (!free ? ' locked-site' : '') + '" data-id="' + s.id + '">' +
       '<div class="card-accent ' + s.ac + '"></div>' +
       '<div class="card-body">' +
-        '<div class="card-icon">' + s.icon + '</div>' +
+        '<div class="card-icon">' + (free ? s.icon : '&#128274;') + '</div>' +
         '<div class="card-info">' +
           '<div class="card-name">' + s.name + '</div>' +
-          '<div class="card-meta"><span class="card-year">' + s.year + '</span><span class="card-addr">' + s.address + '</span></div>' +
+          '<div class="card-meta"><span class="card-year">' + s.year + '</span>' + lockBadge + (!free ? '' : '<span class="card-addr">' + s.address + '</span>') + '</div>' +
         '</div>' +
-        '<div class="card-stamp' + (v ? ' earned' : '') + '">' + (v ? '&#10003;' : '&#9675;') + '</div>' +
+        '<div class="card-stamp' + (v ? ' earned' : '') + '">' + (v ? '&#10003;' : (free ? '&#9675;' : '&#128274;')) + '</div>' +
       '</div></div>';
   });
   document.getElementById('sitesList').innerHTML = html;
@@ -559,6 +712,10 @@ function closeDetail() {
 }
 
 function openDetailWithHistory(id) {
+  if (!canAccess(id)) {
+    showTokenModal(id);
+    return;
+  }
   history.pushState({ detailOpen: true }, '');
   openDetail(id);
 }
@@ -662,6 +819,115 @@ function renderPassport() {
   document.getElementById('stampsGrid').innerHTML = html;
 }
 
+
+var PARTNERS = [
+  {
+    id: 'clarens-coffee-co',
+    name: 'Clarens Coffee Co.',
+    type: 'Café & Bakery',
+    icon: '&#9749;',
+    offer: '10%',
+    offerLabel: '10% Discount',
+    offerSub: 'On your total bill — valid once per Phase 2 user',
+    desc: 'Nestled on the corner of Church Street, Clarens Coffee Co. serves single-origin coffee, freshly baked pastries, and light meals. The perfect stop after exploring the heritage trail.',
+    address: 'Corner Church & Piet Retief Streets, Clarens',
+    lat: -28.51387909278704,
+    lng: 28.420386355507794,
+    voucherKey: 'cht_voucher_clarens-coffee-co'
+  }
+];
+
+function isVoucherUsed(partnerId) {
+  return !!localStorage.getItem('cht_voucher_' + partnerId);
+}
+
+function markVoucherUsed(partnerId) {
+  localStorage.setItem('cht_voucher_' + partnerId, Date.now().toString());
+}
+
+function generateVoucherQR(partnerId) {
+  var token = localStorage.getItem('cht_token') || 'FREE';
+  return 'CHT-' + token + '-' + partnerId.toUpperCase().replace(/-/g,'') + '-10PCT';
+}
+
+function renderPartners() {
+  var unlocked = isUnlocked();
+  var html = '';
+  PARTNERS.forEach(function(p) {
+    var used = isVoucherUsed(p.id);
+    var btnClass = !unlocked ? 'btn-voucher locked' : (used ? 'btn-voucher used' : 'btn-voucher');
+    var btnText = !unlocked ? '&#128274; Phase 2 Required' : (used ? '&#10003; Voucher Used' : '&#127981; Show My Voucher');
+    html += '<div class="partner-card">' +
+      '<div class="partner-card-header">' +
+        '<div class="partner-logo">' + p.icon + '</div>' +
+        '<div><div class="partner-card-title">' + p.name + '</div>' +
+        '<div class="partner-card-type">' + p.type + '</div></div>' +
+      '</div>' +
+      '<div class="partner-card-body">' +
+        '<div class="partner-offer">' +
+          '<div class="partner-offer-pct">' + p.offer + '</div>' +
+          '<div class="partner-offer-detail">' +
+            '<div class="partner-offer-label">' + p.offerLabel + '</div>' +
+            '<div class="partner-offer-sub">' + p.offerSub + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<p class="partner-desc">' + p.desc + '</p>' +
+        '<div class="partner-addr">&#128205; ' + p.address + '</div>' +
+        '<button class="' + btnClass + '" ' + (!unlocked || used ? 'disabled' : '') + ' data-partner="' + p.id + '">' + btnText + '</button>' +
+      '</div></div>';
+  });
+  document.getElementById('partnersList').innerHTML = html;
+  document.querySelectorAll('.btn-voucher:not(.locked):not(.used)').forEach(function(btn) {
+    btn.addEventListener('click', function() { showVoucher(this.dataset.partner); });
+  });
+}
+
+function showVoucher(partnerId) {
+  var p = PARTNERS.find(function(x) { return x.id === partnerId; });
+  if (!p) return;
+  var used = isVoucherUsed(partnerId);
+  document.getElementById('voucherPartnerName').textContent = p.name;
+  document.getElementById('voucherReward').textContent = p.offerLabel + ' — ' + p.offerSub;
+  if (!used) {
+    var code = generateVoucherQR(partnerId);
+    document.getElementById('voucherCode').textContent = code;
+    document.getElementById('voucherActiveSection').style.display = 'block';
+    document.getElementById('voucherUsedMsg').style.display = 'none';
+    document.getElementById('voucherConfirmSection').style.display = 'none';
+    document.getElementById('voucherShowBtn').style.display = 'block';
+  } else {
+    document.getElementById('voucherActiveSection').style.display = 'none';
+    document.getElementById('voucherUsedMsg').style.display = 'block';
+  }
+  var modal = document.getElementById('voucherModal');
+  modal.style.display = 'flex';
+  modal.dataset.partnerId = partnerId;
+  document.body.style.overflow = 'hidden';
+}
+
+document.getElementById('voucherClose').addEventListener('click', function() {
+  document.getElementById('voucherModal').style.display = 'none';
+  document.body.style.overflow = '';
+});
+document.getElementById('voucherRevealBtn').addEventListener('click', function() {
+  document.getElementById('voucherShowBtn').style.display = 'none';
+  document.getElementById('voucherConfirmSection').style.display = 'block';
+});
+document.getElementById('voucherCancelBtn').addEventListener('click', function() {
+  document.getElementById('voucherConfirmSection').style.display = 'none';
+  document.getElementById('voucherShowBtn').style.display = 'block';
+});
+document.getElementById('voucherConfirmBtn').addEventListener('click', function() {
+  var partnerId = document.getElementById('voucherModal').dataset.partnerId;
+  if (!partnerId) return;
+  markVoucherUsed(partnerId);
+  renderPartners();
+  document.getElementById('voucherActiveSection').style.display = 'none';
+  document.getElementById('voucherUsedMsg').style.display = 'block';
+});
+document.getElementById('voucherModal').addEventListener('click', function(e) {
+  if (e.target === this) { this.style.display = 'none'; document.body.style.overflow = ''; }
+});
 var leafletMap = null;
 
 function renderMap() {
@@ -704,25 +970,71 @@ function renderMap() {
     );
   });
 
+  PARTNERS.forEach(function(p) {
+    if (!p.lat || !p.lng) return;
+    var partnerIcon = L.divIcon({
+      className: '',
+      html: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="38" viewBox="0 0 28 38">' +
+        '<path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 24 14 24s14-14.67 14-24C28 6.27 21.73 0 14 0z" fill="#c0392b"/>' +
+        '<circle cx="14" cy="14" r="6" fill="#fff"/>' +
+        '</svg>',
+      iconSize: [28, 38],
+      iconAnchor: [14, 38],
+      popupAnchor: [0, -38]
+    });
+    var marker = L.marker([p.lat, p.lng], { icon: partnerIcon }).addTo(leafletMap);
+    marker.bindPopup(
+      '<div class="map-popup-name">&#9749; ' + p.name + '</div>' +
+      '<div class="map-popup-addr">' + p.address + '</div>' +
+      '<div style="font-size:.72rem;color:#c0392b;font-weight:700;margin-top:4px">&#127981; ' + p.offerLabel + '</div>'
+    );
+  });
+
   setTimeout(function() { leafletMap.invalidateSize(); }, 200);
 }
 
 function openSiteFromMap(id) {
   var s = SITES.find(function(x) { return x.id === id; });
-  if (s) { leafletMap.closePopup(); openDetail(s); }
+  if (!s) return;
+  leafletMap.closePopup();
+  if (!canAccess(id)) { showTokenModal(id); return; }
+  openDetail(s);
+}
+
+var _locateMarker = null;
+var _locateWatch = null;
+
+function updateLocateMarker(pos) {
+  var latlng = [pos.coords.latitude, pos.coords.longitude];
+  if (_locateMarker) {
+    _locateMarker.setLatLng(latlng);
+  } else {
+    _locateMarker = L.circleMarker(latlng, {
+      radius: 10, fillColor: '#4285F4', color: '#fff',
+      weight: 3, opacity: 1, fillOpacity: 0.95
+    }).addTo(leafletMap).bindPopup('You are here');
+  }
+  leafletMap.setView(latlng, 17);
+  _locateMarker.openPopup();
 }
 
 document.getElementById('btnLocate').addEventListener('click', function() {
   if (!navigator.geolocation) { alert('Location not available on this device.'); return; }
+  if (_locateWatch) {
+    navigator.geolocation.clearWatch(_locateWatch);
+    _locateWatch = null;
+    if (_locateMarker) { leafletMap.removeLayer(_locateMarker); _locateMarker = null; }
+    return;
+  }
   navigator.geolocation.getCurrentPosition(function(pos) {
-    var latlng = [pos.coords.latitude, pos.coords.longitude];
-    leafletMap.setView(latlng, 17);
-    L.circleMarker(latlng, {
-      radius: 8, fillColor: '#c8a052', color: '#fff',
-      weight: 2, opacity: 1, fillOpacity: 0.9
-    }).addTo(leafletMap).bindPopup('You are here').openPopup();
+    updateLocateMarker(pos);
+    _locateWatch = navigator.geolocation.watchPosition(
+      updateLocateMarker,
+      function() {},
+      { enableHighAccuracy: true, maximumAge: 5000 }
+    );
   }, function() {
     alert('Could not get your location. Please check your device settings.');
-  });
+  }, { enableHighAccuracy: true, timeout: 10000 });
 });
 </script></body></html>
