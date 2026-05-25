@@ -271,13 +271,13 @@ nav::-webkit-scrollbar{display:none}
     <div class="hdr-beta">v2.2</div>
   </header>
   <nav>
-    <div class="nav-tab active" id="tab-trail">Trail</div>
+    <div class="nav-tab active" id="tab-map">Map</div>
+    <div class="nav-tab" id="tab-trail">Trail</div>
     <div class="nav-tab" id="tab-passport">Passport</div>
-    <div class="nav-tab" id="tab-map">Map</div>
+    <div class="nav-tab" id="tab-vouchers">Vouchers</div>
     <div class="nav-tab" id="tab-about">About</div>
-    <div class="nav-tab" id="tab-partners">Partners</div>
   </nav>
-  <div class="panel active" id="panel-trail">
+  <div class="panel" id="panel-trail">
     <div class="trail-hero">
       <h2>Heritage Trail</h2>
       <p>Discover 30 sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.</p>
@@ -307,17 +307,17 @@ nav::-webkit-scrollbar{display:none}
       </div>
     </div>
   </div>
-  <div class="panel" id="panel-map">
+  <div class="panel active" id="panel-map">
     <div class="map-wrap">
       <div id="leaflet-map"></div>
       <button class="map-locate-btn" id="btnLocate" title="My location" aria-label="Show my location on map">&#x25CE;</button>
     </div>
   </div>
-  <div class="panel" id="panel-partners">
+  <div class="panel" id="panel-vouchers">
     <div class="partners-wrap">
       <div class="partners-hero">
         <div class="partners-hero-icon">&#127968;</div>
-        <h2>Business Partners</h2>
+        <h2>Vouchers</h2>
         <p>Support local businesses that partner with the Clarens Heritage Association — and enjoy exclusive rewards as you explore the trail.</p>
       </div>
       <span class="section-label">Active Partners</span>
@@ -872,6 +872,11 @@ document.getElementById('btnStart').addEventListener('click', function() {
     s.style.display = 'none';
     document.getElementById('app').classList.add('visible');
     renderTrail(); renderPassport(); renderMap(); renderPartners();
+    // Open on Map tab and trigger GPS immediately
+    switchTab('map');
+    setTimeout(function() {
+      document.getElementById('btnLocate').click();
+    }, 800);
   }, 680);
 });
 
@@ -931,7 +936,7 @@ function switchTab(name) {
   }
 }
 
-['trail','passport','map','about','partners'].forEach(function(name) {
+['map','trail','passport','vouchers','about'].forEach(function(name) {
   document.getElementById('tab-' + name).addEventListener('click', function() {
     history.pushState({ tab: name }, '');
     switchTab(name);
@@ -1019,7 +1024,7 @@ function renderTrail() {
   document.querySelectorAll('.site-card[data-type="partner"]').forEach(function(card) {
     card.addEventListener('click', function() {
       history.pushState({ tab: 'partners' }, '');
-      switchTab('partners');
+      switchTab('vouchers');
     });
   });
 }
@@ -1085,7 +1090,7 @@ window.addEventListener('popstate', function(e) {
   } else if (e.state && e.state.tab) {
     switchTab(e.state.tab);
   } else {
-    switchTab('trail');
+    switchTab('map');
   }
 });
 
@@ -1355,8 +1360,7 @@ function openSiteFromMap(id) {
   var s = SITES.find(function(x) { return x.id === id; });
   if (!s) return;
   leafletMap.closePopup();
-  if (!canAccess(id)) { showTokenModal(id); return; }
-  openDetail(s);
+  openDetailWithHistory(id);
 }
 
 var _locateMarker = null;
