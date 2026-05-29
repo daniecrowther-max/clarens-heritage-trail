@@ -911,14 +911,14 @@ document.getElementById('tokenSubmit').addEventListener('click', function() {
     var pendingId = document.getElementById('tokenModal').dataset.pendingId;
     if (pendingId) { openDetailWithHistory(pendingId); }
     msg.style.color = '#27ae60';
-    msg.textContent = '\u2713 Ontsluit! (' + result.label + ')';
+    msg.textContent = '\u2713 Unlocked! (' + result.label + ')';
   } else if (result.type === 'promo_expired') {
     msg.style.color = '#c0392b';
-    msg.textContent = 'Hierdie promoToken het verval. Kontak CHA vir \u2019n nuwe token.';
+    msg.textContent = 'This promo token has expired. Contact CHA for a new token.';
     document.getElementById('tokenInput').focus();
   } else {
     msg.style.color = '#c0392b';
-    msg.textContent = 'Ongeldige token. Probeer weer.';
+    msg.textContent = 'Invalid token. Please try again.';
     document.getElementById('tokenInput').focus();
   }
 });
@@ -1432,3 +1432,4 @@ document.getElementById('btnLocate').addEventListener('click', function() {
   }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
 });
 </script></body></html>
+
