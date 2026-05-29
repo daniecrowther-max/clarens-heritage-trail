@@ -47,6 +47,20 @@ nav::-webkit-scrollbar{display:none}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--sage),#fff);border-radius:20px;transition:width .7s ease}
 .progress-label{color:rgba(200,212,184,.7);font-size:.68rem;letter-spacing:.1em;margin-top:7px}
 .section-label{font-size:.62rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--text-light);padding:18px 18px 8px;display:block}
+.free-sites-section{margin:14px 14px 4px;background:linear-gradient(135deg,#f3f9ee,#e8f0e0);border:1.5px solid var(--olive-light);border-radius:12px;overflow:hidden}
+.free-sites-header{background:var(--olive);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.free-sites-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:#fff}
+.free-sites-badge{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;font-size:.6rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:3px 9px;border-radius:12px}
+.free-sites-desc{font-size:.75rem;color:var(--text-mid);line-height:1.6;padding:10px 16px 12px}
+.free-sites-list{display:flex;flex-direction:column;gap:0}
+.free-site-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid rgba(200,212,184,.5);cursor:pointer;transition:background .15s}
+.free-site-row:hover{background:rgba(200,212,184,.3)}
+.free-site-icon{width:38px;height:38px;border-radius:7px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;border:1px solid var(--sage)}
+.free-site-info{flex:1;min-width:0}
+.free-site-name{font-family:'Cormorant Garamond',serif;font-size:.98rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.free-site-year{font-size:.68rem;color:var(--text-light)}
+.free-site-stamp{width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--olive-light);display:flex;align-items:center;justify-content:center;color:var(--sage);font-size:.8rem;flex-shrink:0;transition:all .3s}
+.free-site-stamp.earned{border-style:solid;border-color:var(--olive);background:var(--olive);color:#fff}
 .sites-list{padding:0 14px 24px;display:flex;flex-direction:column;gap:10px}
 .site-card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:transform .18s,box-shadow .18s;display:flex;border:1.5px solid transparent}
 .site-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
@@ -284,7 +298,15 @@ nav::-webkit-scrollbar{display:none}
       <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
       <p class="progress-label" id="progressLabel">0 of 30 sites visited</p>
     </div>
-    <span class="section-label">Heritage Sites</span>
+    <div class="free-sites-section">
+      <div class="free-sites-header">
+        <span class="free-sites-title">&#127381; Start Here &mdash; Free Sites</span>
+        <span class="free-sites-badge">Always Free</span>
+      </div>
+      <p class="free-sites-desc">These 5 sites are free to explore &mdash; no token required. Visit them to get a taste of the trail before unlocking Phase 2.</p>
+      <div class="free-sites-list" id="freeSitesList"></div>
+    </div>
+    <span class="section-label">All Heritage Sites</span>
     <div class="sites-list" id="sitesList"></div>
   </div>
   <div class="panel" id="panel-passport">
@@ -950,7 +972,30 @@ function switchTab(name) {
 
 function visitedCount() { return Object.keys(visited).length; }
 
+function renderFreeSites() {
+  var html = '';
+  SITES.filter(function(s) { return FREE_SITES.indexOf(s.id) !== -1; }).forEach(function(s) {
+    var v = !!visited[s.id];
+    html += '<div class="free-site-row" data-id="' + s.id + '">' +
+      '<div class="free-site-icon">' + s.icon + '</div>' +
+      '<div class="free-site-info">' +
+        '<div class="free-site-name">' + s.name + '</div>' +
+        '<div class="free-site-year">&#128205; ' + s.address + ' &middot; ' + s.year + '</div>' +
+      '</div>' +
+      '<div class="free-site-stamp' + (v ? ' earned' : '') + '">' + (v ? '&#10003;' : '&#9675;') + '</div>' +
+    '</div>';
+  });
+  var el = document.getElementById('freeSitesList');
+  if (el) {
+    el.innerHTML = html;
+    el.querySelectorAll('.free-site-row').forEach(function(row) {
+      row.addEventListener('click', function() { openDetailWithHistory(this.dataset.id); });
+    });
+  }
+}
+
 function renderTrail() {
+  renderFreeSites();
   var n = visitedCount(), total = SITES.length;
   document.getElementById('progressFill').style.width = ((n/total)*100) + '%';
   document.getElementById('progressLabel').textContent = n + ' of ' + total + ' sites visited';
