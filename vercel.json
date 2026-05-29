@@ -1,15 +1,6 @@
 {
-  "cleanUrls": false,
-  "trailingSlash": false,
-  "headers": [
-    {
-      "source": "/photos/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
-      ]
-    }
-  ],
-  "rewrites": [],
-  "redirects": []
+  "version": 2,
+  "builds": [
+    { "src": "**/*", "use": "@vercel/static" }
+  ]
 }
