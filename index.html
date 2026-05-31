@@ -357,7 +357,7 @@ nav::-webkit-scrollbar{display:none}
       </div>
       <div class="beta-bar">
         <h4>&#10003; Version 2.2</h4>
-        <p>30 heritage sites across three trails with authentic stories, photographs, Quick Facts, a Heritage Passport, interactive GPS map, and Business Partner benefits.</p>
+        <p>30 heritage sites across three trails with authentic stories, photographs, Quick Facts, a Heritage Passport, interactive GPS map, and Voucher Partner benefits.</p>
       </div>
       <div class="about-card">
         <h3>About the CHA</h3>
@@ -375,7 +375,7 @@ nav::-webkit-scrollbar{display:none}
       </div>
       <div class="about-card">
         <h3>What&#8217;s in Version 2</h3>
-        <p>&#10003; Heritage Passport with collectible stamps<br>&#10003; Interactive GPS map<br>&#10003; Business Partner benefits &amp; vouchers<br>&#10003; Phase 2 unlock &mdash; access 14+ sites as we grow</p>
+        <p>&#10003; Heritage Passport with collectible stamps<br>&#10003; Interactive GPS map<br>&#10003; Voucher Partner benefits &amp; vouchers<br>&#10003; Phase 2 unlock &mdash; access 14+ sites as we grow</p>
       </div>
       <div class="about-card">
         <h3>Coming in Version 3</h3>
@@ -1042,11 +1042,11 @@ function renderTrail() {
 
   // Partner cards
   if (PARTNERS && PARTNERS.length) {
-    html += '<span class="section-label" style="display:block;padding:14px 4px 6px">Business Partners</span>';
+    html += '<span class="section-label" style="display:block;padding:14px 4px 6px">Voucher Partners</span>';
     PARTNERS.forEach(function(p) {
       var used = isVoucherUsed(p.id);
       var unlocked = isUnlocked();
-      var statusBadge = '<span class="status-badge status-par">&#127981; Partner</span>';
+      var statusBadge = '<span class="status-badge status-par">&#127981; Voucher Partner</span>';
       var offerBadge = '<span class="card-year" style="background:#fff0f0;color:#c0392b;border-color:#f5c6c6">' + p.offer + ' off</span>';
       var rightIcon = !unlocked
         ? '<div class="card-stamp" style="border-color:#bbb;color:#bbb">&#128274;</div>'
@@ -1435,7 +1435,7 @@ function renderMap() {
         '<span>Blue Plaque Site</span></div>' +
       '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">' +
         makePinSvg('partner').replace('<svg ','<svg style="width:16px;height:22px;flex-shrink:0" ') +
-        '<span>Business Partner</span></div>' +
+        '<span>Voucher Partner</span></div>' +
       '<div style="display:flex;align-items:center;gap:7px">' +
         makePinSvg('combined').replace('<svg ','<svg style="width:16px;height:22px;flex-shrink:0" ') +
         '<span>Heritage + Voucher</span></div>';
