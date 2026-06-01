@@ -295,9 +295,9 @@ nav::-webkit-scrollbar{display:none}
   <div class="panel" id="panel-trail">
     <div class="trail-hero">
       <h2>Heritage Trail</h2>
-      <p>Discover 32 sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.</p>
+      <p>Discover 31 sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.</p>
       <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-      <p class="progress-label" id="progressLabel">0 of 32 sites visited</p>
+      <p class="progress-label" id="progressLabel">0 of 31 sites visited</p>
     </div>
     <div class="free-sites-section">
       <div class="free-sites-header">
@@ -1168,21 +1168,25 @@ function checkGeoForStamp(id, s) {
   var btn = document.getElementById('stamp-btn');
   var msg = document.getElementById('geo-msg');
   if (!btn) return;
+
+  // Sites without coordinates cannot be geofenced — lock the button
   if (!s.lat || !s.lng) {
-    btn.className = 'btn-stamp';
-    btn.disabled = false;
-    btn.innerHTML = '&#128205; Collect My Stamp Here';
-    btn.addEventListener('click', function() { collectStamp(id); });
+    btn.className = 'btn-stamp geo-locked';
+    btn.disabled = true;
+    btn.innerHTML = '&#128274; Location Required to Stamp';
+    if (msg) msg.textContent = 'GPS coordinates not set for this site.';
     return;
   }
+
+  // Browser has no geolocation support — lock the button
   if (!navigator.geolocation) {
-    btn.className = 'btn-stamp';
-    btn.disabled = false;
-    btn.innerHTML = '&#128205; Collect My Stamp Here';
-    if (msg) msg.textContent = 'Location unavailable — stamp enabled.';
-    btn.addEventListener('click', function() { collectStamp(id); });
+    btn.className = 'btn-stamp geo-locked';
+    btn.disabled = true;
+    btn.innerHTML = '&#128274; Location Not Available';
+    if (msg) msg.textContent = 'Your device does not support GPS. You must be on-site to collect a stamp.';
     return;
   }
+
   navigator.geolocation.getCurrentPosition(function(pos) {
     var dist = calcDistance(pos.coords.latitude, pos.coords.longitude, s.lat, s.lng);
     var radius = s.radius || 30;
@@ -1202,15 +1206,17 @@ function checkGeoForStamp(id, s) {
       btn2.innerHTML = '&#128274; Move Closer to Stamp';
       if (msg2) msg2.textContent = 'You are ' + distText + ' away. Get within ' + (radius < 1000 ? radius + ' m' : (radius/1000).toFixed(1) + ' km') + ' to collect your stamp.';
     }
-  }, function() {
+  }, function(err) {
+    // GPS access denied or timed out — lock the button
     var btn3 = document.getElementById('stamp-btn');
     var msg3 = document.getElementById('geo-msg');
     if (!btn3) return;
-    btn3.className = 'btn-stamp';
-    btn3.disabled = false;
-    btn3.innerHTML = '&#128205; Collect My Stamp Here';
-    if (msg3) msg3.textContent = 'Location access denied — stamp enabled.';
-    btn3.addEventListener('click', function() { collectStamp(id); });
+    btn3.className = 'btn-stamp geo-locked';
+    btn3.disabled = true;
+    btn3.innerHTML = '&#128274; Location Access Required';
+    var errMsg = 'Enable location access in your browser settings to collect stamps.';
+    if (err && err.code === 3) errMsg = 'Location request timed out. Please try again.';
+    if (msg3) msg3.textContent = errMsg;
   }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
 }
 
