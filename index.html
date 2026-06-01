@@ -47,6 +47,20 @@ nav::-webkit-scrollbar{display:none}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--sage),#fff);border-radius:20px;transition:width .7s ease}
 .progress-label{color:rgba(200,212,184,.7);font-size:.68rem;letter-spacing:.1em;margin-top:7px}
 .section-label{font-size:.62rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--text-light);padding:18px 18px 8px;display:block}
+.free-sites-section{margin:14px 14px 4px;background:linear-gradient(135deg,#f3f9ee,#e8f0e0);border:1.5px solid var(--olive-light);border-radius:12px;overflow:hidden}
+.free-sites-header{background:var(--olive);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.free-sites-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:#fff}
+.free-sites-badge{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;font-size:.6rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:3px 9px;border-radius:12px}
+.free-sites-desc{font-size:.75rem;color:var(--text-mid);line-height:1.6;padding:10px 16px 12px}
+.free-sites-list{display:flex;flex-direction:column;gap:0}
+.free-site-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid rgba(200,212,184,.5);cursor:pointer;transition:background .15s}
+.free-site-row:hover{background:rgba(200,212,184,.3)}
+.free-site-icon{width:38px;height:38px;border-radius:7px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;border:1px solid var(--sage)}
+.free-site-info{flex:1;min-width:0}
+.free-site-name{font-family:'Cormorant Garamond',serif;font-size:.98rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.free-site-year{font-size:.68rem;color:var(--text-light)}
+.free-site-stamp{width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--olive-light);display:flex;align-items:center;justify-content:center;color:var(--sage);font-size:.8rem;flex-shrink:0;transition:all .3s}
+.free-site-stamp.earned{border-style:solid;border-color:var(--olive);background:var(--olive);color:#fff}
 .sites-list{padding:0 14px 24px;display:flex;flex-direction:column;gap:10px}
 .site-card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:transform .18s,box-shadow .18s;display:flex;border:1.5px solid transparent}
 .site-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
@@ -234,6 +248,7 @@ nav::-webkit-scrollbar{display:none}
   <img id="img-old-library" src="/photos/img-old-library.webp" style="display:none" alt="">
   <img id="img-railway-building" src="/photos/img-railway-building.webp" style="display:none" alt="">
   <img id="img-blacksmith-cottage" src="/photos/img-blacksmith-cottage.webp" style="display:none" alt="">
+  <img id="img-ou-werf" src="/photos/img-ou-werf.webp" style="display:none" alt="">
   <img id="img-sutherlands-cottage" src="/photos/img-sutherlands-cottage.webp" style="display:none" alt="">
   <img id="img-short-street-438" src="/photos/img-short-street-438.webp" style="display:none" alt="">
   <img id="img-die-pondok" src="/photos/img-die-pondok.webp" style="display:none" alt="">
@@ -242,7 +257,7 @@ nav::-webkit-scrollbar{display:none}
   <img id="img-bibliophile" src="/photos/img-bibliophile.webp" style="display:none" alt="">
   <img id="img-kruger-gedenksaal" src="/photos/img-kruger-gedenksaal.webp" style="display:none" alt="">
   <img id="img-leliehoek" src="/photos/img-leliehoek.webp" style="display:none" alt="">
-  <img id="img-berg-429" src="" data-pending="true" style="display:none" alt="">
+  <img id="img-berg-429" src="/photos/img-berg-429.webp" style="display:none" alt="">
 </div>
 
 <div id="splash">
@@ -280,11 +295,19 @@ nav::-webkit-scrollbar{display:none}
   <div class="panel" id="panel-trail">
     <div class="trail-hero">
       <h2>Heritage Trail</h2>
-      <p>Discover 30 sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.</p>
+      <p>Discover 31 sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.</p>
       <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-      <p class="progress-label" id="progressLabel">0 of 30 sites visited</p>
+      <p class="progress-label" id="progressLabel">0 of 31 sites visited</p>
     </div>
-    <span class="section-label">Heritage Sites</span>
+    <div class="free-sites-section">
+      <div class="free-sites-header">
+        <span class="free-sites-title">&#127381; Start Here &mdash; Free Sites</span>
+        <span class="free-sites-badge">Always Free</span>
+      </div>
+      <p class="free-sites-desc">These 5 sites are free to explore &mdash; no token required. Visit them to get a taste of the trail before unlocking Phase 2.</p>
+      <div class="free-sites-list" id="freeSitesList"></div>
+    </div>
+    <span class="section-label">All Heritage Sites</span>
     <div class="sites-list" id="sitesList"></div>
   </div>
   <div class="panel" id="panel-passport">
@@ -295,7 +318,7 @@ nav::-webkit-scrollbar{display:none}
         <span class="passport-org">Clarens Heritage Association</span>
         <div class="passport-score">
           <span class="score-num" id="passportScore">0</span>
-          <span class="score-denom">/ 30</span>
+          <span class="score-denom">/ 31</span>
         </div>
       </div>
       <span class="section-label">Your Stamps</span>
@@ -335,7 +358,7 @@ nav::-webkit-scrollbar{display:none}
       </div>
       <div class="beta-bar">
         <h4>&#10003; Version 2.2</h4>
-        <p>30 heritage sites across three trails with authentic stories, photographs, Quick Facts, a Heritage Passport, interactive GPS map, and Business Partner benefits.</p>
+        <p>31 heritage sites across three trails with authentic stories, photographs, Quick Facts, a Heritage Passport, interactive GPS map, and Voucher Partner benefits.</p>
       </div>
       <div class="about-card">
         <h3>About the CHA</h3>
@@ -353,7 +376,7 @@ nav::-webkit-scrollbar{display:none}
       </div>
       <div class="about-card">
         <h3>What&#8217;s in Version 2</h3>
-        <p>&#10003; Heritage Passport with collectible stamps<br>&#10003; Interactive GPS map<br>&#10003; Business Partner benefits &amp; vouchers<br>&#10003; Phase 2 unlock &mdash; access 14+ sites as we grow</p>
+        <p>&#10003; Heritage Passport with collectible stamps<br>&#10003; Interactive GPS map<br>&#10003; Voucher Partner benefits &amp; vouchers<br>&#10003; Phase 2 unlock &mdash; access 14+ sites as we grow</p>
       </div>
       <div class="about-card">
         <h3>Coming in Version 3</h3>
@@ -406,7 +429,7 @@ nav::-webkit-scrollbar{display:none}
     <input id="tokenInput" type="text" placeholder="Enter token (e.g. CHA2025)" style="width:100%;padding:12px 14px;border:1.5px solid var(--sage);border-radius:8px;font-family:'Jost',sans-serif;font-size:.9rem;color:var(--text);background:#fff;outline:none;margin-bottom:10px;box-sizing:border-box;text-transform:uppercase;letter-spacing:.1em">
     <div id="tokenMsg" style="font-size:.75rem;color:#c0392b;text-align:center;min-height:18px;margin-bottom:10px"></div>
     <button id="tokenSubmit" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Unlock Now</button>
-    <p style="font-size:.72rem;color:var(--text-light);text-align:center;margin-top:14px;line-height:1.55">Don't have a token? Visit <a href="https://clarensheritage.org/trail" target="_blank" style="color:var(--olive);font-weight:700">clarensheritage.org/trail</a><br>to purchase Phase 2 for R49.</p>
+    <p style="font-size:.72rem;color:var(--text-light);text-align:center;margin-top:14px;line-height:1.55">Don't have a token? Visit <a href="https://clarensheritage.org/trail" target="_blank" style="color:var(--olive);font-weight:700">clarensheritage.org/trail</a><br>to purchase Phase 2 for R99.00.</p>
   </div>
 </div>
 
@@ -452,7 +475,7 @@ nav::-webkit-scrollbar{display:none}
   // We use a separate inline logo approach - logo is embedded via JS below
 })();
 
-var LOGO = 'data:image/png;base64,PLACEHOLDER';
+var LOGO = '/icon-192x192.png';
 document.getElementById('splash-logo').src = LOGO;
 document.getElementById('hdr-logo').src = LOGO;
 
@@ -509,7 +532,7 @@ var SITES = [
      'Helen Pretorius is perhaps the most well-known figure associated with the library, having run it for 23 years starting in 1985. During her tenure, the library became part of the Regional Library scheme, ensuring a rotating stock of fresh books for the community.',
      'The building subsequently served as the Clarens Museum and information centre. Today, it houses the Community Arts and Crafts project, where local artists display traditional basketry and wrought iron work. It remains a beloved landmark on the town square, representing over a century of community service.']},
 
-  {id:'ou-slaghuis', trail:'town', trailNum:6, cat:'Heritage Site', bp:false, name:'Ou Slaghuis', year:1920, address:'Van Zyl Street, Erf 345, Clarens', icon:'&#127830;', ac:'ac-gold', dot:'#c8a052', lat:-28.513289199014913, lng:28.420288125442127, radius:30,
+  {id:'ou-slaghuis', trail:'town', trailNum:6, cat:'Heritage Site', bp:false, name:'Ou Slaghuis', year:1920, address:'345 Van Zyl Street, Clarens', icon:'&#127830;', ac:'ac-gold', dot:'#c8a052', lat:-28.513289199014913, lng:28.420288125442127, radius:30,
    map:'https://maps.app.goo.gl/JnLpQeHX8DtZ6aZZ7',
    facts:[{l:'Built',v:'c. 1920 – 1925'},{l:'Materials',v:'Sandstone, corrugated iron roof'},{l:'Original use',v:'Village butchery'},{l:'First owner',v:'Hermanus Pieters'},{l:'Possible builder',v:'Gert van Zyl'},{l:'Notable feature',v:'Original service window'},{l:'Property size',v:'3011 square meters'},{l:'Current use',v:'Private property and gallery'}],
    story:['The Ou Slaghuis (The Old Butchery) is a striking example of Clarens\'s vernacular architecture, featuring thick sandstone walls and a corrugated iron roof. The building occupies a large stand on Van Zyl Street, reflecting the sturdy construction methods used to serve the early farming community. While the property has evolved, the exterior retains its historical character, including a decorated front door and original sandstone pillars. It stands as one of the original commercial buildings constructed in the village\'s early years.',
@@ -520,11 +543,11 @@ var SITES = [
 
   {id:'clementines', trail:'town', trailNum:7, cat:'Heritage Site', bp:false, name:"Clementine\'s Restaurant", year:1997, address:'Corner Church & Van Reenen Streets', icon:'&#127869;', ac:'ac-gold', dot:'#c8a052', lat:-28.51387909278704, lng:28.420386355507794, radius:30,
    map:'https://maps.google.com/?q=Clementines+Restaurant+Clarens+Free+State',
-   facts:[{l:'Original use',v:'SA Railways bus maintenance shed'},{l:'Inspection pit',v:'Original feature — trap door for bus servicing'},{l:'First reuse',v:'1992 — Bruce Weyers; Clarens Weavers (Jenny Roberts)'},{l:'Demolished & rebuilt',v:'1997 — Hugo & Anette Vyfer; The Buffalo Restaurant'},{l:'Clementines opened',v:'1999 — Wolfgang & Annie Bittner (lease)'},{l:'Building purchased',v:'2003 — Wolfgang Bittner'},{l:'Current owner',v:'Shelley Tresidder (since 2010)'},{l:'Mark joined',v:'2015'},{l:'Structure',v:'Corrugated iron retained from 1997 rebuild'}],
+   facts:[{l:'Original use',v:'SA Railways bus maintenance shed'},{l:'Inspection pit',v:'Original feature — trap door for bus servicing'},{l:'First reuse',v:'1992 — Bruce Weyers; Clarens Weavers (Jenny Roberts)'},{l:'Demolished & rebuilt',v:'1997 — Hugo & Anette Vyfer; The Buffalo Restaurant'},{l:'Clementines opened',v:'1999 — Wolfgang & Annie Bittner (lease)'},{l:'Building purchased',v:'2003 — Wolfgang Bittner'},{l:'Current owner',v:'Shelley Tresidder (since 2010)'},{l:'Mark Horton joined',v:'2015'},{l:'Structure',v:'Corrugated iron retained from 1997 rebuild'}],
    story:["One of Clarens\u2019s most beloved landmarks, Clementines Restaurant stands on the corner of Church and Van Reenen Streets in what was originally a South African Railways bus maintenance shed — a corrugated iron structure complete with an inspection pit and a trap door for servicing the buses underneath.",
      'In 1992 Bruce Weyers acquired the old shed, and Jenny Roberts established Clarens Weavers there, giving the industrial space its first creative life. In 1997 Hugo and Anette Vyfer purchased the property, demolished the original shed, and redesigned it as The Buffalo Restaurant, which was run by Marie Verster.',
      "In 1999 Wolfgang and Annie Bittner leased the building and opened a restaurant they named Clementines — a name that would become synonymous with fine dining in the village. They eventually purchased the property in 2003, and Wolfgang made further modifications to the front facade while retaining the building’s distinctive corrugated iron character. Tragedy struck when Annie died in a car accident, and Wolfgang gradually lost interest in the business.",
-     "In 2010 Shelley Tresidder bought Clementines and has owned and run it ever since, continuing the tradition of exceptional food within the atmospheric iron-roofed dining room. Her husband Mark joined the business in 2015. Today Clementines is as well known for its architecture as for its menu — the corrugated iron walls that once sheltered buses and mechanics now enclose one of the Free State’s most celebrated restaurants."]},
+     "In 2010 Shelley Tresidder (Horton) bought Clementines and has owned and run it ever since, continuing the tradition of exceptional food within the atmospheric iron-roofed dining room. Her husband Mark Horton joined the business in 2015. Today Clementines is as well known for its architecture as for its menu — the corrugated iron walls that once sheltered buses and mechanics now enclose one of the Free State’s most celebrated restaurants."]},
 
   {id:'railway-building', trail:'town', trailNum:8, cat:'Heritage Site', bp:false, name:'The Railway Building (The Platform)', year:1928, address:'Erven 313 & 314, Church Street', icon:'&#128649;', ac:'ac-mid', dot:'#606e42', lat:-28.51414646982463, lng:28.420040171397126, radius:30,
    map:'https://maps.google.com/?q=Church+Street+Clarens+Free+State+The+Platform+restaurant',
@@ -651,7 +674,7 @@ var SITES = [
      'Under the Burger family’s ownership, an additional room was added for the children, which now serves as a large lounge area. The property changed hands several times in the late 20th century, notably being owned by Robert Bruce Sutherland in 1989, from whom the name "Sutherlands Cottage" originated. Later, artist Veronica Mary (Vee) Tiley resided there, initially living in a treehouse at the bottom of the garden.',
      'Today, the cottage remains a significant heritage site on Van Zyl Street, preserved as a private residence. Its thick sandstone walls and historical proportions continue to reflect the early building styles of the region.']},
 
-  {id:'berg-429', trail:'swartland', trailNum:2, cat:'Heritage Site', bp:false, name:'Vintage House (formerly Kethaba Art Studio)', year:1895, address:'429 Berg Street', icon:'&#127968;', ac:'ac-gold', dot:'#c8a052', lat:-28.510200, lng:28.418300, radius:30,
+  {id:'berg-429', trail:'swartland', trailNum:2, cat:'Heritage Site', bp:false, name:'Vintage House (formerly Kethaba Art Studio)', year:1895, address:'429 Berg Street', icon:'&#127968;', ac:'ac-gold', dot:'#c8a052', lat:-28.510870, lng:28.418582, radius:30,
    map:'https://maps.app.goo.gl/SFvFeXZpC1h3MgoT9',
    facts:[{l:'Original owner',v:'Pieter Joshua Brandt'},{l:'First extension',v:'1913 by Van der Merwe'},{l:'Original size',v:'6 x 8 square meters'},{l:'Notable residents',v:'Johannes and Ansie Steyn'},{l:'Historic use',v:'Home Industry (Tuisnywerheid)'},{l:'Recent name',v:'Kethaba Art Studio'},{l:'Current use',v:'Self-catering cottage'},{l:'Architect (2024)',v:'Jacquie le Roux'}],
    story:['The home at 429 Berg Street is a charming example of early Clarens architecture, set on a 1983-square-meter erf. The heart of the current residence is the original lounge, which once constituted the entire footprint of the first small cottage. Over the decades, the property has evolved from a simple stone structure into a refined residence, recently redesigned and restored to preserve its historical character while integrating modern architectural elements.',
@@ -678,7 +701,17 @@ var SITES = [
      'Over time, the cottage’s primitive roof was replaced, first with corrugated iron and more recently with thatch. Modern extensions have added a kitchen, bathroom, and an extra bedroom to the historic structure.',
      'Today, the property is owned by Yolanda van der Merwe, a teacher at the local primary school. The stand still features its original sandstone fence pillars and several old fruit trees, though a new house is being constructed on the corner of the property.']},
 
-  {id:'short-street-438', trail:'swartland', trailNum:5, cat:'Heritage Site', bp:false, name:'Short Street 438', year:1920, address:'Cnr Berg and Short Streets', icon:'&#127968;', ac:'ac-gold', dot:'#c8a052', lat:-28.510478413950306, lng:28.41895018754179, radius:30,
+  {id:'ou-werf', trail:'swartland', trailNum:5, cat:'Heritage Site', bp:false, name:'Ou Werf (Erf 490) Holkrans', year:1874, address:'491 Villiers Street, Clarens', icon:'&#127968;', ac:'ac-gold', dot:'#c8a052', lat:-28.50662044354411, lng:28.41790154571851, radius:30,
+   map:'https://maps.app.goo.gl/m7gCWf1vruqoJ7ZN8',
+   facts:[{l:'Original farm',v:'Naauwpoortsnek'},{l:'First owner',v:'Pieter de Villiers (~1874)'},{l:'Earlier occupant',v:'Jan Andries Kok'},{l:'Farm division',v:'1907'},{l:'Town formation',v:'1912'},{l:'Later owners',v:'Van Zyl, Smuts, Wessels'},{l:'Key feature',v:'Holkrans cave'},{l:'Materials',v:'Sandstone, mud, clay'}],
+   story:['Ou Werf lies on a broad, historic werf beneath the sandstone cliffs, overlooking the landscape toward Titanic Rock. The site includes remnants of early farm structures, a restored mud-and-clay school building, and a sandstone outbuilding. Nearby, the Holkrans cave forms a natural focal point, with stone kraals, scattered artefacts, and evidence of long human occupation embedded in the terrain.',
+     'This is part of the original farm where Clarens originated before the establishment of the town. The location near Naauwpoort, an important entry route into the Caledon valley, was a natural point where early trade took place and where wagons entering the valley stopped to overnight. Church services were held in the holkrans (cave), a certain Mr Throllip had a shop and there was a blacksmith. Children went to school in the holkrans and later in a little mud hut that was erected for this purpose.',
+     'The origins of Ou Werf date to the farm Naauwpoortsnek, acquired around 1874 by Pieter de Villiers from his father-in-law, Jan Andries Kok. The farm was divided in 1907, and the portion that became Erf 490 passed to the youngest son, Basie de Villiers. In 1912, the land was sold to the Clarens Township Promoting Society, marking the transition from farmstead to part of the newly established town.',
+     'The werf played an important early role in community life. A simple two-room mud-and-reed structure served as the first government school for Clarens between 1913 and 1914. The site also functioned as a service hub for surrounding farms, with outbuildings, storage areas, and a nearby sandstone store. The Holkrans cave holds layered history, including San rock art, stone-age artefacts, and traces of later settler use such as church gatherings and livestock enclosures.',
+     'During the twentieth century, the property passed through several hands. It was associated with the Van Zyl family from the 1930s to about 1960, followed by sculptor Alfonso Smuts and his wife Nina, who lived and worked there from around 1960 to 1979. In this period, the original farmhouse was demolished and replaced with a barn built from its sandstone. From 1980, Maria Johanna Wessels occupied the property, and from 1989 her son, artist and musician Martin Wessels, lived there with Annetjie de Clercq, using the buildings and cave as creative spaces.',
+     'Today, Ou Werf remains one of the most historically layered sites in Clarens. The property is owned by Julie Brownlee, who inherited it in 2011 and has undertaken careful restoration. The old school building has been returned to residential use, while the sandstone barn has been converted into guest accommodation. The accommodation on the site is now known as "The French Cottage" and "Bungalow Belle Vie". The site continues to reveal artefacts from different eras, preserving a continuous record of settlement, adaptation, and cultural life in Clarens.']},
+
+  {id:'short-street-438', trail:'swartland', trailNum:6, cat:'Heritage Site', bp:false, name:'Short Street 438', year:1920, address:'Cnr Berg and Short Streets', icon:'&#127968;', ac:'ac-gold', dot:'#c8a052', lat:-28.510478413950306, lng:28.41895018754179, radius:30,
    map:'https://maps.app.goo.gl/poNKxHMRgsuuAvYi7',
    facts:[{l:'Location',v:'Corner of Berg/Short Streets'},{l:'Property size',v:'3000+ m²'},{l:'Early owners',v:'1919 — D J van den Berg; P L Steyl; Pieterse families (1946–1973)'},{l:'Exterior walls',v:'Sandstone'},{l:'Roofing',v:'Corrugated iron'},{l:'Floor type',v:'Oregon pine'},{l:'Ceiling structure',v:'Original poplar beams'},{l:'Decorative element',v:'Stained glass panels'},{l:'Landscaping',v:'Mature fruit orchard'}],
    story:['This one of the oldest houses in Clarens. This heritage home occupies a prominent corner position at the intersection of Berg and Short Streets. It is immediately recognisable by its original perimeter fence, constructed from local sandstone with sturdy pillars and a vintage iron gate. The expansive garden is filled with historic fruit trees, including walnut, pear, and apple, typical of early Clarens residential plots.',
@@ -687,7 +720,7 @@ var SITES = [
      'Architectural charm is added by the decorative woodwork throughout the home. The front door and bedroom doors are fitted with unique stained glass panels, and much of the original door hardware remains intact. While the kitchen has been modernised, the core of the house remains a tribute to traditional sandstone craftsmanship.',
      'It remains a significant contributor to the heritage streetscape of the Swartland area.']},
 
-  {id:'die-pondok', trail:'swartland', trailNum:6, cat:'Heritage Site', bp:false, name:'Die Pondok (Erf 467)', year:1917, address:'Cnr Swart and Naauwpoort Streets', icon:'&#127968;', ac:'ac-mid', dot:'#606e42', lat:-28.508138146496155, lng:28.420214322858563, radius:30,
+  {id:'die-pondok', trail:'swartland', trailNum:7, cat:'Heritage Site', bp:false, name:'Die Pondok (Erf 467)', year:1917, address:'Cnr Swart and Naauwpoort Streets', icon:'&#127968;', ac:'ac-mid', dot:'#606e42', lat:-28.508138146496155, lng:28.420214322858563, radius:30,
    map:'https://maps.app.goo.gl/dHM1vAMeLaoPR2cG6',
    facts:[{l:'Building name',v:'Die Pondok'},{l:'Primary material',v:'Raw sandstone'},{l:'Structure type',v:'Small cottage'},{l:'Historical use',v:'1917 — Shop of Abraham Albertus Van Eeden'},{l:'Internal detail',v:'Thick sandstone walls'},{l:'Style',v:'Vernacular architecture'},{l:'Local nicknames',v:'"Almal se Winkel"; "Oom Abie se Sweetie Winkel"'},{l:'Notable fact',v:'One owner for 67 years'}],
    story:['"Die Pondok," located on Erf 467, is one of the more modest but characterful sandstone structures in the village. Despite its name — which traditionally refers to a simple shack or hut — the building is a solid structure crafted from natural sandstone, reflecting the early vernacular building style of the region.',
@@ -696,7 +729,7 @@ var SITES = [
      'Abraham Albertus Van Eeden kept sweets and cigarettes in his shop, making it a popular gathering point for the local community. The building’s placement on the corner of Swart and Naauwpoort Streets makes it a recognisable landmark for those walking the heritage trails of the upper town.',
      'Today, the Pondok is valued for its historical scale and its contribution to the sandstone heritage of the Swartland area. It represents the simpler side of village life during the early 20th century.']},
 
-  {id:'maluti-lodge', trail:'swartland', trailNum:7, cat:'Heritage Site', bp:false, name:'Maluti Mountain Lodge', year:1958, address:'Corner Steil Street & Naauwpoort Street, Erf 503', icon:'&#127960;', ac:'ac-olive', dot:'#4E5530', lat:-28.502254597630674, lng:28.42039103009645, radius:30,
+  {id:'maluti-lodge', trail:'swartland', trailNum:8, cat:'Heritage Site', bp:false, name:'Maluti Mountain Lodge', year:1958, address:'Corner Steil Street & Naauwpoort Street, Erf 503', icon:'&#127960;', ac:'ac-olive', dot:'#4E5530', lat:-28.502254597630674, lng:28.42039103009645, radius:30,
    map:'https://maps.app.goo.gl/djxuTCzSiz9J4xYYA',
    facts:[{l:'Original name',v:'Clarens Motel'},{l:'Builder/first owner',v:'J.A.J. van Wyk (née Janse van Rensburg / de Beer, b. 1918)'},{l:'Notable operator',v:'"Jannie" van Wyk (ran the bar after husband\'s death)'},{l:'Sold to',v:'Clarens Investments / Bill & Jill Annandale (1964)'},{l:'Renamed by',v:'Ridley & Yvonne Rosensweig'},{l:'Managed by',v:'Harry & Margaret Newton (for Rosensweigs)'},{l:'Sold 1992',v:'Janice & Julia Brownlee Trust (ran until 2009)'},{l:'Current owner',v:'Dan Lategan'},{l:'Significance',v:'Oldest continuously operating lodging in Clarens'}],
    story:['The building now known as Maluti Mountain Lodge has the longest hospitality history in Clarens. It began life as the Clarens Motel, constructed in the late 1950s on what is today erf 503 — across the spruit from the village centre, where the Country Lodge now also stands nearby.',
@@ -911,14 +944,14 @@ document.getElementById('tokenSubmit').addEventListener('click', function() {
     var pendingId = document.getElementById('tokenModal').dataset.pendingId;
     if (pendingId) { openDetailWithHistory(pendingId); }
     msg.style.color = '#27ae60';
-    msg.textContent = '\u2713 Ontsluit! (' + result.label + ')';
+    msg.textContent = '\u2713 Unlocked! (' + result.label + ')';
   } else if (result.type === 'promo_expired') {
     msg.style.color = '#c0392b';
-    msg.textContent = 'Hierdie promoToken het verval. Kontak CHA vir \u2019n nuwe token.';
+    msg.textContent = 'This promo token has expired. Contact CHA for a new token.';
     document.getElementById('tokenInput').focus();
   } else {
     msg.style.color = '#c0392b';
-    msg.textContent = 'Ongeldige token. Probeer weer.';
+    msg.textContent = 'Invalid token. Please try again.';
     document.getElementById('tokenInput').focus();
   }
 });
@@ -950,7 +983,30 @@ function switchTab(name) {
 
 function visitedCount() { return Object.keys(visited).length; }
 
+function renderFreeSites() {
+  var html = '';
+  SITES.filter(function(s) { return FREE_SITES.indexOf(s.id) !== -1; }).forEach(function(s) {
+    var v = !!visited[s.id];
+    html += '<div class="free-site-row" data-id="' + s.id + '">' +
+      '<div class="free-site-icon">' + s.icon + '</div>' +
+      '<div class="free-site-info">' +
+        '<div class="free-site-name">' + s.name + '</div>' +
+        '<div class="free-site-year">&#128205; ' + s.address + ' &middot; ' + s.year + '</div>' +
+      '</div>' +
+      '<div class="free-site-stamp' + (v ? ' earned' : '') + '">' + (v ? '&#10003;' : '&#9675;') + '</div>' +
+    '</div>';
+  });
+  var el = document.getElementById('freeSitesList');
+  if (el) {
+    el.innerHTML = html;
+    el.querySelectorAll('.free-site-row').forEach(function(row) {
+      row.addEventListener('click', function() { openDetailWithHistory(this.dataset.id); });
+    });
+  }
+}
+
 function renderTrail() {
+  renderFreeSites();
   var n = visitedCount(), total = SITES.length;
   document.getElementById('progressFill').style.width = ((n/total)*100) + '%';
   document.getElementById('progressLabel').textContent = n + ' of ' + total + ' sites visited';
@@ -997,11 +1053,11 @@ function renderTrail() {
 
   // Partner cards
   if (PARTNERS && PARTNERS.length) {
-    html += '<span class="section-label" style="display:block;padding:14px 4px 6px">Business Partners</span>';
+    html += '<span class="section-label" style="display:block;padding:14px 4px 6px">Voucher Partners</span>';
     PARTNERS.forEach(function(p) {
       var used = isVoucherUsed(p.id);
       var unlocked = isUnlocked();
-      var statusBadge = '<span class="status-badge status-par">&#127981; Partner</span>';
+      var statusBadge = '<span class="status-badge status-par">&#127981; Voucher Partner</span>';
       var offerBadge = '<span class="card-year" style="background:#fff0f0;color:#c0392b;border-color:#f5c6c6">' + p.offer + ' off</span>';
       var rightIcon = !unlocked
         ? '<div class="card-stamp" style="border-color:#bbb;color:#bbb">&#128274;</div>'
@@ -1113,21 +1169,25 @@ function checkGeoForStamp(id, s) {
   var btn = document.getElementById('stamp-btn');
   var msg = document.getElementById('geo-msg');
   if (!btn) return;
+
+  // Sites without coordinates cannot be geofenced — lock the button
   if (!s.lat || !s.lng) {
-    btn.className = 'btn-stamp';
-    btn.disabled = false;
-    btn.innerHTML = '&#128205; Collect My Stamp Here';
-    btn.addEventListener('click', function() { collectStamp(id); });
+    btn.className = 'btn-stamp geo-locked';
+    btn.disabled = true;
+    btn.innerHTML = '&#128274; Location Required to Stamp';
+    if (msg) msg.textContent = 'GPS coordinates not set for this site.';
     return;
   }
+
+  // Browser has no geolocation support — lock the button
   if (!navigator.geolocation) {
-    btn.className = 'btn-stamp';
-    btn.disabled = false;
-    btn.innerHTML = '&#128205; Collect My Stamp Here';
-    if (msg) msg.textContent = 'Location unavailable — stamp enabled.';
-    btn.addEventListener('click', function() { collectStamp(id); });
+    btn.className = 'btn-stamp geo-locked';
+    btn.disabled = true;
+    btn.innerHTML = '&#128274; Location Not Available';
+    if (msg) msg.textContent = 'Your device does not support GPS. You must be on-site to collect a stamp.';
     return;
   }
+
   navigator.geolocation.getCurrentPosition(function(pos) {
     var dist = calcDistance(pos.coords.latitude, pos.coords.longitude, s.lat, s.lng);
     var radius = s.radius || 30;
@@ -1147,15 +1207,17 @@ function checkGeoForStamp(id, s) {
       btn2.innerHTML = '&#128274; Move Closer to Stamp';
       if (msg2) msg2.textContent = 'You are ' + distText + ' away. Get within ' + (radius < 1000 ? radius + ' m' : (radius/1000).toFixed(1) + ' km') + ' to collect your stamp.';
     }
-  }, function() {
+  }, function(err) {
+    // GPS access denied or timed out — lock the button
     var btn3 = document.getElementById('stamp-btn');
     var msg3 = document.getElementById('geo-msg');
     if (!btn3) return;
-    btn3.className = 'btn-stamp';
-    btn3.disabled = false;
-    btn3.innerHTML = '&#128205; Collect My Stamp Here';
-    if (msg3) msg3.textContent = 'Location access denied — stamp enabled.';
-    btn3.addEventListener('click', function() { collectStamp(id); });
+    btn3.className = 'btn-stamp geo-locked';
+    btn3.disabled = true;
+    btn3.innerHTML = '&#128274; Location Access Required';
+    var errMsg = 'Enable location access in your browser settings to collect stamps.';
+    if (err && err.code === 3) errMsg = 'Location request timed out. Please try again.';
+    if (msg3) msg3.textContent = errMsg;
   }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
 }
 
@@ -1191,6 +1253,7 @@ function renderPassport() {
 var PARTNERS = [
   {
     id: 'clarens-coffee-co',
+    siteId: 'clementines',
     name: 'Clarens Coffee Co.',
     type: 'Café & Bakery',
     icon: '&#9749;',
@@ -1315,48 +1378,87 @@ function renderMap() {
     maxZoom: 19
   }).addTo(leafletMap);
 
-  SITES.forEach(function(s) {
-    if (!s.lat || !s.lng) return;
-    var isBP = !!s.bp;
-    var pinColour = isBP ? '#1a4a7a' : '#4a5240';
-    var svgIcon = L.divIcon({
-      className: '',
-      html: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="38" viewBox="0 0 28 38">' +
-        '<path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 24 14 24s14-14.67 14-24C28 6.27 21.73 0 14 0z" fill="' + pinColour + '"/>' +
-        '<circle cx="14" cy="14" r="6" fill="#fff"/>' +
-        '</svg>',
-      iconSize: [28, 38],
-      iconAnchor: [14, 38],
-      popupAnchor: [0, -38]
-    });
-
-    var marker = L.marker([s.lat, s.lng], { icon: svgIcon }).addTo(leafletMap);
-    marker.bindPopup(
-      '<div class="map-popup-name">' + s.icon + ' ' + s.name + '</div>' +
-      '<div class="map-popup-addr">' + s.address + '</div>' +
-      '<button class="map-popup-btn" onclick="openSiteFromMap(&#39;' + s.id + '&#39;)">View Site</button>'
-    );
+  // Build a lookup: siteId -> partner (for combined markers)
+  var partnerBySiteId = {};
+  PARTNERS.forEach(function(p) {
+    if (p.siteId) partnerBySiteId[p.siteId] = p;
   });
 
-  PARTNERS.forEach(function(p) {
-    if (!p.lat || !p.lng) return;
-    var partnerIcon = L.divIcon({
+  // SVG pin builder
+  // type: 'heritage' | 'bp' | 'partner' | 'combined'
+  function makePinSvg(type) {
+    var pinColour = type === 'bp' ? '#1a4a7a' : type === 'partner' ? '#c0392b' : '#4a5240';
+    var dot = type === 'combined'
+      ? '<circle cx="14" cy="14" r="6" fill="#fff"/><circle cx="21" cy="8" r="5" fill="#c0392b" stroke="#fff" stroke-width="1.5"/>'
+      : '<circle cx="14" cy="14" r="6" fill="#fff"/>';
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="38" viewBox="0 0 28 38">' +
+      '<path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 24 14 24s14-14.67 14-24C28 6.27 21.73 0 14 0z" fill="' + pinColour + '"/>' +
+      dot + '</svg>';
+  }
+
+  function makeIcon(type) {
+    return L.divIcon({
       className: '',
-      html: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="38" viewBox="0 0 28 38">' +
-        '<path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 24 14 24s14-14.67 14-24C28 6.27 21.73 0 14 0z" fill="#c0392b"/>' +
-        '<circle cx="14" cy="14" r="6" fill="#fff"/>' +
-        '</svg>',
+      html: makePinSvg(type),
       iconSize: [28, 38],
       iconAnchor: [14, 38],
       popupAnchor: [0, -38]
     });
-    var marker = L.marker([p.lat, p.lng], { icon: partnerIcon }).addTo(leafletMap);
+  }
+
+  // Render site markers — combined if site is also a partner
+  SITES.forEach(function(s) {
+    if (!s.lat || !s.lng) return;
+    var partner = partnerBySiteId[s.id] || null;
+    var type = partner ? 'combined' : (s.bp ? 'bp' : 'heritage');
+    var marker = L.marker([s.lat, s.lng], { icon: makeIcon(type) }).addTo(leafletMap);
+
+    var popupHtml =
+      '<div class="map-popup-name">' + s.icon + ' ' + s.name + '</div>' +
+      '<div class="map-popup-addr">' + s.address + '</div>';
+    if (partner) {
+      popupHtml += '<div style="font-size:.72rem;color:#c0392b;font-weight:700;margin-top:4px;margin-bottom:6px">&#127981; ' + partner.offerLabel + '</div>';
+    }
+    popupHtml += '<button class="map-popup-btn" onclick="openSiteFromMap(&#39;' + s.id + '&#39;)">View Site</button>';
+    marker.bindPopup(popupHtml);
+  });
+
+  // Render partner-only markers (partners without a matching siteId)
+  PARTNERS.forEach(function(p) {
+    if (!p.lat || !p.lng) return;
+    if (p.siteId) return; // already rendered as combined marker above
+    var marker = L.marker([p.lat, p.lng], { icon: makeIcon('partner') }).addTo(leafletMap);
     marker.bindPopup(
-      '<div class="map-popup-name">&#9749; ' + p.name + '</div>' +
+      '<div class="map-popup-name">' + p.icon + ' ' + p.name + '</div>' +
       '<div class="map-popup-addr">' + p.address + '</div>' +
       '<div style="font-size:.72rem;color:#c0392b;font-weight:700;margin-top:4px">&#127981; ' + p.offerLabel + '</div>'
     );
   });
+
+  // Map legend
+  var legend = L.control({ position: 'topleft' });
+  legend.onAdd = function() {
+    var div = L.DomUtil.create('div');
+    div.style.cssText = 'background:rgba(255,255,255,0.93);border-radius:8px;padding:10px 12px;' +
+      'font-family:Jost,sans-serif;font-size:.72rem;color:#1e2318;' +
+      'box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:160px;pointer-events:none;';
+    div.innerHTML =
+      '<div style="font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.62rem;color:#6b7a5a;margin-bottom:7px">Map Legend</div>' +
+      '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">' +
+        makePinSvg('heritage').replace('<svg ','<svg style="width:16px;height:22px;flex-shrink:0" ') +
+        '<span>Heritage Site</span></div>' +
+      '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">' +
+        makePinSvg('bp').replace('<svg ','<svg style="width:16px;height:22px;flex-shrink:0" ') +
+        '<span>Blue Plaque Site</span></div>' +
+      '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">' +
+        makePinSvg('partner').replace('<svg ','<svg style="width:16px;height:22px;flex-shrink:0" ') +
+        '<span>Voucher Partner</span></div>' +
+      '<div style="display:flex;align-items:center;gap:7px">' +
+        makePinSvg('combined').replace('<svg ','<svg style="width:16px;height:22px;flex-shrink:0" ') +
+        '<span>Heritage + Voucher</span></div>';
+    return div;
+  };
+  legend.addTo(leafletMap);
 
   setTimeout(function() { leafletMap.invalidateSize(); }, 200);
 }
@@ -1432,3 +1534,4 @@ document.getElementById('btnLocate').addEventListener('click', function() {
   }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
 });
 </script></body></html>
+
