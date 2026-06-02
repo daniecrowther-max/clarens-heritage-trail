@@ -253,7 +253,7 @@ nav::-webkit-scrollbar{display:none}
   <img id="img-short-street-438" src="/photos/img-short-street-438.webp" style="display:none" alt="">
   <img id="img-die-pondok" src="/photos/img-die-pondok.webp" style="display:none" alt="">
   <img id="img-maluti-lodge" src="/photos/img-maluti-lodge.webp" style="display:none" alt="">
-  <img id="img-fischer-house" src="/photos/img-fischer-house.webp" style="display:none" alt="">
+  <img id="img-fischer-house" src="" data-pending="true" style="display:none" alt="">
   <img id="img-bibliophile" src="/photos/img-bibliophile.webp" style="display:none" alt="">
   <img id="img-kruger-gedenksaal" src="/photos/img-kruger-gedenksaal.webp" style="display:none" alt="">
   <img id="img-leliehoek" src="/photos/img-leliehoek.webp" style="display:none" alt="">
@@ -286,13 +286,13 @@ nav::-webkit-scrollbar{display:none}
     <div class="hdr-beta">v2.2</div>
   </header>
   <nav>
-    <div class="nav-tab active" id="tab-map">Map</div>
-    <div class="nav-tab" id="tab-trail">Trail</div>
+    <div class="nav-tab active" id="tab-trail">Trail</div>
+    <div class="nav-tab" id="tab-map">Map</div>
     <div class="nav-tab" id="tab-passport">Passport</div>
     <div class="nav-tab" id="tab-vouchers">Vouchers</div>
     <div class="nav-tab" id="tab-about">About</div>
   </nav>
-  <div class="panel" id="panel-trail">
+  <div class="panel active" id="panel-trail">
     <div class="trail-hero">
       <h2>Heritage Trail</h2>
       <p>Discover 31 sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.</p>
@@ -330,7 +330,7 @@ nav::-webkit-scrollbar{display:none}
       </div>
     </div>
   </div>
-  <div class="panel active" id="panel-map">
+  <div class="panel" id="panel-map">
     <div class="map-wrap">
       <div id="leaflet-map"></div>
       <button class="map-locate-btn" id="btnLocate" title="My location" aria-label="Show my location on map">&#x25CE;</button>
@@ -910,11 +910,18 @@ document.getElementById('btnStart').addEventListener('click', function() {
     s.style.display = 'none';
     document.getElementById('app').classList.add('visible');
     renderTrail(); renderPassport(); renderMap(); renderPartners();
-    // Open on Map tab and trigger GPS immediately
-    switchTab('map');
+    // Trail tab is default
+    switchTab('trail');
+    // Silently start GPS in the background so it is ready when user stamps
     setTimeout(function() {
-      document.getElementById('btnLocate').click();
-    }, 800);
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(pos) { updateLocateMarker(pos); },
+          function() { /* silent fail — user will see error when they try to stamp */ },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
+      }
+    }, 1000);
   }, 680);
 });
 
