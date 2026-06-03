@@ -1074,7 +1074,7 @@ function renderTrail() {
       html += '<div class="site-card" data-id="' + p.id + '" data-type="partner">' +
         '<div class="card-accent" style="background:#c0392b"></div>' +
         '<div class="card-body">' +
-          '<div class="card-icon">' + p.icon + '</div>' +
+          '<div class="card-icon">' + (p.icon || '&#127981;') + '</div>' +
           '<div class="card-info">' +
             '<div class="card-name">' + p.name + '</div>' +
             '<div class="card-meta-row">' + statusBadge + offerBadge + '</div>' +
@@ -1259,48 +1259,121 @@ function renderPassport() {
 
 var PARTNERS = [
   {
-    id:'partner-559',
-    wpId:559,
-    name:'Post House Restaurant',
-    type:'Restaurant',
-    logo:'https://clarensheritage.org/wp-content/uploads/2026/06/posthouse_logo-1-300x300.webp',
-    address:'276 Main St',
-    lat:-28.5155,
-    lng:28.4201,
-    offer:'10%',
-    offerLabel:'10% Discount',
-    offerSub:'10% discount on your total bill',
-    siteId:'posthouse',
-    condition:'paid',
-    voucherKey:'cht_voucher_partner-559'
+    id: 'clarens-coffee-co',
+    siteId: 'clementines',
+    name: 'Clarens Coffee Co.',
+    type: 'Café & Bakery',
+    icon: '&#9749;',
+    offer: '10%',
+    offerLabel: '10% Discount',
+    offerSub: 'On your total bill — valid once per Phase 2 user',
+    desc: 'Nestled on the corner of Church Street, Clarens Coffee Co. serves single-origin coffee, freshly baked pastries, and light meals. The perfect stop after exploring the heritage trail.',
+    address: 'Corner Church & Piet Retief Streets, Clarens',
+    lat: -28.51387909278704,
+    lng: 28.420386355507794,
+    voucherKey: 'cht_voucher_clarens-coffee-co'
   }
 ];
 
+// ── Voucher helper constants ──────────────────────────────────────
+var CHA_REDEEM_URL = 'https://clarensheritage.org/wp-json/cha/v1/redeem';
+
+// ── Local voucher state (used flag stored per device) ─────────────
 function isVoucherUsed(partnerId) {
   return !!localStorage.getItem('cht_voucher_' + partnerId);
 }
 
-function markVoucherUsed(partnerId) {
+function markVoucherUsedLocal(partnerId) {
   localStorage.setItem('cht_voucher_' + partnerId, Date.now().toString());
 }
 
-function generateVoucherQR(partnerId) {
-  var token = localStorage.getItem('cht_token') || 'FREE';
-  return 'CHT-' + token + '-' + partnerId.toUpperCase().replace(/-/g,'') + '-10PCT';
+// ── Evaluate all conditions for a partner ────────────────────────
+// Returns { ok: true } or { ok: false, reason: '...message...' }
+function checkVoucherConditions(p) {
+  var today = new Date();
+
+  // 1. Date window — dateFrom
+  if (p.dateFrom) {
+    var from = new Date(p.dateFrom);
+    if (today < from) {
+      return { ok: false, reason: 'This voucher opens on ' + from.toLocaleDateString('en-ZA', {day:'numeric',month:'long',year:'numeric'}) + '.' };
+    }
+  }
+
+  // 2. Date window — dateTo
+  if (p.dateTo) {
+    var to = new Date(p.dateTo + 'T23:59:59');
+    if (today > to) {
+      return { ok: false, reason: 'This voucher expired on ' + to.toLocaleDateString('en-ZA', {day:'numeric',month:'long',year:'numeric'}) + '.' };
+    }
+  }
+
+  // 3. Access condition
+  var cond = p.condition || 'paid';
+
+  // Parse stamps number from condition string
+  var stampsRequired = 0;
+  var stampsMatch = cond.match(/stamps:(\d+)/);
+  if (stampsMatch) stampsRequired = parseInt(stampsMatch[1], 10);
+
+  // Check paid condition
+  if (cond === 'paid' || cond.indexOf('paid') === 0) {
+    if (!isUnlocked()) {
+      return { ok: false, reason: 'Purchase Phase 2 (R99.00) to unlock this voucher.' };
+    }
+  }
+
+  // Check stamps condition
+  if (stampsRequired > 0) {
+    var count = visitedCount();
+    if (count < stampsRequired) {
+      return { ok: false, reason: 'Collect ' + stampsRequired + ' stamps to unlock this voucher. You have ' + count + '.' };
+    }
+  }
+
+  // 4. Required site visit
+  if (p.requiredSite && !visited[p.requiredSite]) {
+    var reqSite = null;
+    SITES.forEach(function(s) { if (s.id === p.requiredSite) reqSite = s; });
+    var siteName = reqSite ? reqSite.name : p.requiredSite;
+    return { ok: false, reason: 'Visit ' + siteName + ' to unlock this voucher.' };
+  }
+
+  return { ok: true };
+}
+
+// ── Build voucher button state for a partner ──────────────────────
+function voucherButtonState(p) {
+  if (isVoucherUsed(p.id)) {
+    return { cls: 'btn-voucher used', disabled: true, text: '&#10003; Voucher Used' };
+  }
+  var check = checkVoucherConditions(p);
+  if (!check.ok) {
+    return { cls: 'btn-voucher locked', disabled: true, text: '&#128274; ' + check.reason };
+  }
+  return { cls: 'btn-voucher', disabled: false, text: '&#127981; Show My Voucher' };
+}
+
+// ── Render partner logo (WebP URL or fallback icon) ───────────────
+function partnerLogoHtml(p) {
+  if (p.logo) {
+    return '<img src="' + p.logo + '" alt="' + p.name + '" style="width:48px;height:48px;border-radius:10px;object-fit:contain;background:rgba(255,255,255,.15);padding:3px;flex-shrink:0">';
+  }
+  return '<div class="partner-logo">' + (p.icon || '&#127978;') + '</div>';
 }
 
 function renderPartners() {
-  var unlocked = isUnlocked();
   var html = '';
   PARTNERS.forEach(function(p) {
-    var used = isVoucherUsed(p.id);
-    var btnClass = !unlocked ? 'btn-voucher locked' : (used ? 'btn-voucher used' : 'btn-voucher');
-    var btnText = !unlocked ? '&#128274; Phase 2 Required' : (used ? '&#10003; Voucher Used' : '&#127981; Show My Voucher');
+    var state = voucherButtonState(p);
+    var btnTitle = state.disabled && state.text.length > 40
+      ? state.text.replace(/<[^>]+>/g, '')
+      : '';
     html += '<div class="partner-card">' +
       '<div class="partner-card-header">' +
-        '<div class="partner-logo">' + p.icon + '</div>' +
+        partnerLogoHtml(p) +
         '<div><div class="partner-card-title">' + p.name + '</div>' +
-        '<div class="partner-card-type">' + p.type + '</div></div>' +
+        '<div class="partner-card-type">' + (p.type || '') + '</div></div>' +
       '</div>' +
       '<div class="partner-card-body">' +
         '<div class="partner-offer">' +
@@ -1310,26 +1383,55 @@ function renderPartners() {
             '<div class="partner-offer-sub">' + p.offerSub + '</div>' +
           '</div>' +
         '</div>' +
-        '<p class="partner-desc">' + p.desc + '</p>' +
+        (p.desc ? '<p class="partner-desc">' + p.desc + '</p>' : '') +
         '<div class="partner-addr">&#128205; ' + p.address + '</div>' +
-        '<button class="' + btnClass + '" ' + (!unlocked || used ? 'disabled' : '') + ' data-partner="' + p.id + '">' + btnText + '</button>' +
+        '<button class="' + state.cls + '" ' +
+          (state.disabled ? 'disabled' : '') +
+          ' data-partner="' + p.id + '"' +
+          (btnTitle ? ' title="' + btnTitle + '"' : '') + '>' +
+          state.text +
+        '</button>' +
       '</div></div>';
   });
   document.getElementById('partnersList').innerHTML = html;
-  document.querySelectorAll('.btn-voucher:not(.locked):not(.used)').forEach(function(btn) {
+  document.querySelectorAll('.btn-voucher:not([disabled])').forEach(function(btn) {
     btn.addEventListener('click', function() { showVoucher(this.dataset.partner); });
   });
+}
+
+// ── Redeem voucher via WordPress REST API ─────────────────────────
+function redeemVoucherRemote(partnerId, onSuccess, onError) {
+  var token = localStorage.getItem('cht_token') || '';
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', CHA_REDEEM_URL, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.timeout = 10000;
+  xhr.onload = function() {
+    try {
+      var data = JSON.parse(xhr.responseText);
+      if (data.success) { onSuccess(data); }
+      else { onError(data.message || 'Voucher could not be redeemed.'); }
+    } catch(e) { onError('Server error. Please try again.'); }
+  };
+  xhr.onerror   = function() { onError('Network error. Please check your connection.'); };
+  xhr.ontimeout = function() { onError('Request timed out. Please try again.'); };
+  xhr.send(JSON.stringify({ partner_id: partnerId, token: token }));
 }
 
 function showVoucher(partnerId) {
   var p = PARTNERS.find(function(x) { return x.id === partnerId; });
   if (!p) return;
+
   var used = isVoucherUsed(partnerId);
   document.getElementById('voucherPartnerName').textContent = p.name;
-  document.getElementById('voucherReward').textContent = p.offerLabel + ' — ' + p.offerSub;
+  document.getElementById('voucherReward').textContent = p.offerLabel + ' \u2014 ' + p.offerSub;
+
+  // Generate display code: token + partner suffix
+  var token = localStorage.getItem('cht_token') || 'GUEST';
+  var code = token + '-' + p.id.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
+  document.getElementById('voucherCode').textContent = code;
+
   if (!used) {
-    var code = generateVoucherQR(partnerId);
-    document.getElementById('voucherCode').textContent = code;
     document.getElementById('voucherActiveSection').style.display = 'block';
     document.getElementById('voucherUsedMsg').style.display = 'none';
     document.getElementById('voucherConfirmSection').style.display = 'none';
@@ -1337,7 +1439,10 @@ function showVoucher(partnerId) {
   } else {
     document.getElementById('voucherActiveSection').style.display = 'none';
     document.getElementById('voucherUsedMsg').style.display = 'block';
+    document.getElementById('voucherUsedMsg').innerHTML =
+      '&#10003; This voucher has already been used.<br>Thank you for visiting ' + p.name + '!';
   }
+
   var modal = document.getElementById('voucherModal');
   modal.style.display = 'flex';
   modal.dataset.partnerId = partnerId;
@@ -1348,22 +1453,61 @@ document.getElementById('voucherClose').addEventListener('click', function() {
   document.getElementById('voucherModal').style.display = 'none';
   document.body.style.overflow = '';
 });
+
 document.getElementById('voucherRevealBtn').addEventListener('click', function() {
   document.getElementById('voucherShowBtn').style.display = 'none';
   document.getElementById('voucherConfirmSection').style.display = 'block';
 });
+
 document.getElementById('voucherCancelBtn').addEventListener('click', function() {
   document.getElementById('voucherConfirmSection').style.display = 'none';
   document.getElementById('voucherShowBtn').style.display = 'block';
 });
+
 document.getElementById('voucherConfirmBtn').addEventListener('click', function() {
   var partnerId = document.getElementById('voucherModal').dataset.partnerId;
   if (!partnerId) return;
-  markVoucherUsed(partnerId);
-  renderPartners();
-  document.getElementById('voucherActiveSection').style.display = 'none';
-  document.getElementById('voucherUsedMsg').style.display = 'block';
+
+  var btn = document.getElementById('voucherConfirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'Processing\u2026';
+
+  // Check if partner has a wpId — if so, call the REST API
+  var p = PARTNERS.find(function(x) { return x.id === partnerId; });
+  var hasRemote = p && p.wpId;
+
+  function onConfirmed() {
+    markVoucherUsedLocal(partnerId);
+    renderPartners();
+    document.getElementById('voucherActiveSection').style.display = 'none';
+    document.getElementById('voucherUsedMsg').style.display = 'block';
+    document.getElementById('voucherUsedMsg').innerHTML =
+      '&#10003; Voucher confirmed!<br>Show this screen to the cashier at ' + (p ? p.name : '') + '.';
+  }
+
+  if (hasRemote) {
+    redeemVoucherRemote(partnerId,
+      function(data) {
+        // Success — also show remaining if limited
+        onConfirmed();
+        if (data.remaining !== null && data.remaining !== undefined) {
+          var msg = document.getElementById('voucherUsedMsg');
+          msg.innerHTML += '<br><span style="font-size:.72rem;color:#6b7280">' + data.remaining + ' vouchers remaining.</span>';
+        }
+      },
+      function(errMsg) {
+        // Network/server error — still confirm locally but show warning
+        onConfirmed();
+        var msg = document.getElementById('voucherUsedMsg');
+        msg.innerHTML += '<br><span style="font-size:.72rem;color:#e67e22">&#9888; Could not sync with server: ' + errMsg + '</span>';
+      }
+    );
+  } else {
+    // Legacy partner without wpId — local only
+    onConfirmed();
+  }
 });
+
 document.getElementById('voucherModal').addEventListener('click', function(e) {
   if (e.target === this) { this.style.display = 'none'; document.body.style.overflow = ''; }
 });
@@ -1437,7 +1581,7 @@ function renderMap() {
     if (p.siteId) return; // already rendered as combined marker above
     var marker = L.marker([p.lat, p.lng], { icon: makeIcon('partner') }).addTo(leafletMap);
     marker.bindPopup(
-      '<div class="map-popup-name">' + p.icon + ' ' + p.name + '</div>' +
+      '<div class="map-popup-name">' + (p.icon || '&#127981;') + ' ' + p.name + '</div>' +
       '<div class="map-popup-addr">' + p.address + '</div>' +
       '<div style="font-size:.72rem;color:#c0392b;font-weight:700;margin-top:4px">&#127981; ' + p.offerLabel + '</div>'
     );
