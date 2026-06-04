@@ -444,7 +444,28 @@ nav::-webkit-scrollbar{display:none}
     <input id="tokenInput" type="text" placeholder="Enter token (e.g. CHA2025)" style="width:100%;padding:12px 14px;border:1.5px solid var(--sage);border-radius:8px;font-family:'Jost',sans-serif;font-size:.9rem;color:var(--text);background:#fff;outline:none;margin-bottom:10px;box-sizing:border-box;text-transform:uppercase;letter-spacing:.1em">
     <div id="tokenMsg" style="font-size:.75rem;color:#c0392b;text-align:center;min-height:18px;margin-bottom:10px"></div>
     <button id="tokenSubmit" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Unlock Now</button>
-    <p style="font-size:.72rem;color:var(--text-light);text-align:center;margin-top:14px;line-height:1.55">Don't have a token? Visit <a href="https://clarensheritage.org/trail" target="_blank" style="color:var(--olive);font-weight:700">clarensheritage.org/trail</a><br>to purchase Phase 2 for R99.00.</p>
+    <div style="margin-top:16px;border-top:1px solid var(--sage);padding-top:16px">
+      <p style="font-size:.72rem;color:var(--text-light);text-align:center;margin-bottom:10px;line-height:1.55">Don't have a token yet?</p>
+      <button id="buyPhaseBtn" style="width:100%;background:transparent;color:var(--olive);border:1.5px solid var(--olive);padding:13px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Buy Phase 2 &mdash; R99.00</button>
+    </div>
+  </div>
+</div>
+
+<div id="buyModal" style="display:none;position:fixed;inset:0;z-index:510;background:rgba(30,35,24,.65);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--cream);border-radius:14px;padding:28px 24px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.25)">
+    <button id="buyModalClose" style="position:absolute;top:14px;right:14px;background:rgba(74,82,64,.1);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;color:var(--olive);display:flex;align-items:center;justify-content:center">&#215;</button>
+    <div style="font-size:2rem;text-align:center;margin-bottom:10px">&#128274;</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:4px;text-align:center">Unlock Phase 2</div>
+    <p style="font-size:.8rem;color:var(--text-light);text-align:center;margin-bottom:6px;line-height:1.5">Access all 14 heritage sites &amp; vouchers</p>
+    <div style="text-align:center;margin-bottom:18px">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--text)">R99.00</span>
+      <span style="font-size:.72rem;color:var(--text-light);display:block;margin-top:2px">once-off &bull; secure payment via Stitch</span>
+    </div>
+    <label style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-light);display:block;margin-bottom:6px">Your email address</label>
+    <input id="buyEmail" type="email" placeholder="you@example.com" style="width:100%;padding:12px 14px;border:1.5px solid var(--sage);border-radius:8px;font-family:'Jost',sans-serif;font-size:.9rem;color:var(--text);background:#fff;outline:none;margin-bottom:8px;box-sizing:border-box">
+    <div id="buyMsg" style="font-size:.75rem;color:#c0392b;text-align:center;min-height:18px;margin-bottom:10px"></div>
+    <button id="buySubmit" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Proceed to Payment &#8599;</button>
+    <p style="font-size:.68rem;color:var(--text-light);text-align:center;margin-top:12px;line-height:1.55">Your token will be emailed to you after payment.<br>Already paid? Check your email for your token.</p>
   </div>
 </div>
 
@@ -1014,6 +1035,71 @@ document.getElementById('tokenSubmit').addEventListener('click', function() {
     msg.textContent = 'Invalid token. Please try again.';
     document.getElementById('tokenInput').focus();
   }
+});
+
+var CHA_CREATE_PAYMENT_URL = 'https://clarensheritage.org/wp-json/cha/v1/create-payment';
+
+function showBuyModal() {
+  document.getElementById('tokenModal').style.display = 'none';
+  var m = document.getElementById('buyModal');
+  m.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  document.getElementById('buyEmail').value = '';
+  document.getElementById('buyMsg').textContent = '';
+  document.getElementById('buySubmit').disabled = false;
+  document.getElementById('buySubmit').textContent = 'Proceed to Payment ↗';
+  setTimeout(function() { document.getElementById('buyEmail').focus(); }, 100);
+}
+
+function hideBuyModal() {
+  document.getElementById('buyModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+document.getElementById('buyPhaseBtn').addEventListener('click', showBuyModal);
+document.getElementById('buyModalClose').addEventListener('click', hideBuyModal);
+document.getElementById('buyModal').addEventListener('click', function(e) {
+  if (e.target === this) hideBuyModal();
+});
+
+document.getElementById('buyEmail').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('buySubmit').click();
+});
+
+document.getElementById('buySubmit').addEventListener('click', function() {
+  var email = document.getElementById('buyEmail').value.trim();
+  var msg = document.getElementById('buyMsg');
+  msg.style.color = '#c0392b';
+  msg.textContent = '';
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msg.textContent = 'Please enter a valid email address.';
+    document.getElementById('buyEmail').focus();
+    return;
+  }
+
+  var btn = document.getElementById('buySubmit');
+  btn.disabled = true;
+  btn.textContent = 'Creating payment…';
+
+  fetch(CHA_CREATE_PAYMENT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data && data.payment_url) {
+      window.location.href = data.payment_url;
+    } else {
+      throw new Error(data && data.message ? data.message : 'No payment URL returned.');
+    }
+  })
+  .catch(function(err) {
+    btn.disabled = false;
+    btn.textContent = 'Proceed to Payment ↗';
+    msg.textContent = err.message || 'Could not connect. Please try again.';
+  });
 });
 
 document.getElementById('donateClose').addEventListener('click', function() {
