@@ -261,12 +261,12 @@ nav::-webkit-scrollbar{display:none}
 </div>
 
 <div id="splash">
-  <div class="splash-beta">v2.3</div>
+  <div class="splash-beta">v2.2</div>
   <img class="splash-logo" id="splash-logo" src="" alt="Clarens Heritage Association">
   <h1 class="splash-title">Heritage<br>Trail</h1>
   <p class="splash-sub">Clarens &middot; Free State &middot; Est. 1912</p>
   <button class="btn-start" id="btnStart" aria-label="Begin the Clarens Heritage Trail">Begin Your Journey</button>
-  <p class="splash-footer">clarensheritage.org &middot; v2.3 &middot; &copy; 2026 Clarens Heritage Association</p>
+  <p class="splash-footer">clarensheritage.org &middot; v2.2 &middot; &copy; 2026 Clarens Heritage Association</p>
 </div>
 
 <div class="stamp-burst" id="stampBurst">
@@ -283,7 +283,7 @@ nav::-webkit-scrollbar{display:none}
         <span class="hdr-sub">Clarens Heritage Association</span>
       </div>
     </div>
-    <div class="hdr-beta">v2.3</div>
+    <div class="hdr-beta">v2.2</div>
   </header>
   <nav>
     <div class="nav-tab active" id="tab-trail">Trail</div>
@@ -419,6 +419,21 @@ nav::-webkit-scrollbar{display:none}
   <div id="detailContent"></div>
 </div>
 
+
+<div id="unlockSuccessModal" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(30,35,24,.7);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--cream);border-radius:14px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.3);overflow:hidden">
+    <div style="background:var(--olive);padding:20px;text-align:center">
+      <div style="font-size:2.4rem;margin-bottom:6px">&#127881;</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:#fff">Unlocked!</div>
+    </div>
+    <div style="padding:24px 22px;text-align:center">
+      <p style="font-size:.9rem;color:var(--text);line-height:1.6;margin-bottom:6px">Thank you for your purchase.</p>
+      <p style="font-size:.82rem;color:var(--text-light);line-height:1.55;margin-bottom:8px">Your <strong id="unlockSuccessLabel" style="color:var(--olive)">Phase 2 Access</strong> is now active. All 14 heritage sites are unlocked.</p>
+      <p style="font-size:.72rem;color:var(--text-light);line-height:1.5;margin-bottom:20px">A copy of your token has been emailed to you for safekeeping.</p>
+      <button id="unlockSuccessClose" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Start Exploring</button>
+    </div>
+  </div>
+</div>
 
 <div id="tokenModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(30,35,24,.6);align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--cream);border-radius:14px;padding:28px 24px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.25)">
@@ -705,7 +720,7 @@ var SITES = [
    map:'https://maps.app.goo.gl/m7gCWf1vruqoJ7ZN8',
    facts:[{l:'Original farm',v:'Naauwpoortsnek'},{l:'First owner',v:'Pieter de Villiers (~1874)'},{l:'Earlier occupant',v:'Jan Andries Kok'},{l:'Farm division',v:'1907'},{l:'Town formation',v:'1912'},{l:'Later owners',v:'Van Zyl, Smuts, Wessels'},{l:'Key feature',v:'Holkrans cave'},{l:'Materials',v:'Sandstone, mud, clay'}],
    story:['Ou Werf lies on a broad, historic werf beneath the sandstone cliffs, overlooking the landscape toward Titanic Rock. The site includes remnants of early farm structures, a restored mud-and-clay school building, and a sandstone outbuilding. Nearby, the Holkrans cave forms a natural focal point, with stone kraals, scattered artefacts, and evidence of long human occupation embedded in the terrain.',
-     'This is part of the original farm where Clarens originated before the establishment of the town. The location near Naauwpoort, an important entry route into the Caledon valley, was a natural point where early trade took place and where wagons entering the valley stopped to overnight. Church services were held in the holkrans (cave), a certain Mr Thorrold had a shop and there was a blacksmith. Children went to school in the holkrans and later in a little mud hut that was erected for this purpose.',
+     'This is part of the original farm where Clarens originated before the establishment of the town. The location near Naauwpoort, an important entry route into the Caledon valley, was a natural point where early trade took place and where wagons entering the valley stopped to overnight. Church services were held in the holkrans (cave), a certain Mr Throllip had a shop and there was a blacksmith. Children went to school in the holkrans and later in a little mud hut that was erected for this purpose.',
      'The origins of Ou Werf date to the farm Naauwpoortsnek, acquired around 1874 by Pieter de Villiers from his father-in-law, Jan Andries Kok. The farm was divided in 1907, and the portion that became Erf 490 passed to the youngest son, Basie de Villiers. In 1912, the land was sold to the Clarens Township Promoting Society, marking the transition from farmstead to part of the newly established town.',
      'The werf played an important early role in community life. A simple two-room mud-and-reed structure served as the first government school for Clarens between 1913 and 1914. The site also functioned as a service hub for surrounding farms, with outbuildings, storage areas, and a nearby sandstone store. The Holkrans cave holds layered history, including San rock art, stone-age artefacts, and traces of later settler use such as church gatherings and livestock enclosures.',
      'During the twentieth century, the property passed through several hands. It was associated with the Van Zyl family from the 1930s to about 1960, followed by sculptor Alfonso Smuts and his wife Nina, who lived and worked there from around 1960 to 1979. In this period, the original farmhouse was demolished and replaced with a barn built from its sandstone. From 1980, Maria Johanna Wessels occupied the property, and from 1989 her son, artist and musician Martin Wessels, lived there with Annetjie de Clercq, using the buildings and cave as creative spaces.',
@@ -904,6 +919,41 @@ function getImg(id) {
   return el.src;
 }
 
+// Check URL for token parameter from Stitch payment redirect
+// Format: ?token=CHT-XXXX-XXXX (and optionally &email=user@example.com)
+function handleUrlToken() {
+  var params = new URLSearchParams(window.location.search);
+  var token = params.get('token');
+  if (!token) return;
+
+  token = token.trim().toUpperCase();
+  var result = validateToken(token);
+
+  if (result.valid) {
+    localStorage.setItem('cht_token', token);
+    // Clean URL so token isn't visible/shared accidentally
+    var cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+    // Show success modal
+    showUnlockSuccess(result.label);
+  } else {
+    // Invalid token in URL — show token modal with error
+    setTimeout(function() {
+      showTokenModal('');
+      document.getElementById('tokenMsg').textContent = 'The token from your payment link is invalid. Please contact support.';
+    }, 500);
+  }
+}
+
+function showUnlockSuccess(label) {
+  var modal = document.getElementById('unlockSuccessModal');
+  if (modal) {
+    document.getElementById('unlockSuccessLabel').textContent = label || 'Phase 2 Access';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+}
+
 document.getElementById('btnStart').addEventListener('click', function() {
   var s = document.getElementById('splash');
   s.classList.add('hide');
@@ -913,6 +963,8 @@ document.getElementById('btnStart').addEventListener('click', function() {
     renderTrail(); renderPassport(); renderMap(); renderPartners();
     // Trail tab is default
     switchTab('trail');
+    // Check URL for token from Stitch payment redirect
+    handleUrlToken();
     // Silently start GPS in the background so it is ready when user stamps
     setTimeout(function() {
       if (navigator.geolocation) {
@@ -1686,5 +1738,21 @@ document.getElementById('btnLocate').addEventListener('click', function() {
     showMapMsg(msg, true);
   }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
 });
+
+// Success modal close handler
+document.getElementById('unlockSuccessClose').addEventListener('click', function() {
+  document.getElementById('unlockSuccessModal').style.display = 'none';
+  document.body.style.overflow = '';
+  // Re-render to reflect newly unlocked state
+  renderTrail(); renderPassport(); renderPartners();
+});
+
+// Auto-skip splash if URL contains a token (from Stitch payment redirect)
+if (new URLSearchParams(window.location.search).get('token')) {
+  // Auto-click the Begin button to skip splash and trigger token handling
+  setTimeout(function() {
+    document.getElementById('btnStart').click();
+  }, 100);
+}
 </script></body></html>
 
