@@ -1,6 +1,6 @@
 // Clarens Heritage Trail — Service Worker
 // Version: 1.0 — update this string to force cache refresh on new releases
-const CACHE_NAME = 'cha-trail-v1.0';
+const CACHE_NAME = 'cha-trail-v1.1';
 
 // Files to cache for offline use
 const ASSETS = [
