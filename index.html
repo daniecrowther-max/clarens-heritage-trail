@@ -940,11 +940,31 @@ function getImg(id) {
   return el.src;
 }
 
-// Check URL for token parameter from Stitch payment redirect
-// Format: ?token=CHT-XXXX-XXXX (and optionally &email=user@example.com)
+// Handle redirect back from Stitch Express payment page.
+// Stitch Express callback: ?reference=CHA-CHT-XXXX-XXXX&payment_id=...
+// Legacy path also supports: ?token=CHT-XXXX-XXXX
 function handleUrlToken() {
   var params = new URLSearchParams(window.location.search);
-  var token = params.get('token');
+
+  // Primary: extract token from Stitch Express merchantReference ("CHA-CHT-XXXX-XXXX")
+  var token = params.get('token') || '';
+  if (!token) {
+    var ref = params.get('reference') || params.get('externalReference') || '';
+    if (ref.indexOf('CHA-CHT-') === 0) {
+      token = ref.substring(4); // strip "CHA-" → "CHT-XXXX-XXXX"
+    }
+  }
+
+  // If Stitch reported a non-complete status, show a friendly message
+  var status = params.get('status') || '';
+  if (!token && (status === 'failed' || status === 'closed')) {
+    setTimeout(function() {
+      showTokenModal('');
+      document.getElementById('tokenMsg').textContent = 'Payment was not completed. Please try again or contact support.';
+    }, 500);
+    return;
+  }
+
   if (!token) return;
 
   token = token.trim().toUpperCase();
@@ -952,13 +972,9 @@ function handleUrlToken() {
 
   if (result.valid) {
     localStorage.setItem('cht_token', token);
-    // Clean URL so token isn't visible/shared accidentally
-    var cleanUrl = window.location.pathname;
-    window.history.replaceState({}, document.title, cleanUrl);
-    // Show success modal
+    window.history.replaceState({}, document.title, window.location.pathname);
     showUnlockSuccess(result.label);
   } else {
-    // Invalid token in URL — show token modal with error
     setTimeout(function() {
       showTokenModal('');
       document.getElementById('tokenMsg').textContent = 'The token from your payment link is invalid. Please contact support.';
