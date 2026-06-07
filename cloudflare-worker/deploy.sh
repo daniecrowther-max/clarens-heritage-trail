@@ -17,8 +17,8 @@ CF="https://api.cloudflare.com/client/v4"
 echo "=== Step 1: Upload Worker script ==="
 UPLOAD=$(curl -s -X PUT "$CF/accounts/$ACCOUNT_ID/workers/scripts/$WORKER_NAME" \
   -H "Authorization: Bearer $API_TOKEN" \
-  -F "script=@$SCRIPT_FILE;type=application/javascript" \
-  -F 'metadata={"main_module":false,"body_part":"script"};type=application/json')
+  -H "Content-Type: application/javascript" \
+  --data-binary "@$SCRIPT_FILE")
 echo "$UPLOAD" | python3 -m json.tool 2>/dev/null || echo "$UPLOAD"
 
 SUCCESS=$(echo "$UPLOAD" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('success',''))" 2>/dev/null)
