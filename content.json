@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "updated": "2026-06-08",
+
+  "sites": [
+    {
+      "id": "example-site",
+      "bp": false,
+      "name": "Example Heritage Site",
+      "year": 1905,
+      "address": "1 Main Street, Clarens",
+      "icon": "&#127968;",
+      "ac": "ac-olive",
+      "dot": "#4a5240",
+      "map": "https://maps.google.com/?q=Clarens+Free+State",
+      "facts": [
+        {"l": "Built",  "v": "1905"},
+        {"l": "Material", "v": "Sandstone"},
+        {"l": "Status",  "v": "Section 38, NHRA"}
+      ],
+      "story": [
+        "This is an example site added via the remote content feed. Replace with real heritage content.",
+        "Photo is served from an external URL — no base64 required. The app fetches it from the CDN at display time.",
+        "Set 'bp' to true if this site has a HASA Blue Plaque."
+      ],
+      "photo": "https://clarensheritage.org/wp-content/uploads/2026/example-site.webp"
+    }
+  ],
+
+  "vouchers": [
+    {
+      "id": "example-voucher",
+      "name": "Example Partner",
+      "condition": "Show your Heritage Passport stamp for 10% off.",
+      "dateFrom": "2026-01-01",
+      "dateTo":   "2026-12-31",
+      "logo": "https://clarensheritage.org/wp-content/uploads/2026/example-partner-logo.webp",
+      "icon": "&#127869;"
+    }
+  ]
+}
