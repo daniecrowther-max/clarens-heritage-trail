@@ -1,6 +1,6 @@
 // Clarens Heritage Trail — Service Worker
 // Version: 1.0 — update this string to force cache refresh on new releases
-const CACHE_NAME = 'cha-trail-v1.1';
+const CACHE_NAME = 'cha-trail-v2.3';
 
 // Files to cache for offline use
 const ASSETS = [
@@ -31,8 +31,28 @@ self.addEventListener('activate', function(e) {
   self.clients.claim();
 });
 
-// Fetch: serve from cache, fall back to network
+// Fetch: network-first for content.json, cache-first for everything else
 self.addEventListener('fetch', function(e) {
+  // content.json must always be fetched fresh so weekly sync actually gets new data
+  if (new URL(e.request.url).pathname === '/content.json') {
+    e.respondWith(
+      fetch(e.request).then(function(response) {
+        if (response.status === 200) {
+          var copy = response.clone();
+          // Store under path-only key so offline fallback can find it
+          caches.open(CACHE_NAME).then(function(cache) { cache.put('/content.json', copy); });
+        }
+        return response;
+      }).catch(function() {
+        return caches.match('/content.json').then(function(cached) {
+          return cached || new Response('{"version":0,"sites":[],"vouchers":[]}',
+            {headers:{'Content-Type':'application/json'}});
+        });
+      })
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(function(cached) {
       if (cached) return cached;

@@ -33,6 +33,9 @@ header{background:var(--olive);padding:0 16px;height:58px;display:flex;align-ite
 .hdr-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:#fff;display:block;line-height:1.1}
 .hdr-sub{font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sage);display:block}
 .hdr-beta{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--sage);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;border-radius:12px}
+#feedBanner{display:none;background:var(--olive);color:var(--sage-light);font-size:.72rem;padding:8px 16px;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--olive-mid)}
+#feedBanner.visible{display:flex}
+#feedBannerClose{background:none;border:none;color:var(--sage);cursor:pointer;font-size:1rem;padding:0 2px;line-height:1;flex-shrink:0}
 nav{background:var(--olive-dark);display:flex;overflow-x:auto;scrollbar-width:none}
 nav::-webkit-scrollbar{display:none}
 .nav-tab{flex-shrink:0;padding:11px 18px;font-family:'Jost',sans-serif;font-size:.7rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:rgba(200,212,184,.5);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
@@ -285,6 +288,10 @@ nav::-webkit-scrollbar{display:none}
     </div>
     <div class="hdr-beta">V2.3</div>
   </header>
+  <div id="feedBanner" role="status">
+    <span>New heritage content added &mdash; explore the trail.</span>
+    <button id="feedBannerClose" aria-label="Dismiss">&#215;</button>
+  </div>
   <nav>
     <div class="nav-tab active" id="tab-trail">Trail</div>
     <div class="nav-tab" id="tab-map">Map</div>
@@ -357,7 +364,7 @@ nav::-webkit-scrollbar{display:none}
         <p>The Clarens Heritage Trail brings the stories of historic buildings, rock art, and landscapes to life &mdash; right in your hands as you walk the village streets.</p>
       </div>
       <div class="beta-bar">
-        <h4>&#10003; Version 2.2</h4>
+        <h4>&#10003; Version 2.3</h4>
         <p>31 heritage sites across three trails with authentic stories, photographs, Quick Facts, a Heritage Passport, interactive GPS map, and Voucher Partner benefits.</p>
       </div>
       <div class="about-card">
@@ -829,6 +836,31 @@ var SITES = [
 
 var visited = JSON.parse(localStorage.getItem('cht_visited') || '{}');
 
+// Merge feed sites into SITES by id — feed wins on collision, new ids appended
+function mergeFeedSites(feedSites) {
+  if (!Array.isArray(feedSites) || !feedSites.length) return;
+  var idx = {};
+  SITES.forEach(function(s, i) { idx[s.id] = i; });
+  feedSites.forEach(function(s) {
+    if (idx.hasOwnProperty(s.id)) {
+      SITES[idx[s.id]] = s;
+    } else {
+      SITES.push(s);
+      idx[s.id] = SITES.length - 1;
+    }
+  });
+}
+
+// Apply stored feed before first render so returning users see new content immediately (even offline)
+(function applyStoredFeed() {
+  try {
+    var raw = localStorage.getItem('contentFeed');
+    if (!raw) return;
+    var feed = JSON.parse(raw);
+    mergeFeedSites(feed.sites);
+  } catch(e) {}
+}());
+
 var FREE_SITES = ['primary-school','frost-house','methodist-church','ou-kliphuis','ng-kerk'];
 
 // ═══════════════════════════════════════════════════════
@@ -1002,6 +1034,8 @@ document.getElementById('btnStart').addEventListener('click', function() {
     switchTab('trail');
     // Check URL for token from Stitch payment redirect
     handleUrlToken();
+    // Kick off weekly content-feed refresh (silently no-ops if within 7-day window)
+    syncContent();
     // Silently start GPS in the background so it is ready when user stamps
     setTimeout(function() {
       if (navigator.geolocation) {
@@ -1874,5 +1908,41 @@ if (new URLSearchParams(window.location.search).get('token')) {
     document.getElementById('btnStart').click();
   }, 100);
 }
+
+// Weekly content sync — fetches /content.json at most once per 7 days
+function syncContent() {
+  var SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+  var lastCheck = parseInt(localStorage.getItem('lastFeedCheck') || '0', 10);
+  var now = Date.now();
+  if (!navigator.onLine || (now - lastCheck < SEVEN_DAYS && lastCheck !== 0)) return;
+
+  fetch('/content.json?v=' + now)
+    .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
+    .then(function(feed) {
+      var prevVersion = 0;
+      try {
+        var prev = localStorage.getItem('contentFeed');
+        if (prev) prevVersion = JSON.parse(prev).version || 0;
+      } catch(e) {}
+
+      localStorage.setItem('contentFeed', JSON.stringify(feed));
+      localStorage.setItem('lastFeedCheck', String(now));
+
+      mergeFeedSites(feed.sites);
+      renderTrail(); renderPassport(); renderMap(); renderPartners();
+
+      if ((feed.version || 0) > prevVersion) {
+        var banner = document.getElementById('feedBanner');
+        if (banner) banner.classList.add('visible');
+      }
+    })
+    .catch(function() {
+      // Silently fail — cached or baked-in data remains in use
+    });
+}
+
+document.getElementById('feedBannerClose').addEventListener('click', function() {
+  document.getElementById('feedBanner').classList.remove('visible');
+});
 </script></body></html>
 
