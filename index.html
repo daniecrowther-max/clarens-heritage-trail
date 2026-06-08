@@ -50,6 +50,14 @@ nav::-webkit-scrollbar{display:none}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--sage),#fff);border-radius:20px;transition:width .7s ease}
 .progress-label{color:rgba(200,212,184,.7);font-size:.68rem;letter-spacing:.1em;margin-top:7px}
 .section-label{font-size:.62rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--text-light);padding:18px 18px 8px;display:block}
+.stamp-hint{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#c8d4b8;color:#4a5240;font-size:.76rem;line-height:1.4;padding:9px 14px;margin:10px 14px 2px;border-radius:20px}
+.stamp-hint span{flex:1}
+.stamp-hint-close{background:none;border:none;color:#4a5240;cursor:pointer;font-size:1rem;line-height:1;padding:0 2px;flex-shrink:0;opacity:.7}
+.stamp-hint-close:hover{opacity:1}
+.map-hint{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#c8d4b8;color:#4a5240;font-size:.76rem;line-height:1.4;padding:9px 14px;flex-shrink:0}
+.map-hint span{flex:1}
+.map-hint-close{background:none;border:none;color:#4a5240;cursor:pointer;font-size:1rem;line-height:1;padding:0 2px;flex-shrink:0;opacity:.7}
+.map-hint-close:hover{opacity:1}
 .free-sites-section{margin:14px 14px 4px;background:linear-gradient(135deg,#f3f9ee,#e8f0e0);border:1.5px solid var(--olive-light);border-radius:12px;overflow:hidden}
 .free-sites-header{background:var(--olive);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
 .free-sites-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:#fff}
@@ -264,12 +272,12 @@ nav::-webkit-scrollbar{display:none}
 </div>
 
 <div id="splash">
-  <div class="splash-beta">V2.3</div>
+  <div class="splash-beta">V2.4</div>
   <img class="splash-logo" id="splash-logo" src="" alt="Clarens Heritage Association">
   <h1 class="splash-title">Heritage<br>Trail</h1>
   <p class="splash-sub">Clarens &middot; Free State &middot; Est. 1912</p>
   <button class="btn-start" id="btnStart" aria-label="Begin the Clarens Heritage Trail">Begin Your Journey</button>
-  <p class="splash-footer">clarensheritage.org &middot; V2.3 &middot; &copy; 2026 Clarens Heritage Association</p>
+  <p class="splash-footer">clarensheritage.org &middot; V2.4 &middot; &copy; 2026 Clarens Heritage Association</p>
 </div>
 
 <div class="stamp-burst" id="stampBurst">
@@ -286,7 +294,7 @@ nav::-webkit-scrollbar{display:none}
         <span class="hdr-sub">Clarens Heritage Association</span>
       </div>
     </div>
-    <div class="hdr-beta">V2.3</div>
+    <div class="hdr-beta">V2.4</div>
   </header>
   <div id="feedBanner" role="status">
     <span>New heritage content added &mdash; explore the trail.</span>
@@ -315,6 +323,10 @@ nav::-webkit-scrollbar{display:none}
       <div class="free-sites-list" id="freeSitesList"></div>
     </div>
     <span class="section-label">All Heritage Sites</span>
+    <div class="stamp-hint" id="stampHintTrail">
+      <span>&#127963; Walk to each site to earn your Heritage Passport stamp</span>
+      <button class="stamp-hint-close" id="stampHintClose" aria-label="Dismiss hint">&#215;</button>
+    </div>
     <div class="sites-list" id="sitesList"></div>
   </div>
   <div class="panel" id="panel-passport">
@@ -339,6 +351,10 @@ nav::-webkit-scrollbar{display:none}
   </div>
   <div class="panel" id="panel-map">
     <div class="map-wrap">
+      <div class="map-hint" id="stampHintMap">
+        <span>&#127963; Visit each site in person to collect your stamp</span>
+        <button class="map-hint-close" id="stampHintMapClose" aria-label="Dismiss hint">&#215;</button>
+      </div>
       <div id="leaflet-map"></div>
       <button class="map-locate-btn" id="btnLocate" title="My location" aria-label="Show my location on map">&#x25CE;</button>
     </div>
@@ -1944,5 +1960,22 @@ function syncContent() {
 document.getElementById('feedBannerClose').addEventListener('click', function() {
   document.getElementById('feedBanner').classList.remove('visible');
 });
+
+// Stamp-collection hint — one dismiss key hides both instances
+(function initStampHint() {
+  if (localStorage.getItem('stampHintDismissed') === 'true') {
+    document.getElementById('stampHintTrail').style.display = 'none';
+    document.getElementById('stampHintMap').style.display = 'none';
+  }
+}());
+
+function dismissStampHint() {
+  localStorage.setItem('stampHintDismissed', 'true');
+  document.getElementById('stampHintTrail').style.display = 'none';
+  document.getElementById('stampHintMap').style.display = 'none';
+}
+
+document.getElementById('stampHintClose').addEventListener('click', dismissStampHint);
+document.getElementById('stampHintMapClose').addEventListener('click', dismissStampHint);
 </script></body></html>
 
