@@ -1917,13 +1917,18 @@ document.getElementById('unlockSuccessClose').addEventListener('click', function
   renderTrail(); renderPassport(); renderPartners();
 });
 
-// Auto-skip splash if URL contains a token (from Stitch payment redirect)
-if (new URLSearchParams(window.location.search).get('token')) {
-  // Auto-click the Begin button to skip splash and trigger token handling
-  setTimeout(function() {
-    document.getElementById('btnStart').click();
-  }, 100);
-}
+// Auto-skip splash if URL carries a Stitch payment result (token, reference, or status)
+(function() {
+  var p = new URLSearchParams(window.location.search);
+  var ref = p.get('reference') || p.get('externalReference') || '';
+  var hasResult = p.get('token') || ref.indexOf('CHA-CHT-') === 0 || p.get('status');
+  if (hasResult) {
+    // Auto-click the Begin button to skip splash and trigger handleUrlToken()
+    setTimeout(function() {
+      document.getElementById('btnStart').click();
+    }, 100);
+  }
+})();
 
 // Weekly content sync — fetches /content.json at most once per 7 days
 function syncContent() {
