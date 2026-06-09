@@ -310,7 +310,7 @@ nav::-webkit-scrollbar{display:none}
   <div class="panel active" id="panel-trail">
     <div class="trail-hero">
       <h2>Heritage Trail</h2>
-      <p>Discover 31 sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.</p>
+      <p id="trailIntroText">Discover 31 sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.</p>
       <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
       <p class="progress-label" id="progressLabel">0 of 31 sites visited</p>
     </div>
@@ -337,7 +337,7 @@ nav::-webkit-scrollbar{display:none}
         <span class="passport-org">Clarens Heritage Association</span>
         <div class="passport-score">
           <span class="score-num" id="passportScore">0</span>
-          <span class="score-denom">/ 31</span>
+          <span class="score-denom" id="scoreTotal">/ 31</span>
         </div>
       </div>
       <span class="section-label">Your Stamps</span>
@@ -451,7 +451,7 @@ nav::-webkit-scrollbar{display:none}
     </div>
     <div style="padding:24px 22px;text-align:center">
       <p style="font-size:.9rem;color:var(--text);line-height:1.6;margin-bottom:6px">Thank you for your purchase.</p>
-      <p style="font-size:.82rem;color:var(--text-light);line-height:1.55;margin-bottom:8px">Your <strong id="unlockSuccessLabel" style="color:var(--olive)">Phase 2 Access</strong> is now active. All 14 heritage sites are unlocked.</p>
+      <p style="font-size:.82rem;color:var(--text-light);line-height:1.55;margin-bottom:8px">Your <strong id="unlockSuccessLabel" style="color:var(--olive)">Phase 2 Access</strong> is now active. All <span class="phase2-site-count">14</span> heritage sites are unlocked.</p>
       <p style="font-size:.72rem;color:var(--text-light);line-height:1.5;margin-bottom:20px">A copy of your token has been emailed to you for safekeeping.</p>
       <button id="unlockSuccessClose" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Start Exploring</button>
     </div>
@@ -463,7 +463,7 @@ nav::-webkit-scrollbar{display:none}
     <button id="tokenClose" style="position:absolute;top:14px;right:14px;background:rgba(74,82,64,.1);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;color:var(--olive);display:flex;align-items:center;justify-content:center">&#215;</button>
     <div style="font-size:2rem;text-align:center;margin-bottom:10px">&#128274;</div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:6px;text-align:center">Phase 2 — Unlock</div>
-    <p style="font-size:.82rem;color:var(--text-light);line-height:1.65;margin-bottom:20px;text-align:center">This site is part of Phase 2.<br>Enter your unlock token to access all 14 sites.</p>
+    <p style="font-size:.82rem;color:var(--text-light);line-height:1.65;margin-bottom:20px;text-align:center">This site is part of Phase 2.<br>Enter your unlock token to access all <span class="phase2-site-count">14</span> sites.</p>
     <input id="tokenInput" type="text" placeholder="Enter token (e.g. CHA2025)" style="width:100%;padding:12px 14px;border:1.5px solid var(--sage);border-radius:8px;font-family:'Jost',sans-serif;font-size:.9rem;color:var(--text);background:#fff;outline:none;margin-bottom:10px;box-sizing:border-box;text-transform:uppercase;letter-spacing:.1em">
     <div id="tokenMsg" style="font-size:.75rem;color:#c0392b;text-align:center;min-height:18px;margin-bottom:10px"></div>
     <button id="tokenSubmit" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Jost',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Unlock Now</button>
@@ -479,7 +479,7 @@ nav::-webkit-scrollbar{display:none}
     <button id="buyModalClose" style="position:absolute;top:14px;right:14px;background:rgba(74,82,64,.1);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;color:var(--olive);display:flex;align-items:center;justify-content:center">&#215;</button>
     <div style="font-size:2rem;text-align:center;margin-bottom:10px">&#128274;</div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:4px;text-align:center">Unlock Phase 2</div>
-    <p style="font-size:.8rem;color:var(--text-light);text-align:center;margin-bottom:6px;line-height:1.5">Access all 14 heritage sites &amp; vouchers</p>
+    <p style="font-size:.8rem;color:var(--text-light);text-align:center;margin-bottom:6px;line-height:1.5">Access all <span class="phase2-site-count">14</span> heritage sites &amp; vouchers</p>
     <div style="text-align:center;margin-bottom:18px">
       <span style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--text)">R99.00</span>
       <span style="font-size:.72rem;color:var(--text-light);display:block;margin-top:2px">once-off &bull; secure payment via Stitch</span>
@@ -1222,6 +1222,7 @@ function renderTrail() {
   var n = visitedCount(), total = SITES.length;
   document.getElementById('progressFill').style.width = ((n/total)*100) + '%';
   document.getElementById('progressLabel').textContent = n + ' of ' + total + ' sites visited';
+  document.getElementById('trailIntroText').innerHTML = 'Discover ' + total + ' sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.';
   var html = '';
 
   // Group sites by trail
@@ -1449,6 +1450,7 @@ function collectStamp(id) {
 
 function renderPassport() {
   document.getElementById('passportScore').textContent = visitedCount();
+  document.getElementById('scoreTotal').textContent = '/ ' + SITES.length;
   var html = '';
   SITES.forEach(function(s) {
     var e = !!visited[s.id];
@@ -1982,5 +1984,12 @@ function dismissStampHint() {
 
 document.getElementById('stampHintClose').addEventListener('click', dismissStampHint);
 document.getElementById('stampHintMapClose').addEventListener('click', dismissStampHint);
+
+(function() {
+  var phase2Count = SITES.length - FREE_SITES.length;
+  [].forEach.call(document.querySelectorAll('.phase2-site-count'), function(el) {
+    el.textContent = phase2Count;
+  });
+}());
 </script></body></html>
 
