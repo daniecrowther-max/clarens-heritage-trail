@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://clarensheritage.org; connect-src 'self' https://clarensheritage.org https://*.tile.openstreetmap.org; frame-src 'none'; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Clarens Heritage Trail</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Jost:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -852,6 +853,20 @@ var SITES = [
 
 var visited = JSON.parse(localStorage.getItem('cht_visited') || '{}');
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Only allow https:// URLs — blocks javascript: and data: XSS sinks
+function safeUrl(u) {
+  return /^https:\/\//i.test(u) ? u : '#';
+}
+
 // Merge feed sites into SITES by id — feed wins on collision, new ids appended
 function mergeFeedSites(feedSites) {
   if (!Array.isArray(feedSites) || !feedSites.length) return;
@@ -885,6 +900,7 @@ var FREE_SITES = ['primary-school','frost-house','methodist-church','ou-kliphuis
 // Tiers: PURCHASE (CHT-), PROMO (CHA-PROMO-), ADMIN (CHA-ADMIN-)
 // ═══════════════════════════════════════════════════════
 
+// NOTE: Client-side validation is the offline fallback only; server-side validation in cha-trail-admin is the planned authority.
 var TOKEN_SECRET = 'CHA2026';
 
 function simpleHash(str) {
@@ -1310,14 +1326,14 @@ function openDetail(id) {
   var stamped = !!visited[id];
   var imgSrc = getImg(id);
   var photoHtml = imgSrc
-    ? '<img class="detail-photo" src="' + imgSrc + '" alt="' + s.name + '">'
+    ? '<img class="detail-photo" src="' + imgSrc + '" alt="' + escapeHtml(s.name) + '">'
     : '<div class="detail-photo-ph">' + s.icon + '</div>';
   var factsHtml = '';
   s.facts.forEach(function(f) {
-    factsHtml += '<div class="fact-row"><span class="fact-label">' + f.l + '</span><span class="fact-value">' + f.v + '</span></div>';
+    factsHtml += '<div class="fact-row"><span class="fact-label">' + escapeHtml(f.l) + '</span><span class="fact-value">' + escapeHtml(f.v) + '</span></div>';
   });
   var storyHtml = '';
-  s.story.forEach(function(p) { storyHtml += '<p class="detail-text">' + p + '</p>'; });
+  s.story.forEach(function(p) { storyHtml += '<p class="detail-text">' + escapeHtml(p) + '</p>'; });
   var stampHtml = stamped
     ? '<button class="btn-stamp stamped">&#10003; Stamp Already Collected</button>'
     : '<button class="btn-stamp geo-checking" id="stamp-btn" disabled>&#8987; Checking location&hellip;</button>' +
@@ -1328,12 +1344,12 @@ function openDetail(id) {
       '<div class="plaque-badge ' + (s.cat === 'Blue Plaque Site' ? 'badge-bp' : s.cat === 'Natural Heritage' ? 'badge-nat' : s.cat === 'Cultural Heritage' ? 'badge-cul' : 'badge-her') + '">' +
         (s.cat === 'Blue Plaque Site' ? '&#128308; Blue Plaque Site' : s.cat === 'Natural Heritage' ? '&#127807; Natural Heritage' : s.cat === 'Cultural Heritage' ? '&#127981; Cultural Heritage' : '&#128309; Heritage Site') +
       '</div>' +
-      '<h1 class="detail-title">' + s.name + '</h1>' +
-      '<div class="detail-addr">&#128205; ' + s.address + '</div>' +
+      '<h1 class="detail-title">' + escapeHtml(s.name) + '</h1>' +
+      '<div class="detail-addr">&#128205; ' + escapeHtml(s.address) + '</div>' +
       '<div class="facts-box"><h4>Quick Facts</h4>' + factsHtml + '</div>' +
       '<div class="detail-divider"></div>' +
       storyHtml + stampHtml +
-      '<a class="btn-maps" href="' + s.map + '" target="_blank">Open in Google Maps &#8599;</a>' +
+      '<a class="btn-maps" href="' + safeUrl(s.map) + '" target="_blank">Open in Google Maps &#8599;</a>' +
     '</div>';
   if (!stamped) {
     checkGeoForStamp(id, s);
