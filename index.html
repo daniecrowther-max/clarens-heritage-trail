@@ -207,6 +207,10 @@ nav::-webkit-scrollbar{display:none}
 .partners-note{background:#fffbea;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:12px 14px;margin-top:6px}
 .partners-note p{font-size:.75rem;color:var(--text-light);line-height:1.6}
 
+.install-banner{display:flex;align-items:center;gap:10px;background:var(--olive);color:#fff;padding:9px 14px;font-family:'Jost',sans-serif;font-size:.78rem}
+.install-banner-text{flex:1;line-height:1.35}
+.install-banner-btn{background:var(--gold);color:var(--olive-dark);border:none;padding:7px 16px;border-radius:6px;font-weight:700;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:'Jost',sans-serif;flex-shrink:0}
+.install-banner-close{background:transparent;border:none;color:#fff;font-size:1.25rem;line-height:1;cursor:pointer;padding:0 4px;opacity:.85;flex-shrink:0}
 </style>
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
@@ -221,6 +225,40 @@ nav::-webkit-scrollbar{display:none}
         navigator.serviceWorker.register('/sw.js');
       });
     }
+
+    // PWA install banner — capture beforeinstallprompt and offer an in-app Install button.
+    // (iOS Safari does not fire this event; iOS users install via Share -> Add to Home Screen.)
+    var deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (localStorage.getItem('installBannerDismissed') !== '1') {
+        var b = document.getElementById('installBanner');
+        if (b) b.style.display = 'flex';
+      }
+    });
+    window.addEventListener('appinstalled', function() {
+      var b = document.getElementById('installBanner');
+      if (b) b.style.display = 'none';
+      deferredInstallPrompt = null;
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+      var btn = document.getElementById('installBannerBtn');
+      var closeBtn = document.getElementById('installBannerClose');
+      var banner = document.getElementById('installBanner');
+      if (btn) btn.addEventListener('click', function() {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then(function() {
+          deferredInstallPrompt = null;
+          if (banner) banner.style.display = 'none';
+        });
+      });
+      if (closeBtn) closeBtn.addEventListener('click', function() {
+        localStorage.setItem('installBannerDismissed', '1');
+        if (banner) banner.style.display = 'none';
+      });
+    });
   </script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
@@ -262,12 +300,12 @@ nav::-webkit-scrollbar{display:none}
 </div>
 
 <div id="splash">
-  <div class="splash-beta">V2.3</div>
+  <div class="splash-beta">V2.5</div>
   <img class="splash-logo" id="splash-logo" src="" alt="Clarens Heritage Association">
   <h1 class="splash-title">Heritage<br>Trail</h1>
   <p class="splash-sub">Clarens &middot; Free State &middot; Est. 1912</p>
   <button class="btn-start" id="btnStart" aria-label="Begin the Clarens Heritage Trail">Begin Your Journey</button>
-  <p class="splash-footer">clarensheritage.org &middot; V2.3 &middot; &copy; 2026 Clarens Heritage Association</p>
+  <p class="splash-footer">clarensheritage.org &middot; V2.5 &middot; &copy; 2026 Clarens Heritage Association</p>
 </div>
 
 <div class="stamp-burst" id="stampBurst">
@@ -284,8 +322,13 @@ nav::-webkit-scrollbar{display:none}
         <span class="hdr-sub">Clarens Heritage Association</span>
       </div>
     </div>
-    <div class="hdr-beta">V2.3</div>
+    <div class="hdr-beta">V2.5</div>
   </header>
+  <div id="installBanner" class="install-banner" style="display:none">
+    <span class="install-banner-text">&#128241; Install the Heritage Trail app on your phone for offline use.</span>
+    <button id="installBannerBtn" class="install-banner-btn">Install</button>
+    <button id="installBannerClose" class="install-banner-close" aria-label="Dismiss">&#215;</button>
+  </div>
   <nav>
     <div class="nav-tab active" id="tab-trail">Trail</div>
     <div class="nav-tab" id="tab-map">Map</div>
@@ -296,7 +339,7 @@ nav::-webkit-scrollbar{display:none}
   <div class="panel active" id="panel-trail">
     <div class="trail-hero">
       <h2>Heritage Trail</h2>
-      <p>Discover 31 sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.</p>
+      <p>Discover <span class="site-count-total">31</span> sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.</p>
       <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
       <p class="progress-label" id="progressLabel">0 of 31 sites visited</p>
     </div>
