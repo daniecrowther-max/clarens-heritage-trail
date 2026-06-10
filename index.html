@@ -902,7 +902,9 @@ function isUnlocked() {
   var stored = localStorage.getItem('cht_token');
   if (!stored) return false;
   var result = validateToken(stored);
-  return result.valid;
+  if (!result.valid) return false;
+  if (result.type === 'purchase') return localStorage.getItem('cht_verified') === '1';
+  return true;
 }
 
 function isFree(id) {
@@ -967,19 +969,21 @@ function handleUrlToken() {
 
   if (!token) return;
 
-  token = token.trim().toUpperCase();
-  var result = validateToken(token);
-
-  if (result.valid) {
-    localStorage.setItem('cht_token', token);
-    window.history.replaceState({}, document.title, window.location.pathname);
-    showUnlockSuccess(result.label);
-  } else {
+  window.history.replaceState({}, document.title, window.location.pathname);
+  verifyAndStore(token, function(label) {
+    showUnlockSuccess(label);
+  }, function(reason) {
+    var msgMap = {
+      not_paid: "We couldn\u2019t confirm this purchase. Please contact support.",
+      offline:  "Connect to the internet once to activate your pass.",
+      network:  "Could not reach the server. Please try again.",
+      format:   "The token from your payment link is invalid. Please contact support."
+    };
     setTimeout(function() {
       showTokenModal('');
-      document.getElementById('tokenMsg').textContent = 'The token from your payment link is invalid. Please contact support.';
+      document.getElementById('tokenMsg').textContent = msgMap[reason] || msgMap.format;
     }, 500);
-  }
+  });
 }
 
 function showUnlockSuccess(label) {
@@ -1033,27 +1037,67 @@ document.getElementById('tokenInput').addEventListener('keydown', function(e) {
 document.getElementById('tokenSubmit').addEventListener('click', function() {
   var val = document.getElementById('tokenInput').value.trim().toUpperCase();
   var msg = document.getElementById('tokenMsg');
-  var result = validateToken(val);
-  if (result.valid) {
-    localStorage.setItem('cht_token', val);
-    hideTokenModal();
-    renderTrail(); renderPassport(); renderPartners();
-    var pendingId = document.getElementById('tokenModal').dataset.pendingId;
-    if (pendingId) { openDetailWithHistory(pendingId); }
-    msg.style.color = '#27ae60';
-    msg.textContent = '\u2713 Unlocked! (' + result.label + ')';
-  } else if (result.type === 'promo_expired') {
-    msg.style.color = '#c0392b';
+  msg.style.color = '#c0392b';
+  msg.textContent = '';
+
+  var preCheck = validateToken(val);
+  if (preCheck.type === 'promo_expired') {
     msg.textContent = 'This promo token has expired. Contact CHA for a new token.';
     document.getElementById('tokenInput').focus();
-  } else {
-    msg.style.color = '#c0392b';
-    msg.textContent = 'Invalid token. Please try again.';
-    document.getElementById('tokenInput').focus();
+    return;
   }
+
+  var btn = document.getElementById('tokenSubmit');
+  btn.disabled = true;
+  btn.textContent = 'Verifying\u2026';
+
+  verifyAndStore(val, function(label) {
+    btn.disabled = false;
+    btn.textContent = 'Unlock Now';
+    var pendingId = document.getElementById('tokenModal').dataset.pendingId;
+    hideTokenModal();
+    renderTrail(); renderPassport(); renderPartners();
+    if (pendingId) { openDetailWithHistory(pendingId); }
+    showUnlockSuccess(label);
+  }, function(reason) {
+    btn.disabled = false;
+    btn.textContent = 'Unlock Now';
+    var msgMap = {
+      not_paid: 'We couldn\u2019t confirm this purchase. Please contact support.',
+      offline:  'Connect to the internet once to activate your pass.',
+      network:  'Could not reach the server. Please try again.',
+      format:   'Invalid token. Please try again.'
+    };
+    msg.textContent = msgMap[reason] || msgMap.format;
+    document.getElementById('tokenInput').focus();
+  });
 });
 
 var CHA_CREATE_PAYMENT_URL = 'https://clarensheritage.org/wp-json/cha/v1/create-payment';
+var CHA_VERIFY_URL = 'https://clarensheritage.org/wp-json/cha/v1/verify-token';
+
+function verifyAndStore(token, onValid, onInvalid) {
+  token = token.trim().toUpperCase();
+  var r = validateToken(token);
+  if (!r.valid) { onInvalid('format'); return; }
+  if (r.type === 'admin' || r.type === 'promo') {
+    localStorage.setItem('cht_token', token);
+    localStorage.removeItem('cht_verified');
+    onValid(r.label);
+    return;
+  }
+  if (!navigator.onLine) { onInvalid('offline'); return; }
+  fetch(CHA_VERIFY_URL + '?token=' + encodeURIComponent(token))
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data && data.valid && data.paid === true) {
+        localStorage.setItem('cht_token', token);
+        localStorage.setItem('cht_verified', '1');
+        onValid('Trail Pass');
+      } else { onInvalid('not_paid'); }
+    })
+    .catch(function() { onInvalid('network'); });
+}
 
 function showBuyModal() {
   document.getElementById('tokenModal').style.display = 'none';
