@@ -264,6 +264,12 @@ nav::-webkit-scrollbar{display:none}
 </head>
 <body>
 
+<!-- Samsung Internet install advice banner -->
+<div id="samsungBanner" style="display:none; background:#c8a052; color:#1a1a1a; padding:10px 14px; font-size:0.9em; line-height:1.4; text-align:center; position:relative; z-index:9999;">
+  <strong>Tip / Wenk:</strong> For the best install experience, please open this app in <strong>Google Chrome</strong> and choose &quot;Add to Home screen&quot;.
+  <button onclick="dismissSamsungBanner()" style="margin-left:10px; background:#4a5240; color:#fff; border:none; border-radius:4px; padding:4px 10px; cursor:pointer;">OK</button>
+</div>
+
 <div style="display:none">
   <img id="img-primary-school" src="/photos/img-primary-school.webp">
   <img id="img-frost-house" src="/photos/img-frost-house.webp">
@@ -549,6 +555,21 @@ nav::-webkit-scrollbar{display:none}
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// Samsung Internet install advice
+function dismissSamsungBanner() {
+  document.getElementById('samsungBanner').style.display = 'none';
+  try { localStorage.setItem('samsungBannerDismissed', '1'); } catch(e) {}
+}
+(function() {
+  var isSamsung = /SamsungBrowser/i.test(navigator.userAgent);
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var dismissed = false;
+  try { dismissed = localStorage.getItem('samsungBannerDismissed') === '1'; } catch(e) {}
+  if (isSamsung && !isStandalone && !dismissed) {
+    document.getElementById('samsungBanner').style.display = 'block';
+  }
+})();
+
 // Set logo on load
 (function(){
   var logo = document.getElementById('img-primary-school');
