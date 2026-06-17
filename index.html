@@ -1350,7 +1350,9 @@ function renderTrail() {
       html += '<div class="site-card" data-id="' + p.id + '" data-type="partner">' +
         '<div class="card-accent" style="background:#c0392b"></div>' +
         '<div class="card-body">' +
-          '<div class="card-icon">' + (p.icon || '&#127981;') + '</div>' +
+          (p.logo
+            ? '<div class="card-icon" style="background:#fff;overflow:hidden;padding:0"><img src="' + p.logo + '" alt="' + p.name + '" style="width:100%;height:100%;object-fit:contain" onerror="this.parentNode.innerHTML=\'&#127981;\'"></div>'
+            : '<div class="card-icon">' + (p.icon || '&#127981;') + '</div>') +
           '<div class="card-info">' +
             '<div class="card-name">' + p.name + '</div>' +
             '<div class="card-meta-row">' + statusBadge + offerBadge + '</div>' +
