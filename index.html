@@ -1097,6 +1097,8 @@ document.getElementById('btnStart').addEventListener('click', function() {
     switchTab('trail');
     // Check URL for token from Stitch payment redirect
     handleUrlToken();
+    // Fetch remote sites from content.json and merge — runs async, re-renders on arrival
+    mergeRemoteSites();
     // Silently start GPS in the background so it is ready when user stamps
     setTimeout(function() {
       if (navigator.geolocation) {
@@ -1397,7 +1399,7 @@ function openDetail(id) {
   cfTrack('site_open', {site_id: id});
   document.getElementById('detailHeaderTitle').textContent = s.name;
   var stamped = !!visited[id];
-  var imgSrc = getImg(id);
+  var imgSrc = (s.photo && safeUrl(s.photo) !== '#') ? safeUrl(s.photo) : getImg(id);
   var photoHtml = imgSrc
     ? '<img class="detail-photo" src="' + imgSrc + '" alt="' + escapeHtml(s.name) + '">'
     : '<div class="detail-photo-ph">' + s.icon + '</div>';
@@ -2044,6 +2046,38 @@ function updateSiteCounts() {
   [].forEach.call(document.querySelectorAll('.site-count-total'), function(el){ el.textContent = n; });
 }
 updateSiteCounts();
+
+// Fetch content.json and merge remote sites into SITES.
+// Same-ID sites override the hardcoded entry; new IDs are appended.
+// Called after splash — runs async and re-renders when data arrives.
+function mergeRemoteSites() {
+  fetch('/content.json')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data || !Array.isArray(data.sites) || !data.sites.length) return;
+      var changed = false;
+      data.sites.forEach(function(remote) {
+        if (!remote.id || !remote.name) return;
+        var idx = -1;
+        SITES.forEach(function(s, i) { if (s.id === remote.id) idx = i; });
+        if (idx !== -1) {
+          SITES[idx] = remote;
+        } else {
+          SITES.push(remote);
+        }
+        if (remote.free && FREE_SITES.indexOf(remote.id) === -1) {
+          FREE_SITES.push(remote.id);
+        }
+        changed = true;
+      });
+      if (changed) {
+        updateSiteCounts();
+        renderTrail();
+        renderPassport();
+      }
+    })
+    .catch(function() {}); // offline or empty — stay with hardcoded sites
+}
 
 // Auto-skip splash if URL contains a token (from Stitch payment redirect)
 if (new URLSearchParams(window.location.search).get('token')) {
