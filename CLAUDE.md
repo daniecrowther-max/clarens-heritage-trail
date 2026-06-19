@@ -23,6 +23,12 @@
     /checkout (POST) · /verify-token (GET) · /redeem (POST)
   Moenie hierdie name verander nie.
 
+═══ WEERGAWE-OPDATERING (doen dit saam elke keer as die weergawenommer verander) ═══
+- Wysig die vier verskynings in index.html: splash-badge, splash-footer, hdr-beta, about-paneel.
+- Wysig CACHE_NAME in sw.js na 'cha-trail-v{nuwe-weergawe}'.
+  Sonder hierdie stap kry geïnstalleerde gebruikers NIE die opdatering nie — die app
+  dien index.html vanuit die ou kas (cache-first strategie).
+
 ═══ KLAAR-REËLS ═══
 - Loop node --check, bevestig die sluitings-tag + geen data-cfasync.
 - Wys 'n opsomming van die veranderde hunks.
