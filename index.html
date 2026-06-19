@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://clarensheritage.org; connect-src 'self' https://clarensheritage.org https://*.tile.openstreetmap.org https://unpkg.com https://static.cloudflareinsights.com; frame-src 'none'; object-src 'none'; base-uri 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://clarensheritage.org; connect-src 'self' https://clarensheritage.org https://*.tile.openstreetmap.org https://unpkg.com https://static.cloudflareinsights.com https://cloudflareinsights.com; frame-src 'none'; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Clarens Heritage Trail</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Jost:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -241,6 +241,7 @@ nav::-webkit-scrollbar{display:none}
       var b = document.getElementById('installBanner');
       if (b) b.style.display = 'none';
       deferredInstallPrompt = null;
+      if (window.cfTrack) window.cfTrack('pwa_install');
     });
     document.addEventListener('DOMContentLoaded', function() {
       var btn = document.getElementById('installBannerBtn');
@@ -554,7 +555,20 @@ nav::-webkit-scrollbar{display:none}
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "a6a628ff3d344b9aa3df021f46289b6c"}'></script><!-- End Cloudflare Web Analytics -->
 <script>
+// Lightweight analytics helper — offline-safe, never throws
+var CF_BEACON_TOKEN = 'a6a628ff3d344b9aa3df021f46289b6c';
+function cfTrack(name, props) {
+  try {
+    if (!navigator.onLine) return;
+    if (typeof navigator.sendBeacon !== 'function') return;
+    navigator.sendBeacon(
+      'https://cloudflareinsights.com/cdn-cgi/rum',
+      new Blob([JSON.stringify({siteToken:CF_BEACON_TOKEN,type:1537,name:name,data:props||{}})],{type:'application/json'})
+    );
+  } catch(e) {}
+}
 // Samsung Internet install advice
 function dismissSamsungBanner() {
   document.getElementById('samsungBanner').style.display = 'none';
@@ -1160,6 +1174,7 @@ function verifyAndStore(token, onValid, onInvalid) {
   if (r.type === 'admin' || r.type === 'promo') {
     localStorage.setItem('cht_token', token);
     localStorage.removeItem('cht_verified');
+    cfTrack('unlock', {token_type: r.type});
     onValid(r.label);
     return;
   }
@@ -1170,6 +1185,7 @@ function verifyAndStore(token, onValid, onInvalid) {
       if (data && data.valid && data.paid === true) {
         localStorage.setItem('cht_token', token);
         localStorage.setItem('cht_verified', '1');
+        cfTrack('unlock', {token_type: 'purchase'});
         onValid('Trail Pass');
       } else { onInvalid('not_paid'); }
     })
@@ -1378,6 +1394,7 @@ function renderTrail() {
 function openDetail(id) {
   var s = null;
   SITES.forEach(function(x) { if (x.id === id) s = x; });
+  cfTrack('site_open', {site_id: id});
   document.getElementById('detailHeaderTitle').textContent = s.name;
   var stamped = !!visited[id];
   var imgSrc = getImg(id);
