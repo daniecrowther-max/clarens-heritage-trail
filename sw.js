@@ -1,6 +1,9 @@
 // Clarens Heritage Trail — Service Worker
 // Version: 1.0 — update this string to force cache refresh on new releases
-const CACHE_NAME = 'cha-trail-v2.5.4';
+// Tydelike onderhoud-modus: CACHE_NAME bump forseer 'n vars fetch by geïnstalleerde
+// gebruikers — skipWaiting()/clients.claim() hieronder neem dadelik oor, en die
+// activate-handler vee alle ou caches uit, sodat hulle die onderhoud-bladsy sien.
+const CACHE_NAME = 'cha-trail-maintenance-2026-08-12';
 
 // Files to cache for offline use
 const ASSETS = [
