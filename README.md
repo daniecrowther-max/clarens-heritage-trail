@@ -1,7 +1,10 @@
 # Clarens Heritage Trail PWA
 
-Live: **https://trail.clarensheritage.org**  
-Hosted on Cloudflare Workers Static Assets.
+**Retired 26 Aug 2026** — trail.clarensheritage.org now serves the whitelabel app
+(repo `whitelabel-heritage-trail`, `app/`), not this repo. This repo's Cloudflare Worker
+is no longer deployed to that domain; kept for history only. See `whitelabel-heritage-trail`
+for the live app.  
+Was hosted on Cloudflare Workers Static Assets.
 
 ---
 
