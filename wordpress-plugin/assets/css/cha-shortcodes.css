@@ -1,0 +1,87 @@
+/*
+ * Styling for [cha_facts] output. Scoped entirely under .cha-facts-block
+ * so it can't leak into the rest of an Elementor page. Colours/fonts are the
+ * CHA brand palette — same "Quick Facts" visual
+ * language as the app (app/index.html: .facts-box/.fact-row), reimplemented
+ * here as semantic <dl>/<dt>/<dd> since this renders inside an arbitrary
+ * WordPress theme, not the app shell.
+ *
+ * Override from Elementor: target .cha-facts-block (container),
+ * .cha-facts-block-title (the "Quick Facts" heading — remove/hide it with
+ * `display:none` if your page already has its own heading), or
+ * .cha-facts dt / .cha-facts dd (label/value cells) with custom CSS at
+ * whatever specificity your theme needs.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Source+Sans+3:wght@400;600&display=swap');
+
+.cha-facts-block {
+	background: #ffffff;
+	border: 1px solid #D4CBB6; /* Fossil */
+	border-radius: 10px;
+	padding: 18px 20px;
+	margin: 0 0 24px;
+	box-sizing: border-box;
+}
+
+.cha-facts-block-title {
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-weight: 700;
+	font-size: 1rem;
+	color: #1D4D1F; /* Heritage Green */
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	margin: 0 0 12px;
+}
+
+.cha-facts {
+	display: grid;
+	grid-template-columns: max-content 1fr;
+	column-gap: 20px;
+	row-gap: 8px;
+	margin: 0;
+	font-family: 'Source Sans 3', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+	font-size: 0.92rem;
+}
+
+.cha-facts dt {
+	grid-column: 1;
+	margin: 0;
+	padding: 6px 0;
+	font-weight: 600;
+	color: #1D4D1F; /* Heritage Green */
+}
+
+.cha-facts dd {
+	grid-column: 2;
+	margin: 0;
+	padding: 6px 0;
+	font-weight: 400;
+	color: #14110D; /* Text */
+}
+
+.cha-facts dt:not(:last-of-type),
+.cha-facts dd:not(:last-of-type) {
+	border-bottom: 1px solid #ECE9E3; /* Parchment — soft divider on white */
+}
+
+@media (max-width: 480px) {
+	.cha-facts {
+		grid-template-columns: 1fr;
+		row-gap: 2px;
+	}
+	.cha-facts dt {
+		grid-column: 1;
+		padding: 6px 0 0;
+	}
+	.cha-facts dd {
+		grid-column: 1;
+		padding: 0 0 6px;
+	}
+	.cha-facts dt:not(:last-of-type) {
+		border-bottom: none;
+	}
+	.cha-facts dd:not(:last-of-type) {
+		border-bottom: 1px solid #ECE9E3;
+	}
+}

@@ -1,6 +1,54 @@
-# wrangler files
-.wrangler
-.dev.vars*
-!.dev.vars.example
-.env*
+# ── Secrets / config ────────────────────────────────
+.env
+.env.*
 !.env.example
+*.pem
+*.key
+
+# ── Node / build (app tooling) ──────────────────────
+node_modules/
+dist/
+build/
+.cache/
+npm-debug.log*
+yarn-error.log*
+
+# ── WordPress (local install artifacts) ─────────────
+wp-config.php
+wp-content/uploads/
+wp-content/upgrade/
+wp-content/cache/
+wp-content/backup-db/
+wp-content/blogs.dir/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+*.sql
+*.sqlite
+
+# Keep our own plugin tracked even though wp-content is noisy:
+!wp-content/plugins/
+!wp-content/plugins/**
+
+# Stray self-referential symlink re-created by local WP setup —
+# never commit it (circular; loops deploy scripts and file walkers):
+wordpress-plugin/wordpress-plugin
+
+# ── Local tooling (Claude Code, editors) ────────────
+.claude/
+
+# ── OS / editor ─────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# ── Local build artifacts (zips built for manual deploy, and two stray
+# extensionless zip-shaped files that ended up in the repo root) ──────
+*.zip
+/ziGrdu2s
+/zixroZ7N
+
+# Wrangler local cache/session state — never commit (may hold account/session data)
+.wrangler/

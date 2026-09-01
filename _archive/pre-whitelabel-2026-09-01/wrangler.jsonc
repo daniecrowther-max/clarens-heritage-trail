@@ -1,12 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "cha-heritage-trail",
+  "name": "clarens-heritage-trail",
   "compatibility_date": "2026-06-03",
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "app"
+    "directory": "."
   },
   "compatibility_flags": [
     "nodejs_compat"

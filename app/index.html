@@ -1,0 +1,2336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://clarensheritage.org; connect-src 'self' https://clarensheritage.org https://*.tile.openstreetmap.org https://unpkg.com https://static.cloudflareinsights.com https://cloudflareinsights.com; frame-src 'none'; object-src 'none'; base-uri 'self'">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Clarens Heritage Trail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Jost:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  /* ── Clarens brand tokens ───────────────────────────────────────────
+     Taken verbatim from the live Clarens app (clarens-heritage-trail
+     repo, commit a8627de) — the real palette, not GRHS's. */
+  --cha-green:#4E5530;
+  --cha-red:#520410;
+  --cha-charcoal:#1e2318;
+  --cha-ochre:#c8a052;
+  --cha-stone:#c8d4b8;
+  --cha-parchment:#e8ede0;
+
+  --cha-font-display:'Cormorant Garamond',Georgia,serif;
+  --cha-font-body:'Jost',-apple-system,system-ui,sans-serif;
+
+  /* ── Steps derived from the six above ─────────────────────────────── */
+  --cha-green-dark:#2e3a1f;
+  --cha-green-mid:#606e42;
+  --cha-green-light:#7a8a6a;
+  --cha-parchment-dim:#f2f5ee;
+
+  /* ── Role tokens ──────────────────────────────────────────────────────
+     Anything sitting ON a green surface. Text on green is Parchment or
+     white; Fossil is for borders and dividers — so these two roles cannot
+     share one variable (see --sage below). */
+  --on-green:var(--cha-parchment);
+
+  /* ── Clarens-era slots, remapped onto the Clarens palette ────────────
+     Aliases, so a visual-only pass does not churn ~200 call sites. --sage
+     carried two incompatible roles in the original Clarens design (light
+     text on olive AND borders on light panels); it now means Fossil/borders
+     only, and the text-on-green call sites were moved to --on-green.
+     --plaque-blue is deliberately NOT remapped: it denotes the physical blue
+     of a Blue Plaque, a real-world referent rather than brand colour. */
+  --olive:var(--cha-green);--olive-dark:var(--cha-green-dark);--olive-mid:var(--cha-green-mid);--olive-light:var(--cha-green-light);
+  --sage:var(--cha-stone);--sage-light:var(--cha-parchment);--sage-pale:var(--cha-parchment-dim);--cream:#fafaf6;
+  --plaque-blue:#1a4a7a;--gold:var(--cha-ochre);
+  --text:var(--cha-charcoal);--text-mid:#3d4a30;--text-light:#6b7a5a;--white:#fff;
+  --shadow:0 4px 20px rgba(74,82,64,.12);--shadow-lg:0 8px 36px rgba(74,82,64,.20);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--cha-font-body);background:var(--cream);color:var(--text);min-height:100vh;overflow-x:hidden}
+#splash{position:fixed;inset:0;z-index:1000;background:var(--olive);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;transition:opacity .7s ease,transform .7s ease}
+#splash.hide{opacity:0;transform:translateY(-16px);pointer-events:none}
+.splash-beta{position:absolute;top:20px;right:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.65);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;padding:4px 10px;border-radius:20px}
+.splash-logo{width:180px;height:auto;margin-bottom:20px}
+.splash-title{font-family:var(--cha-font-display);font-size:clamp(2.2rem,9vw,3.2rem);font-weight:600;color:#fff;text-align:center;line-height:1.1;margin-bottom:6px}
+.splash-sub{font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(200,212,184,.65);margin-bottom:48px}
+.btn-start{background:#fff;color:var(--olive);border:none;padding:16px 44px;font-family:var(--cha-font-body);font-weight:700;font-size:.8rem;letter-spacing:.2em;text-transform:uppercase;border-radius:3px;cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.btn-start:hover{background:var(--on-green);transform:translateY(-2px)}
+.splash-footer{position:absolute;bottom:20px;color:rgba(200,212,184,.4);font-size:.62rem;letter-spacing:.12em}
+#app{display:none;flex-direction:column;min-height:100vh}
+#app.visible{display:flex}
+header{background:var(--olive);padding:0 16px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(30,35,24,.35)}
+.header-left{display:flex;align-items:center;gap:10px}
+.hdr-logo{height:40px;width:auto}
+.hdr-title{font-family:var(--cha-font-display);font-size:1.05rem;font-weight:600;color:#fff;display:block;line-height:1.1}
+.hdr-sub{font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--on-green);display:block}
+.hdr-beta{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--on-green);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;border-radius:12px}
+nav{background:var(--olive-dark);display:flex;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+.nav-tab{flex-shrink:0;padding:11px 18px;font-family:var(--cha-font-body);font-size:.7rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:rgba(200,212,184,.5);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.nav-tab.active{color:#fff;border-bottom-color:var(--cha-ochre)}
+.nav-tab:hover{color:var(--on-green)}
+.panel{display:none;flex:1}.panel.active{display:block}
+.trail-hero{background:linear-gradient(160deg,var(--olive) 0%,var(--olive-mid) 100%);padding:24px 20px 28px;position:relative;overflow:hidden}
+.trail-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border:1px solid rgba(200,212,184,.15);border-radius:50%}
+.trail-hero h2{font-family:var(--cha-font-display);font-size:1.6rem;font-weight:600;color:#fff;margin-bottom:4px;position:relative}
+.trail-hero p{color:var(--on-green);font-size:.82rem;font-weight:300;line-height:1.65;max-width:280px;position:relative}
+.progress-track{background:rgba(255,255,255,.12);border-radius:20px;height:6px;overflow:hidden;margin-top:18px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--on-green),#fff);border-radius:20px;transition:width .7s ease}
+.progress-label{color:rgba(200,212,184,.7);font-size:.68rem;letter-spacing:.1em;margin-top:7px}
+.section-label{font-size:.62rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--text-light);padding:18px 18px 8px;display:block}
+.free-sites-section{margin:14px 14px 4px;background:linear-gradient(135deg,var(--cha-parchment),var(--cha-parchment-dim));border:1.5px solid var(--olive-light);border-radius:12px;overflow:hidden}
+.free-sites-header{background:var(--olive);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.free-sites-title{font-family:var(--cha-font-display);font-size:1.1rem;font-weight:600;color:#fff}
+.free-sites-badge{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;font-size:.6rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:3px 9px;border-radius:12px}
+.free-sites-desc{font-size:.75rem;color:var(--text-mid);line-height:1.6;padding:10px 16px 12px}
+.free-sites-list{display:flex;flex-direction:column;gap:0}
+.free-site-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid rgba(200,212,184,.5);cursor:pointer;transition:background .15s}
+.free-site-row:hover{background:rgba(200,212,184,.3)}
+.free-site-icon{width:38px;height:38px;border-radius:7px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;border:1px solid var(--sage)}
+.free-site-info{flex:1;min-width:0}
+.free-site-name{font-family:var(--cha-font-display);font-size:.98rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.free-site-year{font-size:.68rem;color:var(--text-light)}
+.free-site-stamp{width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--olive-light);display:flex;align-items:center;justify-content:center;color:var(--sage);font-size:.8rem;flex-shrink:0;transition:all .3s}
+.free-site-stamp.earned{border-style:solid;border-color:var(--olive);background:var(--olive);color:#fff}
+.sites-list{padding:0 14px 24px;display:flex;flex-direction:column;gap:10px}
+.site-card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:transform .18s,box-shadow .18s;display:flex;border:1.5px solid transparent}
+.site-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.site-card.visited{border-color:var(--olive-light);background:linear-gradient(135deg,var(--cha-parchment),#fff)}
+.card-accent{width:5px;flex-shrink:0}
+.ac-blue{background:var(--plaque-blue)}.ac-olive{background:var(--olive)}.ac-gold{background:var(--gold)}.ac-mid{background:var(--olive-mid)}
+.card-body{padding:14px;flex:1;display:flex;align-items:center;gap:12px}
+.card-icon{width:46px;height:46px;border-radius:8px;background:var(--sage-pale);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;border:1px solid var(--sage)}
+.card-info{flex:1;min-width:0}
+.card-name{font-family:var(--cha-font-display);font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.card-year{background:var(--sage-pale);color:var(--olive);border:1px solid var(--sage);padding:1px 7px;border-radius:10px;font-size:.65rem;font-weight:700}
+.card-addr{font-size:.7rem;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.card-stamp{width:32px;height:32px;border-radius:50%;border:1.5px dashed var(--sage);display:flex;align-items:center;justify-content:center;color:var(--sage);font-size:.9rem;opacity:.5;flex-shrink:0;transition:all .3s}
+.card-stamp.earned{border-style:solid;border-color:var(--olive);background:var(--olive);color:#fff;opacity:1}
+
+.site-card.locked-site .card-stamp { border-color: #bbb; color: #bbb; }
+.status-badge { display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:10px;font-size:.6rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;flex-shrink:0 }
+.status-bp   { background:var(--plaque-blue);color:#fff }
+.status-her  { background:var(--olive-light);color:#fff }
+.status-nat  { background:#5d8a3c;color:#fff }
+.status-cul  { background:#8a5c2e;color:#fff }
+.badge-bp  { background:var(--plaque-blue) }
+.badge-her { background:var(--olive-light) }
+.badge-nat { background:#5d8a3c }
+.badge-cul { background:#8a5c2e }
+.status-par  { background:var(--cha-red);color:#fff }
+.card-meta-row { display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px }
+.lock-badge { background: #888; color: #fff; padding: 1px 7px; border-radius: 10px; font-size: .62rem; font-weight: 700; letter-spacing: .05em; display: inline-flex; align-items: center; gap: 3px; }
+
+#detail-view{display:none;position:fixed;inset:0;z-index:200;background:var(--cream);overflow-y:auto}
+#detail-view.open{display:block;animation:slideUp .28s ease}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.detail-header{background:var(--olive);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.btn-back{background:rgba(255,255,255,.12);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0}
+.btn-back:hover{background:rgba(255,255,255,.22)}
+.detail-hdr-title{font-family:var(--cha-font-display);font-size:1.1rem;font-weight:600;color:#fff}
+.detail-photo{width:100%;height:220px;object-fit:cover;display:block}
+.detail-photo-ph{width:100%;height:220px;background:linear-gradient(135deg,var(--sage-light),var(--sage-pale));display:flex;align-items:center;justify-content:center;font-size:5rem}
+.detail-photo-credit{background:var(--cream);color:var(--text-light);font-size:.68rem;text-align:right;padding:4px 12px;border-bottom:1px solid rgba(0,0,0,.06)}
+.detail-body{padding:22px 18px 40px}
+.plaque-badge{display:inline-flex;align-items:center;gap:5px;background:var(--plaque-blue);color:#fff;padding:3px 11px;border-radius:20px;font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.detail-title{font-family:var(--cha-font-display);font-size:1.9rem;font-weight:700;color:var(--text);line-height:1.15;margin-bottom:6px}
+.detail-addr{color:var(--text-light);font-size:.8rem;margin-bottom:20px}
+.detail-divider{height:1px;background:var(--sage);margin:18px 0}
+.facts-box{background:var(--sage-pale);border:1px solid var(--sage);border-radius:8px;padding:14px;margin-bottom:18px}
+.facts-box h4{font-family:var(--cha-font-display);font-size:.9rem;font-weight:700;color:var(--olive);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em}
+.fact-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--sage);font-size:.78rem}
+.fact-row:last-child{border-bottom:none}
+.fact-label{color:var(--text-light)}.fact-value{color:var(--text);font-weight:600;text-align:right;max-width:55%}
+.detail-text{font-size:.88rem;line-height:1.82;color:var(--text-mid);margin-bottom:14px}
+.btn-stamp{width:100%;background:var(--olive);color:#fff;border:none;padding:16px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:22px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-stamp:hover{background:var(--olive-mid);transform:translateY(-1px)}
+.btn-stamp.geo-locked{background:#aaa;cursor:not-allowed;transform:none}
+.btn-stamp.geo-locked:hover{background:#aaa;transform:none}
+.btn-stamp.geo-checking{background:var(--olive-light);cursor:wait}
+.geo-msg{font-size:.75rem;color:var(--text-light);text-align:center;margin-top:8px;min-height:18px;font-family:var(--cha-font-body)}
+.btn-stamp.stamped{background:var(--text-light);cursor:default}
+.btn-stamp.stamped:hover{transform:none}
+.btn-maps{width:100%;background:var(--sage-pale);color:var(--olive);border:1.5px solid var(--sage);padding:13px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn-maps:hover{background:var(--sage)}
+.passport-wrap{padding:16px}
+.passport-card{background:linear-gradient(145deg,var(--olive) 0%,var(--olive-dark) 100%);border-radius:14px;padding:26px 22px;text-align:center;position:relative;overflow:hidden;margin-bottom:20px;box-shadow:var(--shadow-lg)}
+.passport-card::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 24px,rgba(200,212,184,.04) 24px,rgba(200,212,184,.04) 48px)}
+.passport-emblem{font-size:3rem;margin-bottom:10px;position:relative}
+.passport-card h2{font-family:var(--cha-font-display);font-size:1.4rem;font-weight:600;color:#fff;margin-bottom:3px;position:relative}
+.passport-org{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--on-green);position:relative;margin-bottom:18px;display:block}
+.passport-score{display:flex;align-items:baseline;justify-content:center;gap:3px;position:relative}
+.score-num{font-family:var(--cha-font-display);font-size:3.2rem;font-weight:700;color:var(--on-green);line-height:1}
+.score-denom{font-size:1.1rem;color:rgba(200,212,184,.4);padding-bottom:4px}
+.stamps-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
+.stamp-card{background:#fff;border-radius:10px;padding:18px 12px;text-align:center;box-shadow:var(--shadow);border:1.5px solid transparent;transition:all .3s}
+.stamp-card.earned{border-color:var(--olive-light);background:linear-gradient(135deg,var(--cha-parchment),#fff)}
+.stamp-card.locked{opacity:.45}
+.stamp-icon{font-size:2rem;margin-bottom:7px}
+.stamp-name{font-family:var(--cha-font-display);font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:3px}
+.stamp-status{font-size:.68rem;color:var(--text-light)}
+.stamp-card.earned .stamp-status{color:var(--olive);font-weight:700}
+.donate-box{background:var(--olive-dark);border-radius:12px;padding:22px 18px;text-align:center;box-shadow:var(--shadow-lg)}
+.donate-box h3{font-family:var(--cha-font-display);font-size:1.25rem;color:#fff;margin-bottom:8px}
+.donate-box p{font-size:.8rem;color:var(--on-green);line-height:1.65;margin-bottom:18px}
+.btn-donate{background:var(--on-green);color:var(--cha-green-dark);border:none;padding:13px 30px;border-radius:6px;font-family:var(--cha-font-body);font-weight:700;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-donate:hover{background:#fff}
+.map-wrap{padding:0;position:relative;height:100%;display:flex;flex-direction:column}
+#leaflet-map{flex:1;min-height:calc(100vh - 120px);width:100%;z-index:1}
+.map-locate-btn{position:absolute;bottom:24px;right:12px;z-index:999;background:var(--olive);color:#fff;border:none;border-radius:50%;width:44px;height:44px;font-size:1.2rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}
+.map-locate-btn:active{background:var(--olive-dark)}
+.leaflet-popup-content-wrapper{border-radius:10px;font-family:var(--cha-font-body)}
+.leaflet-popup-content{margin:10px 14px;font-size:.85rem;color:var(--text)}
+.map-popup-name{font-family:var(--cha-font-display);font-size:1.05rem;font-weight:700;color:var(--olive);margin-bottom:2px}
+.map-popup-addr{font-size:.75rem;color:var(--text-light);margin-bottom:6px}
+.map-popup-btn{display:inline-block;background:var(--olive);color:#fff;padding:5px 12px;border-radius:6px;font-size:.75rem;cursor:pointer;border:none;font-family:var(--cha-font-body)}
+.map-ph{background:linear-gradient(135deg,var(--sage-light),var(--sage-pale));border:1.5px dashed var(--olive-light);border-radius:12px;padding:28px 18px;text-align:center;margin-bottom:18px}
+.map-ph h3{font-family:var(--cha-font-display);font-size:1.2rem;color:var(--olive);margin-bottom:6px}
+.map-ph p{font-size:.8rem;color:var(--text-light);line-height:1.65}
+.map-list{display:flex;flex-direction:column;gap:8px}
+.map-row{background:#fff;border-radius:8px;padding:13px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(74,82,64,.07);transition:transform .18s;text-decoration:none}
+.map-row:hover{transform:translateX(4px)}
+.map-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.map-info{flex:1}
+.map-name{font-family:var(--cha-font-display);font-size:.98rem;font-weight:600;color:var(--text)}
+.map-addr{font-size:.72rem;color:var(--text-light)}
+.map-arrow{color:var(--olive-light)}
+.about-wrap{padding:16px}
+.about-hero{background:var(--olive);border-radius:12px;padding:26px 20px;text-align:center;margin-bottom:14px}
+.about-hero h2{font-family:var(--cha-font-display);font-size:1.5rem;color:#fff;margin-bottom:8px}
+.about-hero p{color:var(--on-green);font-size:.82rem;line-height:1.7}
+.beta-bar{background:var(--cha-parchment);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:13px 14px;margin-bottom:12px}
+.beta-bar h4{color:var(--olive);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.beta-bar p{font-size:.78rem;color:var(--text-light);line-height:1.6}
+.about-card{background:#fff;border-radius:10px;padding:16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(74,82,64,.06)}
+.about-card h3{font-family:var(--cha-font-display);font-size:1rem;font-weight:700;color:var(--olive);margin-bottom:8px}
+.about-card p{font-size:.82rem;color:var(--text-mid);line-height:1.72}
+.about-card a{color:var(--olive);font-weight:700;text-decoration:none}
+.stamp-burst{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;pointer-events:none;background:var(--olive);width:150px;height:150px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;transition:transform .35s cubic-bezier(.175,.885,.32,1.275),opacity .3s;opacity:0}
+.stamp-burst.show{transform:translate(-50%,-50%) scale(1);opacity:1}
+.stamp-burst.hide{transform:translate(-50%,-50%) scale(1.15);opacity:0}
+.burst-icon{font-size:2.4rem}
+.burst-text{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-top:4px;color:var(--on-green)}
+
+.partners-wrap{padding:16px}
+.partners-hero{background:var(--olive);border-radius:12px;padding:26px 20px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden}
+.partners-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 24px,rgba(200,212,184,.04) 24px,rgba(200,212,184,.04) 48px)}
+.partners-hero-icon{font-size:2.4rem;margin-bottom:8px;position:relative}
+.partners-hero h2{font-family:var(--cha-font-display);font-size:1.4rem;font-weight:600;color:#fff;margin-bottom:8px;position:relative}
+.partners-hero p{color:var(--on-green);font-size:.82rem;line-height:1.7;position:relative}
+.partner-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;border:1.5px solid var(--sage)}
+.partner-card-header{background:linear-gradient(135deg,var(--olive),var(--olive-mid));padding:18px 18px 14px;display:flex;align-items:center;gap:12px}
+.partner-logo{width:48px;height:48px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0}
+.partner-card-title{font-family:var(--cha-font-display);font-size:1.15rem;font-weight:600;color:#fff}
+.partner-card-type{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--on-green);margin-top:2px}
+.partner-card-body{padding:16px 18px}
+.partner-offer{background:var(--sage-pale);border:1px solid var(--sage);border-radius:8px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.partner-offer-pct{font-family:var(--cha-font-display);font-size:2rem;font-weight:700;color:var(--olive);line-height:1;flex-shrink:0}
+.partner-offer-detail{flex:1}
+.partner-offer-label{font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.partner-offer-sub{font-size:.72rem;color:var(--text-light);line-height:1.5}
+.partner-desc{font-size:.82rem;color:var(--text-mid);line-height:1.72;margin-bottom:14px}
+.partner-addr{font-size:.75rem;color:var(--text-light);margin-bottom:14px;display:flex;align-items:center;gap:5px}
+.btn-voucher{width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-voucher:hover{background:var(--olive-mid)}
+.btn-voucher.used{background:var(--text-light);cursor:default}
+.btn-voucher.locked{background:#aaa;cursor:not-allowed}
+.partners-note{background:var(--cha-parchment);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:12px 14px;margin-top:6px}
+.partners-note p{font-size:.75rem;color:var(--text-light);line-height:1.6}
+
+.install-banner{display:flex;align-items:center;gap:10px;background:var(--olive);color:#fff;padding:9px 14px;font-family:var(--cha-font-body);font-size:.78rem}
+.install-banner-text{flex:1;line-height:1.35}
+.install-banner-btn{background:var(--gold);color:var(--text);border:none;padding:7px 16px;border-radius:6px;font-weight:700;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:var(--cha-font-body);flex-shrink:0}
+.install-banner-close{background:transparent;border:none;color:#fff;font-size:1.25rem;line-height:1;cursor:pointer;padding:0 4px;opacity:.85;flex-shrink:0}
+
+/* Update-available toast — fixed so it's visible regardless of scroll depth
+   or which tab is open; only shown when an update arrives while the app is
+   actively in use (see updatefound/controllerchange handling below). */
+.update-banner{display:flex;align-items:center;gap:10px;background:var(--olive);color:#fff;padding:11px 16px;font-family:var(--cha-font-body);font-size:.78rem;position:fixed;left:12px;right:12px;bottom:12px;border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.28);z-index:900}
+.update-banner-text{flex:1;line-height:1.35}
+.update-banner-btn{background:var(--gold);color:var(--text);border:none;padding:7px 16px;border-radius:6px;font-weight:700;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:var(--cha-font-body);flex-shrink:0}
+
+/* Welcome / onboarding overlay + help button */
+.hdr-right{display:flex;align-items:center;gap:8px}
+.help-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1.15rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--cha-font-body);line-height:1}
+.help-btn:hover{background:rgba(255,255,255,.22)}
+.welcome-overlay{display:none;position:fixed;inset:0;z-index:1200;background:rgba(30,35,24,.80);overflow-y:auto;padding:24px 16px;-webkit-overflow-scrolling:touch}
+.welcome-overlay.open{display:block}
+.welcome-card{background:var(--cream);max-width:440px;margin:0 auto;border-radius:16px;box-shadow:0 12px 48px rgba(0,0,0,.45);overflow:hidden}
+.welcome-head{background:var(--olive);padding:26px 22px 22px;text-align:center}
+.welcome-logo{width:64px;height:auto;margin-bottom:12px}
+.welcome-title{font-family:var(--cha-font-display);font-size:1.7rem;font-weight:700;color:#fff;line-height:1.15}
+.welcome-body{padding:22px 20px 26px}
+.welcome-lead{font-size:1.02rem;line-height:1.6;color:var(--text);margin-bottom:22px;text-align:center}
+.welcome-section-label{font-size:.66rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;display:block}
+.welcome-nav-row{display:flex;align-items:flex-start;gap:14px;padding:11px 0;border-bottom:1px solid var(--sage)}
+.welcome-nav-row:last-child{border-bottom:none}
+.welcome-nav-icon{font-size:1.7rem;line-height:1.2;flex-shrink:0;width:34px;text-align:center}
+.welcome-nav-text{font-size:.98rem;line-height:1.45;color:var(--text)}
+.welcome-nav-text b{font-family:var(--cha-font-display);font-size:1.1rem;color:var(--olive)}
+.welcome-install{background:var(--sage-pale);border:1px solid var(--sage);border-radius:12px;padding:16px;margin-top:22px}
+.welcome-install h4{font-family:var(--cha-font-display);font-size:1.15rem;font-weight:700;color:var(--olive);margin-bottom:10px}
+.welcome-install p{font-size:.95rem;line-height:1.55;color:var(--text-mid);margin-bottom:8px}
+.welcome-install p:last-child{margin-bottom:0}
+.welcome-install .ios-share{vertical-align:-4px;margin:0 2px}
+.welcome-install-btn{width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.95rem;letter-spacing:.08em;cursor:pointer;margin-top:6px}
+.welcome-install-btn:hover{background:var(--olive-mid)}
+.welcome-start{width:100%;background:var(--olive);color:#fff;border:none;padding:17px;border-radius:10px;font-family:var(--cha-font-body);font-weight:700;font-size:1rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;margin-top:24px}
+.welcome-start:hover{background:var(--olive-mid)}
+.howto-nav-row{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--sage)}
+.howto-nav-row:last-child{border-bottom:none}
+.howto-nav-icon{font-size:1.4rem;line-height:1.2;flex-shrink:0;width:28px;text-align:center}
+.howto-nav-text{font-size:.85rem;line-height:1.45;color:var(--text-mid)}
+.howto-nav-text b{font-family:var(--cha-font-display);font-size:1rem;color:var(--olive)}
+</style>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#484E32">
+  <link rel="apple-touch-icon" href="/icon-192x192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Heritage Trail">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          // Update handling: skipWaiting/clients.claim (in sw.js) make a new SW
+          // take control immediately once the browser detects one, but that
+          // doesn't rebuild what's already rendered on screen. Non-technical
+          // users (committee members, the public) will never know to hard-
+          // refresh, so this has to be automatic:
+          //   - If an update takes control while the app is backgrounded
+          //     (phone locked, user switched apps), apply it — reload — the
+          //     next time the app is foregrounded. That moment reads as a
+          //     normal app-open, not an interruption.
+          //   - If an update takes control while the app is actively open and
+          //     visible, don't yank it out from under someone mid-task (e.g.
+          //     typing an email to buy Phase 2) — show a small banner instead
+          //     and let them tap to refresh on their own terms.
+          //   - Foregrounding also proactively calls reg.update(): mobile
+          //     browsers don't reliably re-check for a new SW just because a
+          //     backgrounded PWA was resumed, which is the exact failure mode
+          //     reported (desktop hard-refresh picked up a fix; phone/PWA did
+          //     not) — this closes that gap without waiting on the browser's
+          //     own timing.
+          var hadController = !!navigator.serviceWorker.controller;
+          var reloading = false;
+          var updateWaiting = false;
+
+          function applyUpdate() {
+            if (reloading) return;
+            reloading = true;
+            window.location.reload();
+          }
+
+          navigator.serviceWorker.addEventListener('controllerchange', function() {
+            if (!hadController) { hadController = true; return; } // first-ever install, nothing to refresh
+            if (document.visibilityState === 'hidden') {
+              updateWaiting = true;
+            } else {
+              var b = document.getElementById('updateBanner');
+              if (b) b.style.display = 'flex';
+            }
+          });
+
+          document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState !== 'visible') return;
+            if (updateWaiting) { applyUpdate(); return; }
+            reg.update();
+          });
+
+          var updateBtn = document.getElementById('updateBannerBtn');
+          if (updateBtn) updateBtn.addEventListener('click', applyUpdate);
+        });
+      });
+    }
+
+    // PWA install banner — capture beforeinstallprompt and offer an in-app Install button.
+    // (iOS Safari does not fire this event; iOS users install via Share -> Add to Home Screen.)
+    var deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (localStorage.getItem('installBannerDismissed') !== '1') {
+        var b = document.getElementById('installBanner');
+        if (b) b.style.display = 'flex';
+      }
+    });
+    window.addEventListener('appinstalled', function() {
+      var b = document.getElementById('installBanner');
+      if (b) b.style.display = 'none';
+      deferredInstallPrompt = null;
+      if (window.cfTrack) window.cfTrack('pwa_install');
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+      var btn = document.getElementById('installBannerBtn');
+      var closeBtn = document.getElementById('installBannerClose');
+      var banner = document.getElementById('installBanner');
+      if (btn) btn.addEventListener('click', function() {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then(function() {
+          deferredInstallPrompt = null;
+          if (banner) banner.style.display = 'none';
+        });
+      });
+      if (closeBtn) closeBtn.addEventListener('click', function() {
+        localStorage.setItem('installBannerDismissed', '1');
+        if (banner) banner.style.display = 'none';
+      });
+    });
+  </script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+</head>
+<body>
+
+<!-- Samsung Internet install advice banner -->
+<div id="samsungBanner" style="display:none; background:#c8a052; color:#1a1a1a; padding:10px 14px; font-size:0.9em; line-height:1.4; text-align:center; position:relative; z-index:9999;">
+  <strong>Tip:</strong> For the best install experience, please open this app in <strong>Google Chrome</strong> and choose &quot;Add to Home screen&quot;.
+  <button onclick="dismissSamsungBanner()" style="margin-left:10px; background:#4a5240; color:#fff; border:none; border-radius:4px; padding:4px 10px; cursor:pointer;">OK</button>
+</div>
+
+<!-- Clarens photo-preloader removed: GR site photos are external .webp URLs
+     from the cha/v1/content feed (build brief §0), not bundled assets. -->
+
+<div id="splash">
+  <div class="splash-beta">V3.2.0</div>
+  <img class="splash-logo" id="splash-logo" src="" alt="Clarens Heritage Association">
+  <h1 class="splash-title">Heritage<br>Trail</h1>
+  <p class="splash-sub">Clarens &middot; Free State &middot; Est. 1912</p>
+  <button class="btn-start" id="btnStart" aria-label="Begin the Clarens Heritage Trail">Begin Your Journey</button>
+  <p class="splash-footer">clarensheritage.org &middot; V3.2.0 &middot; &copy; 2026 Clarens Heritage Association</p>
+</div>
+
+<div class="stamp-burst" id="stampBurst">
+  <div class="burst-icon">&#10003;</div>
+  <div class="burst-text">Stamp Earned!</div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="header-left">
+      <img class="hdr-logo" id="hdr-logo" src="" alt="Clarens Heritage Association">
+      <div>
+        <span class="hdr-title">Clarens Heritage Trail</span>
+        <span class="hdr-sub">Clarens Heritage Association</span>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <button class="help-btn" id="helpBtn" aria-label="How to use this app" title="Help">?</button>
+      <div class="hdr-beta">V3.2.0</div>
+    </div>
+  </header>
+  <div id="installBanner" class="install-banner" style="display:none">
+    <span class="install-banner-text">&#128241; Install the Heritage Trail app on your phone for offline use.</span>
+    <button id="installBannerBtn" class="install-banner-btn">Install</button>
+    <button id="installBannerClose" class="install-banner-close" aria-label="Dismiss">&#215;</button>
+  </div>
+  <div id="updateBanner" class="update-banner" style="display:none">
+    <span class="update-banner-text">&#10024; An updated version of the trail is available.</span>
+    <button id="updateBannerBtn" class="update-banner-btn">Refresh</button>
+  </div>
+  <div class="welcome-overlay" id="welcomeOverlay" role="dialog" aria-modal="true" aria-label="Welcome">
+    <div class="welcome-card">
+      <div class="welcome-head">
+        <img class="welcome-logo" id="welcome-logo" src="" alt="Clarens Heritage Association">
+        <div class="welcome-title">Welcome to the<br>Clarens Heritage Trail</div>
+      </div>
+      <div class="welcome-body">
+        <p class="welcome-lead">This guide works right now in your browser &mdash; you don&#8217;t need to install anything. Tap a site below to begin.</p>
+        <span class="welcome-section-label">How to get around</span>
+        <div class="welcome-nav-row"><div class="welcome-nav-icon">&#129662;</div><div class="welcome-nav-text"><b>Trail</b> &ndash; the walking route &amp; list of sites</div></div>
+        <div class="welcome-nav-row"><div class="welcome-nav-icon">&#128506;&#65039;</div><div class="welcome-nav-text"><b>Map</b> &ndash; see all sites on a map</div></div>
+        <div class="welcome-nav-row"><div class="welcome-nav-icon">&#128214;</div><div class="welcome-nav-text"><b>Passport</b> &ndash; collect a stamp at each site</div></div>
+        <div class="welcome-nav-row"><div class="welcome-nav-icon">&#127915;</div><div class="welcome-nav-text"><b>Vouchers</b> &ndash; partner offers &amp; vouchers</div></div>
+        <div class="welcome-nav-row"><div class="welcome-nav-icon">&#8505;&#65039;</div><div class="welcome-nav-text"><b>About</b> &ndash; info &amp; this guide again</div></div>
+        <div class="welcome-install" id="welcomeInstall"></div>
+        <button class="welcome-start" id="welcomeStartBtn">Start exploring</button>
+      </div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-tab active" id="tab-trail">Trail</div>
+    <div class="nav-tab" id="tab-map">Map</div>
+    <div class="nav-tab" id="tab-passport">Passport</div>
+    <div class="nav-tab" id="tab-vouchers">Vouchers</div>
+    <div class="nav-tab" id="tab-about">About</div>
+  </nav>
+  <div class="panel active" id="panel-trail">
+    <div class="trail-hero">
+      <h2>Heritage Trail</h2>
+      <p>Discover <span class="site-count-total">31</span> sites of heritage significance across three trails &mdash; sandstone buildings, historic squares, rock art, and the landscapes that shaped Clarens.</p>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <p class="progress-label" id="progressLabel">0 of 32 sites visited</p>
+    </div>
+    <div class="free-sites-section">
+      <div class="free-sites-header">
+        <span class="free-sites-title">&#127381; Start Here &mdash; Free Sites</span>
+        <span class="free-sites-badge">Always Free</span>
+      </div>
+      <p class="free-sites-desc">These 5 sites are free to explore &mdash; no token required. Visit them to get a taste of the trail before unlocking Phase 2.</p>
+      <div class="free-sites-list" id="freeSitesList"></div>
+    </div>
+    <span class="section-label">All Heritage Sites</span>
+    <div class="sites-list" id="sitesList"></div>
+  </div>
+  <div class="panel" id="panel-passport">
+    <div class="passport-wrap">
+      <div class="passport-card">
+        <div class="passport-emblem">&#128216;</div>
+        <h2>Heritage Passport</h2>
+        <span class="passport-org">Clarens Heritage Association</span>
+        <div class="passport-score">
+          <span class="score-num" id="passportScore">0</span>
+          <span class="score-denom">/ 31</span>
+        </div>
+      </div>
+      <span class="section-label">Your Stamps</span>
+      <div class="stamps-grid" id="stampsGrid"></div>
+      <div class="donate-box">
+        <h3>Support Heritage Conservation</h3>
+        <p>Help the Clarens Heritage Association preserve the buildings, stories, and culture that define this remarkable town for future generations.</p>
+        <button class="btn-donate" id="btnDonate">Donate to CHA</button>
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="panel-map">
+    <div class="map-wrap">
+      <div id="leaflet-map"></div>
+      <button class="map-locate-btn" id="btnLocate" title="My location" aria-label="Show my location on map">&#x25CE;</button>
+    </div>
+  </div>
+  <div class="panel" id="panel-vouchers">
+    <div class="partners-wrap">
+      <div class="partners-hero">
+        <div class="partners-hero-icon">&#127968;</div>
+        <h2>Vouchers</h2>
+        <p>Support local businesses that partner with the Clarens Heritage Association — and enjoy exclusive rewards as you explore the trail.</p>
+      </div>
+      <span class="section-label">Active Partners</span>
+      <div id="partnersList"></div>
+      <div class="partners-note">
+        <p>&#9432; Vouchers are for Phase 2 trail users only. Each voucher can be used once. Present your voucher screen to the cashier.</p>
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="panel-about">
+    <div class="about-wrap">
+      <div class="about-card" id="howto-card">
+        <h3>How to use this app</h3>
+        <p style="margin-bottom:12px">This guide works right in your browser &mdash; you don&#8217;t need to install anything. Tap any site to read its story and collect a stamp.</p>
+        <div class="howto-nav-row"><div class="howto-nav-icon">&#129662;</div><div class="howto-nav-text"><b>Trail</b> &ndash; the walking route &amp; list of sites</div></div>
+        <div class="howto-nav-row"><div class="howto-nav-icon">&#128506;&#65039;</div><div class="howto-nav-text"><b>Map</b> &ndash; see all sites on a map</div></div>
+        <div class="howto-nav-row"><div class="howto-nav-icon">&#128214;</div><div class="howto-nav-text"><b>Passport</b> &ndash; collect a stamp at each site</div></div>
+        <div class="howto-nav-row"><div class="howto-nav-icon">&#127915;</div><div class="howto-nav-text"><b>Vouchers</b> &ndash; partner offers &amp; vouchers</div></div>
+        <div class="howto-nav-row"><div class="howto-nav-icon">&#8505;&#65039;</div><div class="howto-nav-text"><b>About</b> &ndash; info &amp; this guide again</div></div>
+        <div class="welcome-install" id="aboutInstall" style="margin-top:16px"></div>
+      </div>
+      <!-- TODO(About copy): placeholder GR text below. Replace with the real
+           Clarens Heritage Association About content when the branding/copy
+           guideline lands. Do NOT reintroduce Clarens-specific copy here. -->
+      <div class="about-hero">
+        <h2>About This App</h2>
+        <p>The Clarens Heritage Trail brings the stories of the town&#8217;s historic buildings, Blue Plaques, and monuments to life &mdash; right in your hands as you walk the streets.</p>
+      </div>
+      <div class="beta-bar">
+        <h4>&#10003; Version 1.0.0</h4>
+        <p>Authentic stories, photographs, Quick Facts, a Heritage Passport, an interactive GPS map, and Voucher Partner benefits.</p>
+      </div>
+      <div class="about-card">
+        <h3>About the Society</h3>
+        <p>The Clarens Heritage Association works to conserve and promote the heritage of Clarens and surrounds.<br><br>
+        <a href="https://clarensheritage.org" target="_blank" rel="noopener">clarensheritage.org</a></p>
+      </div>
+      <div class="about-card">
+        <h3>Blue Plaques</h3>
+        <p>The Blue Plaque is a distinctive circular marker celebrating places of cultural, historical, or architectural significance. Look for them on buildings as you walk the trail.</p>
+      </div>
+      <div class="about-card">
+        <h3>Contact &amp; Membership</h3>
+        <p><a href="mailto:info@clarensheritage.org">info@clarensheritage.org</a><br>
+        <!-- TODO(Danie): membership form link, once one exists. --></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="donateModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(30,35,24,.55);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--cream);border-radius:14px;padding:28px 24px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.25)">
+    <button id="donateClose" style="position:absolute;top:14px;right:14px;background:rgba(74,82,64,.1);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;color:var(--olive);display:flex;align-items:center;justify-content:center">&#215;</button>
+    <div style="font-family:var(--cha-font-display);font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:6px">Support the Society</div>
+    <p style="font-size:.82rem;color:var(--text-light);line-height:1.65;margin-bottom:20px">Help us preserve the buildings, stories, and culture that define Clarens for future generations.</p>
+    <!-- EFT details + Stitch Express card-payment link confirmed by Danie
+         (23 Aug 2026) — safe to publish, standard public donation info. -->
+    <div style="background:var(--sage-pale);border:1px solid var(--sage);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text-light)">EFT Banking Details</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--sage);padding-bottom:7px;font-size:.8rem">
+          <span style="color:var(--text-light)">Account name</span>
+          <span style="color:var(--text);font-weight:600;text-align:right">Clarens Heritage Association</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--sage);padding-bottom:7px;font-size:.8rem">
+          <span style="color:var(--text-light)">Bank</span>
+          <span style="color:var(--text);font-weight:600">Standard Bank</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--sage);padding-bottom:7px;font-size:.8rem">
+          <span style="color:var(--text-light)">Account number</span>
+          <span style="color:var(--text);font-weight:600;font-family:monospace;letter-spacing:.06em">10 23 335 098 3</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.8rem">
+          <span style="color:var(--text-light)">Branch code</span>
+          <span style="color:var(--text);font-weight:600;font-family:monospace;letter-spacing:.06em">051001</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin:16px 0 4px">
+      <div style="flex:1;height:1px;background:var(--sage)"></div>
+      <span style="font-size:.68rem;color:var(--text-light);letter-spacing:.08em;text-transform:uppercase">or</span>
+      <div style="flex:1;height:1px;background:var(--sage)"></div>
+    </div>
+    <a href="https://express.stitch.money/clarens-heritage-association-n" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--olive);color:#fff;text-decoration:none;font-weight:600;font-size:.85rem;border-radius:8px;padding:12px;margin-top:10px">Donate via card (Stitch)</a>
+    <p style="font-size:.75rem;color:var(--text-light);text-align:center;margin-top:14px;line-height:1.55">Please use your name as reference.<br>Thank you for supporting Clarens heritage.</p>
+  </div>
+</div>
+<div id="detail-view">
+  <div class="detail-header">
+    <button class="btn-back" id="btnBack" aria-label="Back to trail list">&#8592;</button>
+    <span class="detail-hdr-title" id="detailHeaderTitle"></span>
+  </div>
+  <div id="detailContent"></div>
+</div>
+
+
+<div id="unlockSuccessModal" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(30,35,24,.7);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--cream);border-radius:14px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.3);overflow:hidden">
+    <div style="background:var(--olive);padding:20px;text-align:center">
+      <div style="font-size:2.4rem;margin-bottom:6px">&#127881;</div>
+      <div style="font-family:var(--cha-font-display);font-size:1.4rem;font-weight:600;color:#fff">Unlocked!</div>
+    </div>
+    <div style="padding:24px 22px;text-align:center">
+      <p style="font-size:.9rem;color:var(--text);line-height:1.6;margin-bottom:6px">Thank you for your purchase.</p>
+      <p style="font-size:.82rem;color:var(--text-light);line-height:1.55;margin-bottom:8px">Your <strong id="unlockSuccessLabel" style="color:var(--olive)">Phase 2 Access</strong> is now active. All <span class="site-count-total">31</span> heritage sites are unlocked.</p>
+      <p style="font-size:.72rem;color:var(--text-light);line-height:1.5;margin-bottom:20px">A copy of your token has been emailed to you for safekeeping.</p>
+      <button id="unlockSuccessClose" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Start Exploring</button>
+    </div>
+  </div>
+</div>
+
+<div id="tokenModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(30,35,24,.6);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--cream);border-radius:14px;padding:28px 24px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.25)">
+    <button id="tokenClose" style="position:absolute;top:14px;right:14px;background:rgba(74,82,64,.1);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;color:var(--olive);display:flex;align-items:center;justify-content:center">&#215;</button>
+    <div style="font-size:2rem;text-align:center;margin-bottom:10px">&#128274;</div>
+    <div style="font-family:var(--cha-font-display);font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:6px;text-align:center">Phase 2 — Unlock</div>
+    <p style="font-size:.82rem;color:var(--text-light);line-height:1.65;margin-bottom:20px;text-align:center">This site is part of Phase 2.<br>Enter your unlock token to access all <span class="site-count-total">31</span> sites.</p>
+    <input id="tokenInput" type="text" placeholder="Enter token (e.g. CHT-XXXX-XXXX-XXXX-XXXX)" style="width:100%;padding:12px 14px;border:1.5px solid var(--sage);border-radius:8px;font-family:var(--cha-font-body);font-size:.9rem;color:var(--text);background:#fff;outline:none;margin-bottom:10px;box-sizing:border-box;text-transform:uppercase;letter-spacing:.1em">
+    <div id="tokenMsg" style="font-size:.75rem;color:var(--cha-red);text-align:center;min-height:18px;margin-bottom:10px"></div>
+    <button id="tokenSubmit" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Unlock Now</button>
+    <div style="margin-top:16px;border-top:1px solid var(--sage);padding-top:16px">
+      <p style="font-size:.72rem;color:var(--text-light);text-align:center;margin-bottom:10px;line-height:1.55">Don't have a token yet?</p>
+      <button id="buyPhaseBtn" style="width:100%;background:transparent;color:var(--olive);border:1.5px solid var(--olive);padding:13px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Buy Phase 2 &mdash; <span class="unlock-price">R100.00</span></button>
+    </div>
+  </div>
+</div>
+
+<div id="buyModal" style="display:none;position:fixed;inset:0;z-index:510;background:rgba(30,35,24,.65);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--cream);border-radius:14px;padding:28px 24px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.25)">
+    <button id="buyModalClose" style="position:absolute;top:14px;right:14px;background:rgba(74,82,64,.1);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;color:var(--olive);display:flex;align-items:center;justify-content:center">&#215;</button>
+    <div style="font-size:2rem;text-align:center;margin-bottom:10px">&#128274;</div>
+    <div style="font-family:var(--cha-font-display);font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:4px;text-align:center">Unlock Phase 2</div>
+    <p style="font-size:.8rem;color:var(--text-light);text-align:center;margin-bottom:6px;line-height:1.5">Access all <span class="site-count-total">31</span> heritage sites &amp; vouchers</p>
+    <div style="text-align:center;margin-bottom:18px">
+      <span class="unlock-price" style="font-family:var(--cha-font-display);font-size:2rem;font-weight:700;color:var(--text)">R100.00</span>
+      <span style="font-size:.72rem;color:var(--text-light);display:block;margin-top:2px">once-off &bull; secure payment via Paystack</span>
+    </div>
+    <label style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-light);display:block;margin-bottom:6px">Your email address</label>
+    <input id="buyEmail" type="email" placeholder="you@example.com" style="width:100%;padding:12px 14px;border:1.5px solid var(--sage);border-radius:8px;font-family:var(--cha-font-body);font-size:.9rem;color:var(--text);background:#fff;outline:none;margin-bottom:8px;box-sizing:border-box">
+    <div id="buyMsg" style="font-size:.75rem;color:var(--cha-red);text-align:center;min-height:18px;margin-bottom:10px"></div>
+    <button id="buySubmit" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Proceed to Payment &#8599;</button>
+    <p style="font-size:.68rem;color:var(--text-light);text-align:center;margin-top:12px;line-height:1.55">Your token will be emailed to you after payment.<br>Already paid? Check your email for your token.</p>
+  </div>
+</div>
+
+<div id="voucherModal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(30,35,24,.7);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--cream);border-radius:14px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.3);overflow:hidden">
+    <div style="background:var(--olive);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:var(--cha-font-display);font-size:1.2rem;font-weight:600;color:#fff">Your Voucher</div>
+      <button id="voucherClose" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">&#215;</button>
+    </div>
+    <div style="padding:24px 20px;text-align:center">
+      <div id="voucherPartnerName" style="font-family:var(--cha-font-display);font-size:1.3rem;font-weight:700;color:var(--olive);margin-bottom:4px"></div>
+      <div id="voucherReward" style="font-size:.82rem;color:var(--text-light);margin-bottom:20px"></div>
+      <div id="voucherActiveSection">
+        <div style="background:var(--sage-pale);border:2px dashed var(--olive);border-radius:12px;padding:20px 16px;margin-bottom:16px">
+          <div style="font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text-light);margin-bottom:8px">Voucher Code</div>
+          <div id="voucherCode" style="font-family:monospace;font-size:1.15rem;font-weight:700;color:var(--olive);letter-spacing:.12em;word-break:break-all;line-height:1.5"></div>
+        </div>
+        <div id="voucherConfirmSection" style="display:none">
+          <div style="background:#fff3cd;border-left:3px solid #e6a817;border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:14px;font-size:.78rem;color:var(--text-mid);line-height:1.6">
+            &#9888; Once confirmed, this voucher will be cancelled and <strong>cannot be used again</strong>.
+          </div>
+          <div style="display:flex;gap:8px">
+            <button id="voucherCancelBtn" style="flex:1;background:var(--sage-pale);color:var(--olive);border:1.5px solid var(--sage);padding:13px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer">&#8592; Back</button>
+            <button id="voucherConfirmBtn" style="flex:2;background:var(--gold);color:#fff;border:none;padding:13px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer">&#10003; Confirm &amp; Use</button>
+          </div>
+        </div>
+        <div id="voucherShowBtn" style="margin-top:4px">
+          <button id="voucherRevealBtn" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">&#127981; Show Code &amp; Use Voucher</button>
+        </div>
+      </div>
+      <div id="voucherUsedMsg" style="display:none;background:var(--cha-parchment);border:1.5px solid var(--gold);border-radius:8px;padding:16px;font-size:.82rem;color:var(--text);margin-bottom:16px;text-align:center;line-height:1.6">
+        &#10003; This voucher has already been used.<br>Thank you for visiting!
+      </div>
+      <!-- Redemption failure. Deliberately a separate panel from voucherUsedMsg:
+           a rejected redemption must never be able to render as a voucher or as
+           a "used" confirmation the cashier might accept. -->
+      <div id="voucherErrMsg" style="display:none;background:#fdecea;border:1.5px solid #d9534f;border-radius:8px;padding:16px;font-size:.82rem;color:#7a1f1a;margin-bottom:16px;text-align:center;line-height:1.6"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "a6a628ff3d344b9aa3df021f46289b6c"}'></script><!-- End Cloudflare Web Analytics -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// CHA CONFIG — every Clarens-specific value lives here. Edit here only;
+// the rest of the app reads from CONFIG. (Build brief §3–4.)
+// ═══════════════════════════════════════════════════════════════════════
+var CONFIG = {
+  // ── Backend ──────────────────────────────────────────────────────────
+  // REST root. Endpoints append '/cha/v1/{content,checkout,verify-token,redeem}'.
+  apiBase: 'https://clarensheritage.org/wp-json',
+
+  // ── Identity ─────────────────────────────────────────────────────────
+  // NOTE: visible splash/header/passport copy is still wired in step 8 (branding);
+  // these are the canonical values that copy should adopt.
+  appName: 'Clarens Heritage Trail',
+  orgName: 'Clarens Heritage Association',
+
+  // ── Map ──────────────────────────────────────────────────────────────
+  mapCenter: [-28.514811235523656, 28.421035109664686], // Clarens
+  mapZoom: 15,
+
+  // ── Storage ──────────────────────────────────────────────────────────
+  lsPrefix: 'cht_',             // localStorage key prefix (avoids Clarens-app collision)
+
+  // ── Pricing ──────────────────────────────────────────────────────────
+  // Pre-feed fallback only. The live price comes from the content feed's
+  // `config.unlockPriceCents`; this is the single place a default lives so no
+  // rand figure is hardcoded in user-facing text.
+  unlockPriceCents: 9900,       // R99.00
+  currency: 'ZAR',
+
+  // ── Trail groups ─────────────────────────────────────────────────────
+  // `key` must match a site's `trail` value from the feed, which is the
+  // heritage_trail term SLUG (not its display name) — so these are the slugs
+  // as registered in WordPress, and renaming a trail in wp-admin will not
+  // break the grouping. The order of this array is the order the blocks
+  // render in; sites with no/unknown trail fall into the first group so
+  // nothing is ever dropped from the list.
+  trailGroups: [
+    { key: 'clarens-town', label: '&#127970; Clarens Town Trail', tag: 'Start at Horeb Savemor' },
+    { key: 'swartland', label: '&#127968; Swartland Trail', tag: 'Start in Van Zyl Street' },
+    { key: 'clarens-surrounds', label: '&#127758; Clarens Surrounds', tag: 'Outside the town boundaries' }
+  ],
+
+  // ── Free sites — display order ───────────────────────────────────────
+  // The curated order the "Start Here — Free Sites" block lists in, by site
+  // id, carried over from the original Clarens app. This is a DELIBERATE
+  // editorial sequence, not walking order and not feed order — do not
+  // "tidy" it into trailNum order. Any site marked Free in WordPress that
+  // isn't named here still appears; it just follows these.
+  freeSitesOrder: ['primary-school', 'frost-house', 'methodist-church', 'ou-kliphuis', 'ng-kerk'],
+
+  // ── Branding tokens — Clarens palette (step 8) ──────────────────────
+  // The skin itself is applied through the CSS custom properties in :root —
+  // that is the single source of truth and what every rule reads. These
+  // mirror it for JS that needs a raw value (SVG fill= attributes cannot
+  // resolve var(), so the map pins carry literal hex; keep the two in step).
+  branding: {
+    colours: {
+      green: '#4E5530', red: '#520410', charcoal: '#1e2318',
+      ochre: '#c8a052', stone: '#c8d4b8', parchment: '#e8ede0'
+    },
+    fonts: {
+      display: "'Cormorant Garamond', Georgia, serif",
+      body:    "'Jost', sans-serif"
+    }
+  }
+};
+
+// Lightweight analytics helper — offline-safe, never throws
+var CF_BEACON_TOKEN = 'a6a628ff3d344b9aa3df021f46289b6c';
+function cfTrack(name, props) {
+  try {
+    if (!navigator.onLine) return;
+    if (typeof navigator.sendBeacon !== 'function') return;
+    navigator.sendBeacon(
+      'https://cloudflareinsights.com/cdn-cgi/rum',
+      new Blob([JSON.stringify({siteToken:CF_BEACON_TOKEN,type:1537,name:name,data:props||{}})],{type:'application/json'})
+    );
+  } catch(e) {}
+}
+// Samsung Internet install advice
+function dismissSamsungBanner() {
+  document.getElementById('samsungBanner').style.display = 'none';
+  try { localStorage.setItem('samsungBannerDismissed', '1'); } catch(e) {}
+}
+(function() {
+  var isSamsung = /SamsungBrowser/i.test(navigator.userAgent);
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var dismissed = false;
+  try { dismissed = localStorage.getItem('samsungBannerDismissed') === '1'; } catch(e) {}
+  if (isSamsung && !isStandalone && !dismissed) {
+    document.getElementById('samsungBanner').style.display = 'block';
+  }
+})();
+
+// CHA badge — the supplied solid-green badge's artwork, carried as white
+// line-art on transparency. Every placement (splash, header, welcome panel)
+// sits on a green surface, so this renders identically to the solid badge
+// while staying crisp at 40px. Shipped as a file rather than a base64 data
+// URI: ~56KB lighter in the HTML, separately cacheable, and the app already
+// ships sw.js/manifest.json/icons beside index.html.
+// The solid badge with its green fill is the app icon (icon-192/512.png).
+var LOGO = 'logo-full.png';
+var LOGO_ICON = 'logo-icon.png';
+document.getElementById('splash-logo').src = LOGO;
+document.getElementById('hdr-logo').src = LOGO_ICON;
+
+var SITES = [
+  // Site content is served by cha/v1/content and merged in by id at runtime
+  // (mergeRemoteSites). Intentionally empty — no baked-in defaults from another town.
+];
+
+var visited = JSON.parse(localStorage.getItem(CONFIG.lsPrefix + 'visited') || '{}');
+
+var FREE_SITES = []; // per-site `free` flag comes from the cha/v1/content feed
+
+// ═══════════════════════════════════════════════════════
+// TOKEN SYSTEM
+// Tokens are OPAQUE to the app — no secret, no hashing. Every type
+// (purchase / promo / admin) is validated server-side via cha/v1/verify-token,
+// which is the sole authority. The app keeps only a cheap format pre-check for
+// instant UX feedback.
+// ═══════════════════════════════════════════════════════
+
+// Security helper — only allow https:// URLs (prevents javascript: XSS via content feed)
+function safeUrl(u) {
+  return (typeof u === 'string' && /^https:\/\//i.test(u.trim())) ? u.trim() : '#';
+}
+
+// Security helper — escape HTML special chars in feed-derived strings before innerHTML.
+// EVERY feed-derived value that reaches innerHTML goes through this, including
+// ones that "obviously" hold an emoji or a number: WordPress content is
+// editable by anyone with an editor role, so the feed is untrusted input.
+function escapeHtml(str) {
+  if (str === 0) return '0';
+  if (typeof str === 'number') return String(str);
+  if (typeof str !== 'string') return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Security helper — a feed value used as a CSS class, a DOM id, or anything a
+// selector will later match must be a bare token. Escaping is not enough here:
+// an id that survives escaping can still break a querySelector or collide with
+// an element the app owns. Anything outside [A-Za-z0-9_-] is dropped whole.
+function safeToken(v) {
+  return (typeof v === 'string' && /^[A-Za-z0-9_-]+$/.test(v)) ? v : '';
+}
+
+// Cheap, opaque format pre-check — instant UX only, NEVER an authority.
+// Real validation is server-side (verify-token). Accepts BOTH the current
+// CHT-XXXX-XXXX-XXXX-XXXX format AND the shorter legacy CHT-XXXX-XXXX format
+// used before the GRHS-pattern migration (migrated payers' tokens were kept
+// byte-for-byte, so this must not reject them by shape — see
+// migrate-existing-payers.php and CHA_Development_Plan §8).
+function looksLikeToken(token) {
+  return /^CHT-[0-9A-Z-]{6,}$/i.test((token || '').trim());
+}
+
+// Human label for a server-confirmed token type.
+function labelFor(type) {
+  if (type === 'admin') return 'Admin Token';
+  if (type === 'promo') return 'Promo Token';
+  return 'Trail Pass';
+}
+
+// ── Pricing ──────────────────────────────────────────────────────────
+// Live price comes from the feed (config.unlockPriceCents); CONFIG holds the
+// pre-feed fallback. No rand figure is hardcoded in user-facing copy.
+var currentPriceCents = CONFIG.unlockPriceCents;
+
+function formatPrice(cents) {
+  var n = (typeof cents === 'number' && cents >= 0) ? cents : CONFIG.unlockPriceCents;
+  return 'R' + (n / 100).toFixed(2);
+}
+
+// Fill every .unlock-price span from the current (feed-driven) price.
+function updatePriceCopy() {
+  var text = formatPrice(currentPriceCents);
+  [].forEach.call(document.querySelectorAll('.unlock-price'), function(el) {
+    el.textContent = text;
+  });
+}
+
+// Unlocked iff a token was confirmed by the server (verify-token set the flag).
+// Works offline after that one online verification. Revocation is caught by the
+// on-load re-verify (reverifyStoredToken) when there's connectivity.
+function isUnlocked() {
+  return localStorage.getItem(CONFIG.lsPrefix + 'verified') === '1';
+}
+
+function isFree(id) {
+  return FREE_SITES.indexOf(id) !== -1;
+}
+
+function canAccess(id) {
+  return isFree(id) || isUnlocked();
+}
+
+// The GR content model has no top-level `year` field (the Clarens template
+// this app was forked from does) — year lives in the Key Facts repeater as
+// {l:'Year', v:...}. Pull it from there so cards don't render "undefined".
+function siteYear(s) {
+  if (s.year) return s.year;
+  var found = '';
+  (s.facts || []).some(function(f) {
+    if (f.l === 'Year') { found = f.v; return true; }
+    return false;
+  });
+  return found;
+}
+
+function showTokenModal(pendingId) {
+  var modal = document.getElementById('tokenModal');
+  modal.style.display = 'flex';
+  modal.dataset.pendingId = pendingId || '';
+  document.body.style.overflow = 'hidden';
+  document.getElementById('tokenMsg').textContent = '';
+  document.getElementById('tokenInput').value = '';
+  setTimeout(function() { document.getElementById('tokenInput').focus(); }, 100);
+}
+
+function hideTokenModal() {
+  document.getElementById('tokenModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+
+
+function saveVisited() {
+  try { localStorage.setItem(CONFIG.lsPrefix + 'visited', JSON.stringify(visited)); } catch(e) {}
+}
+
+function getImg(id) {
+  var el = document.getElementById('img-' + id);
+  if (!el || !el.src || el.dataset.pending === 'true' || el.src === window.location.href) return '';
+  return el.src;
+}
+
+// Handle redirect back from Paystack checkout.
+// The Paystack reference is "CHA-<token>" → strip "CHA-". Paystack's redirect
+// sends both trxref and reference (same value); accept either, plus
+// externalReference for older links. Also supports ?token= directly.
+function handleUrlToken() {
+  var params = new URLSearchParams(window.location.search);
+
+  var token = params.get('token') || '';
+  if (!token) {
+    var ref = params.get('trxref') || params.get('reference') || params.get('externalReference') || '';
+    if (ref.indexOf('CHA-') === 0) {
+      token = ref.slice('CHA-'.length); // strip "CHA-" → the CHT- token
+    }
+  }
+
+  // If Paystack reported a non-complete status, show a friendly message
+  var status = params.get('status') || '';
+  if (!token && (status === 'failed' || status === 'closed')) {
+    setTimeout(function() {
+      showTokenModal('');
+      document.getElementById('tokenMsg').textContent = 'Payment was not completed. Please try again or contact support.';
+    }, 500);
+    return;
+  }
+
+  if (!token) return;
+
+  window.history.replaceState({}, document.title, window.location.pathname);
+
+  var msgMap = {
+    not_paid:     "We couldn\u2019t confirm this purchase yet. Check your email for the token, or contact support.",
+    invalid:      "The token from your payment link is invalid. Please contact support.",
+    offline:      "Connect to the internet once to activate your pass.",
+    network:      "Could not reach the server. Please try again.",
+    rate_limited: "Too many attempts \u2014 please wait a moment and try again.",
+    format:       "The token from your payment link is invalid. Please contact support."
+  };
+
+  // Redirect-vs-webhook race: the webhook may land a moment after the buyer
+  // returns. Poll verify-token a few times on 'not_paid' before giving up.
+  var attempts = 0, MAX = 5, DELAY = 2000;
+
+  showTokenModal('');
+  var msgEl = document.getElementById('tokenMsg');
+  msgEl.style.color = 'var(--text-light)';
+  msgEl.textContent = 'Confirming your payment\u2026';
+
+  function attempt() {
+    verifyAndStore(token, function(label) {
+      hideTokenModal();
+      showUnlockSuccess(label);
+    }, function(reason) {
+      if (reason === 'not_paid' && attempts < MAX) {
+        attempts++;
+        setTimeout(attempt, DELAY);
+        return;
+      }
+      msgEl.style.color = 'var(--cha-red)';
+      msgEl.textContent = msgMap[reason] || msgMap.format;
+    });
+  }
+  attempt();
+}
+
+function showUnlockSuccess(label) {
+  var modal = document.getElementById('unlockSuccessModal');
+  if (modal) {
+    document.getElementById('unlockSuccessLabel').textContent = label || 'Phase 2 Access';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+document.getElementById('btnStart').addEventListener('click', function() {
+  var s = document.getElementById('splash');
+  s.classList.add('hide');
+  setTimeout(function() {
+    s.style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    renderTrail(); renderPassport(); renderMap(); renderPartners(); updateSiteCounts();
+    updatePriceCopy(); // from CONFIG fallback now; refreshed when the feed lands
+    // Trail tab is default
+    switchTab('trail');
+    // First-visit welcome / onboarding overlay
+    // Skip when arriving via a Paystack payment redirect (same params handleUrlToken() acts on),
+    // so onboarding never covers the unlock/error modal.
+    try {
+      var welcomeSeen = localStorage.getItem('welcomeSeen') === '1';
+      var sp = new URLSearchParams(window.location.search);
+      var isPaymentRedirect = !!(sp.get('token') || sp.get('trxref') || sp.get('reference') || sp.get('externalReference') || sp.get('status'));
+      if (!welcomeSeen && !isPaymentRedirect) openWelcome();
+    } catch(e) {}
+    // Check URL for token from Paystack payment redirect
+    handleUrlToken();
+    // Fetch remote sites + live price from the feed — async, re-renders on arrival
+    mergeRemoteSites();
+    // Re-verify any stored unlock so a server-side revoke takes effect (online only).
+    reverifyStoredToken();
+    // Silently start GPS in the background so it is ready when user stamps
+    setTimeout(function() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(pos) { updateLocateMarker(pos); },
+          function() { /* silent fail — user will see error when they try to stamp */ },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
+      }
+    }, 1000);
+  }, 680);
+});
+
+document.getElementById('btnBack').addEventListener('click', closeDetail);
+
+document.getElementById('btnDonate').addEventListener('click', function() {
+  var modal = document.getElementById('donateModal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+});
+
+document.getElementById('tokenClose').addEventListener('click', hideTokenModal);
+document.getElementById('tokenModal').addEventListener('click', function(e) {
+  if (e.target === this) hideTokenModal();
+});
+document.getElementById('tokenInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('tokenSubmit').click();
+});
+document.getElementById('tokenSubmit').addEventListener('click', function() {
+  var val = document.getElementById('tokenInput').value.trim().toUpperCase();
+  var msg = document.getElementById('tokenMsg');
+  msg.style.color = 'var(--cha-red)';
+  msg.textContent = '';
+
+  if (!looksLikeToken(val)) {
+    msg.textContent = 'That doesn’t look like a valid token.';
+    document.getElementById('tokenInput').focus();
+    return;
+  }
+
+  var btn = document.getElementById('tokenSubmit');
+  btn.disabled = true;
+  btn.textContent = 'Verifying\u2026';
+
+  verifyAndStore(val, function(label) {
+    btn.disabled = false;
+    btn.textContent = 'Unlock Now';
+    var pendingId = document.getElementById('tokenModal').dataset.pendingId;
+    hideTokenModal();
+    renderTrail(); renderPassport(); renderPartners();
+    if (pendingId) { openDetailWithHistory(pendingId); }
+    showUnlockSuccess(label);
+  }, function(reason) {
+    btn.disabled = false;
+    btn.textContent = 'Unlock Now';
+    var msgMap = {
+      not_paid:     'We couldn\u2019t confirm this purchase. Please contact support.',
+      invalid:      'This token is invalid or has expired.',
+      offline:      'Connect to the internet once to activate your pass.',
+      network:      'Could not reach the server. Please try again.',
+      rate_limited: 'Too many attempts \u2014 please wait a moment and try again.',
+      format:       'Invalid token. Please try again.'
+    };
+    msg.textContent = msgMap[reason] || msgMap.format;
+    document.getElementById('tokenInput').focus();
+  });
+});
+
+var CHA_API_BASE = CONFIG.apiBase;
+var CHA_CHECKOUT_URL = CHA_API_BASE + '/cha/v1/checkout';
+var CHA_VERIFY_URL = CHA_API_BASE + '/cha/v1/verify-token';
+
+// Verify a token with the server for EVERY type (opaque to the app). Stores the
+// unlock only on a valid server response.
+function verifyAndStore(token, onValid, onInvalid) {
+  token = token.trim().toUpperCase();
+  if (!looksLikeToken(token)) { onInvalid('format'); return; }
+  if (!navigator.onLine) { onInvalid('offline'); return; }
+  fetch(CHA_VERIFY_URL + '?token=' + encodeURIComponent(token) + '&_=' + Date.now())
+    .then(function(res) {
+      if (res.status === 429) { onInvalid('rate_limited'); return null; }
+      return res.json();
+    })
+    .then(function(data) {
+      if (!data) return; // already handled (e.g. 429)
+      if (data.valid === true) {
+        localStorage.setItem(CONFIG.lsPrefix + 'token', token);
+        localStorage.setItem(CONFIG.lsPrefix + 'verified', '1');
+        localStorage.setItem(CONFIG.lsPrefix + 'type', data.type || '');
+        cfTrack('unlock', {token_type: data.type || 'unknown'});
+        onValid(labelFor(data.type));
+      } else {
+        // Exists-but-unpaid purchase → 'not_paid' (the redirect path polls on this);
+        // anything else (unknown / revoked / expired) → 'invalid'.
+        onInvalid(data.type === 'purchase' ? 'not_paid' : 'invalid');
+      }
+    })
+    .catch(function() { onInvalid('network'); });
+}
+
+// On-load re-verify: makes a server-side "Revoke" actually take effect on the
+// device. Graceful by design — it only LOCKS on a definitive server "invalid".
+// Offline, a network error, or a rate-limit → keep the stored unlock, so nobody
+// gets locked out on a trail with no signal. Runs only when there's connectivity.
+function reverifyStoredToken() {
+  if (localStorage.getItem(CONFIG.lsPrefix + 'verified') !== '1') return;
+  if (!navigator.onLine) return; // offline → trust the stored flag
+  var token = localStorage.getItem(CONFIG.lsPrefix + 'token') || '';
+  if (!token) return;
+  fetch(CHA_VERIFY_URL + '?token=' + encodeURIComponent(token) + '&_=' + Date.now())
+    .then(function(res) {
+      if (res.status === 429) return null; // rate-limited → no verdict, keep unlock
+      return res.json();
+    })
+    .then(function(data) {
+      if (!data) return;               // no definitive answer → keep unlock
+      if (data.valid === true) return; // still valid → nothing to do
+      // Server says the token is no longer valid (revoked / expired) → lock.
+      localStorage.removeItem(CONFIG.lsPrefix + 'verified');
+      localStorage.removeItem(CONFIG.lsPrefix + 'token');
+      localStorage.removeItem(CONFIG.lsPrefix + 'type');
+      renderTrail(); renderPassport(); renderPartners();
+    })
+    .catch(function() { /* network error → keep the stored flag */ });
+}
+
+function showBuyModal() {
+  document.getElementById('tokenModal').style.display = 'none';
+  var m = document.getElementById('buyModal');
+  m.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  document.getElementById('buyEmail').value = '';
+  document.getElementById('buyMsg').textContent = '';
+  document.getElementById('buySubmit').disabled = false;
+  document.getElementById('buySubmit').textContent = 'Proceed to Payment ↗';
+  setTimeout(function() { document.getElementById('buyEmail').focus(); }, 100);
+}
+
+function hideBuyModal() {
+  document.getElementById('buyModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+document.getElementById('buyPhaseBtn').addEventListener('click', showBuyModal);
+document.getElementById('buyModalClose').addEventListener('click', hideBuyModal);
+document.getElementById('buyModal').addEventListener('click', function(e) {
+  if (e.target === this) hideBuyModal();
+});
+
+document.getElementById('buyEmail').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('buySubmit').click();
+});
+
+document.getElementById('buySubmit').addEventListener('click', function() {
+  var email = document.getElementById('buyEmail').value.trim();
+  var msg = document.getElementById('buyMsg');
+  msg.style.color = 'var(--cha-red)';
+  msg.textContent = '';
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msg.textContent = 'Please enter a valid email address.';
+    document.getElementById('buyEmail').focus();
+    return;
+  }
+
+  var btn = document.getElementById('buySubmit');
+  btn.disabled = true;
+  btn.textContent = 'Creating payment…';
+
+  fetch(CHA_CHECKOUT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data && data.payment_url) {
+      window.location.href = data.payment_url;
+    } else {
+      throw new Error(data && data.message ? data.message : 'No payment URL returned.');
+    }
+  })
+  .catch(function(err) {
+    btn.disabled = false;
+    btn.textContent = 'Proceed to Payment ↗';
+    msg.textContent = err.message || 'Could not connect. Please try again.';
+  });
+});
+
+document.getElementById('donateClose').addEventListener('click', function() {
+  document.getElementById('donateModal').style.display = 'none';
+  document.body.style.overflow = '';
+});
+document.getElementById('donateModal').addEventListener('click', function(e) {
+  if (e.target === this) { this.style.display = 'none'; document.body.style.overflow = ''; }
+});
+
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'map' && leafletMap) {
+    setTimeout(function() { leafletMap.invalidateSize(); }, 100);
+  }
+  if (name === 'vouchers') {
+    // Refresh server-side redemption state each time the tab is opened so a
+    // redemption made elsewhere (or after unlocking) is reflected. Fails soft.
+    refreshVoucherStatus(renderPartners);
+  }
+}
+
+['map','trail','passport','vouchers','about'].forEach(function(name) {
+  document.getElementById('tab-' + name).addEventListener('click', function() {
+    history.pushState({ tab: name }, '');
+    switchTab(name);
+  });
+});
+
+// ── Welcome / onboarding overlay + platform-aware install help ──
+function chtIsStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function chtDetectPlatform() {
+  var ua = navigator.userAgent || '';
+  var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/.test(ua);
+  var iosNotSafari = isIOS && /CriOS|FxiOS|EdgiOS|OPiOS|mercury/i.test(ua);
+  return { isIOS: isIOS, isAndroid: isAndroid, iosNotSafari: iosNotSafari };
+}
+var IOS_SHARE_SVG = '<svg class="ios-share" width="18" height="18" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M25 5 L25 31" stroke="#1a4a7a" stroke-width="3.5" stroke-linecap="round"/><path d="M16 14 L25 5 L34 14" stroke="#1a4a7a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 20 L10 20 L10 44 L40 44 L40 20 L35 20" stroke="#1a4a7a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function renderInstallHelp(containerId, btnId) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  if (chtIsStandalone()) { el.style.display = 'none'; return; }  // already installed
+  el.style.display = '';
+  var p = chtDetectPlatform();
+  var html = '<h4>&#128241; Add to your home screen (optional)</h4>';
+  if (p.isIOS) {
+    if (p.iosNotSafari) {
+      html += '<p>To install on iPhone or iPad, first open this page in <b>Safari</b>.</p>';
+    }
+    html += '<p>In Safari, tap the <b>Share</b> button ' + IOS_SHARE_SVG +
+            ' at the bottom of the screen, then choose <b>Add to Home Screen</b>.</p>';
+  } else if (p.isAndroid || deferredInstallPrompt) {
+    if (deferredInstallPrompt) {
+      html += '<p>Tap the button below to add the app to your phone.</p>' +
+              '<button class="welcome-install-btn" id="' + btnId + '">Install app</button>';
+    } else {
+      html += '<p>Tap the <b>&#8942;</b> menu (top-right of your browser), then choose ' +
+              '<b>Install app</b> or <b>Add to Home screen</b>.</p>';
+    }
+  } else {
+    html += '<p>On a computer you can bookmark this page, or use your browser&#8217;s ' +
+            '<b>Install</b> option (look in the address bar or browser menu).</p>';
+  }
+  el.innerHTML = html;
+  var ib = document.getElementById(btnId);
+  if (ib && deferredInstallPrompt) {
+    ib.addEventListener('click', function() {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then(function() {
+        deferredInstallPrompt = null;
+        // The prompt is now consumed — hide the legacy install banner so it isn't a no-op.
+        var bn = document.getElementById('installBanner');
+        if (bn) bn.style.display = 'none';
+        renderInstallHelp(containerId, btnId);
+      });
+    });
+  }
+}
+
+function openWelcome() {
+  renderInstallHelp('welcomeInstall', 'welcomeInstallBtn');
+  document.getElementById('welcomeOverlay').classList.add('open');
+  if (window.cfTrack) cfTrack('help_opened');
+}
+function closeWelcome() {
+  document.getElementById('welcomeOverlay').classList.remove('open');
+}
+
+(function() {
+  var wl = document.getElementById('welcome-logo');
+  if (wl) wl.src = LOGO_ICON;
+  var hb = document.getElementById('helpBtn');
+  if (hb) hb.addEventListener('click', openWelcome);
+  var ws = document.getElementById('welcomeStartBtn');
+  if (ws) ws.addEventListener('click', function() {
+    try { localStorage.setItem('welcomeSeen', '1'); } catch(e) {}
+    closeWelcome();
+    switchTab('trail');
+  });
+  renderInstallHelp('aboutInstall', 'aboutInstallBtn');
+})();
+
+// Refresh install help if the prompt becomes available after first paint.
+window.addEventListener('beforeinstallprompt', function() {
+  setTimeout(function() {
+    var ov = document.getElementById('welcomeOverlay');
+    if (ov && ov.classList.contains('open')) renderInstallHelp('welcomeInstall', 'welcomeInstallBtn');
+    renderInstallHelp('aboutInstall', 'aboutInstallBtn');
+  }, 0);
+});
+
+function visitedCount() { return Object.keys(visited).length; }
+
+// Walking position of a site within its trail. `trailNum` is omitted from the
+// feed when it is 0 (unset), so those sort to the end of their block instead
+// of ahead of step 1.
+function trailOrder(s) {
+  var n = s && s.trailNum;
+  return (typeof n === 'number' && n > 0) ? n : Infinity;
+}
+
+// Compare two walking positions. Written as an explicit three-way rather than
+// (a - b) because two unpositioned sites both score Infinity, and
+// Infinity - Infinity is NaN — a comparator returning NaN leaves the sort
+// order unspecified.
+function byOrder(a, b) {
+  return a === b ? 0 : (a < b ? -1 : 1);
+}
+
+// Position of a site in the curated free-sites sequence. Anything not named
+// in CONFIG.freeSitesOrder appends after the curated ones rather than being
+// dropped, so marking a new site Free in WordPress still surfaces it.
+function freeOrder(s) {
+  var i = CONFIG.freeSitesOrder.indexOf(s && s.id);
+  return i === -1 ? Infinity : i;
+}
+
+// Normalise a feed `trail` value to a CONFIG.trailGroups key. The feed sends
+// the heritage_trail term slug, but slugifying is also exactly what turns the
+// term's display name into that same slug ("Clarens Town" → "clarens-town").
+// Matching on the normalised form means the app groups correctly whether the
+// feed sends the slug or the name, so the plugin and this file can be deployed
+// in either order without a window where all 31 sites collapse into one block.
+function trailKey(v) {
+  return String(v == null ? '' : v)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function renderFreeSites() {
+  var html = '';
+  // Listed in the curated CONFIG.freeSitesOrder sequence — deliberately not
+  // the walking order used by the trail blocks below, and not feed order.
+  SITES.filter(function(s) { return FREE_SITES.indexOf(s.id) !== -1; })
+    .sort(function(a, b) { return byOrder(freeOrder(a), freeOrder(b)); })
+    .forEach(function(s) {
+    var v = !!visited[s.id];
+    var yr = siteYear(s);
+    html += '<div class="free-site-row" data-id="' + escapeHtml(safeToken(s.id)) + '">' +
+      '<div class="free-site-icon">' + escapeHtml(s.icon) + '</div>' +
+      '<div class="free-site-info">' +
+        '<div class="free-site-name">' + escapeHtml(s.name) + '</div>' +
+        '<div class="free-site-year">&#128205; ' + escapeHtml(s.address) + (yr ? ' &middot; ' + escapeHtml(yr) : '') + '</div>' +
+      '</div>' +
+      '<div class="free-site-stamp' + (v ? ' earned' : '') + '">' + (v ? '&#10003;' : '&#9675;') + '</div>' +
+    '</div>';
+  });
+  var el = document.getElementById('freeSitesList');
+  if (el) {
+    el.innerHTML = html;
+    el.querySelectorAll('.free-site-row').forEach(function(row) {
+      row.addEventListener('click', function() { openDetailWithHistory(this.dataset.id); });
+    });
+  }
+}
+
+function renderTrail() {
+  renderFreeSites();
+  var n = visitedCount(), total = SITES.length;
+  document.getElementById('progressFill').style.width = ((n/total)*100) + '%';
+  document.getElementById('progressLabel').textContent = n + ' of ' + total + ' sites visited';
+  var html = '';
+
+  // Group sites by trail (labels/keys from CONFIG.trailGroups). Any site whose
+  // `trail` matches no group falls into the first group so nothing is dropped
+  // — that covers both an untagged site and a trail created in wp-admin that
+  // this app doesn't know about yet.
+  var trailGroups = CONFIG.trailGroups;
+  var _grouped = {};
+  trailGroups.forEach(function(g) { _grouped[g.key] = []; });
+  var _fallbackKey = trailGroups.length ? trailGroups[0].key : null;
+  SITES.forEach(function(s) {
+    var norm    = trailKey(s.trail);
+    var matched = !!(norm && _grouped[norm]);
+    var k       = matched ? norm : _fallbackKey;
+    if (k === null) return;
+    // A site that matched no group (untagged, or on a trail created in
+    // wp-admin that CONFIG.trailGroups doesn't list) has no meaningful
+    // position in the group it falls back into, so it appends to the end
+    // rather than interleaving with — and displacing — that trail's real
+    // walking order.
+    _grouped[k].push({ s: s, ord: matched ? trailOrder(s) : Infinity });
+  });
+  // Within a block, walking order is the site's `trailNum` ("Order within the
+  // trail" in wp-admin) — this is the step-by-step route, not the feed's
+  // alphabetical order. Sites still on 0 (unset) are omitted from the feed's
+  // trailNum entirely, so they sort last rather than jumping to the front.
+  trailGroups.forEach(function(g) {
+    _grouped[g.key].sort(function(a, b) { return byOrder(a.ord, b.ord); });
+    _grouped[g.key] = _grouped[g.key].map(function(w) { return w.s; });
+  });
+
+  trailGroups.forEach(function(group) {
+    var groupSites = _grouped[group.key] || [];
+    if (!groupSites.length) return; // skip empty groups
+    html += '<div style="background:var(--olive);border-radius:8px;padding:12px 14px;margin:10px 4px 4px;">' +
+      '<div style="font-family:var(--cha-font-display);font-size:1.1rem;font-weight:600;color:#fff;">' + group.label + '</div>' +
+      '<div style="font-size:.7rem;color:var(--on-green);margin-top:2px;">' + groupSites.length + ' site' + (groupSites.length === 1 ? '' : 's') + ' &mdash; ' + group.tag + '</div>' +
+      '</div>';
+    groupSites.forEach(function(s) {
+    var v = visited[s.id];
+    var free = canAccess(s.id);
+    var yr = siteYear(s);
+    var lockBadge = !free ? '<span class="lock-badge">&#128274; Phase 2</span>' : '';
+    var cat = s.cat || (s.bp ? 'Blue Plaque Site' : 'Heritage Site');
+    var statusBadge = cat === 'Blue Plaque Site'
+      ? '<span class="status-badge status-bp">&#128308; Blue Plaque</span>'
+      : cat === 'Natural Heritage'
+        ? '<span class="status-badge status-nat">&#127807; Natural Heritage</span>'
+        : cat === 'Cultural Heritage'
+          ? '<span class="status-badge status-cul">&#127981; Cultural Heritage</span>'
+          : '<span class="status-badge status-her">&#128309; Heritage Site</span>';
+    html += '<div class="site-card' + (v ? ' visited' : '') + (!free ? ' locked-site' : '') + '" data-id="' + escapeHtml(safeToken(s.id)) + '" data-type="site">' +
+      '<div class="card-accent ' + safeToken(s.ac) + '"></div>' +
+      '<div class="card-body">' +
+        '<div class="card-icon">' + (free ? escapeHtml(s.icon) : '&#128274;') + '</div>' +
+        '<div class="card-info">' +
+          '<div class="card-name">' + escapeHtml(s.name) + '</div>' +
+          '<div class="card-meta-row">' + statusBadge + (free ? (yr ? '<span class="card-year">' + escapeHtml(yr) + '</span>' : '') : lockBadge) + '</div>' +
+          (free ? '<div class="card-addr">' + escapeHtml(s.address) + '</div>' : '') +
+        '</div>' +
+        '<div class="card-stamp' + (v ? ' earned' : '') + '">' + (v ? '&#10003;' : (free ? '&#9675;' : '&#128274;')) + '</div>' +
+      '</div></div>';
+    });
+  });
+
+  // Partner cards
+  if (PARTNERS && PARTNERS.length) {
+    html += '<span class="section-label" style="display:block;padding:14px 4px 6px">Voucher Partners</span>';
+    PARTNERS.forEach(function(p) {
+      var used = isVoucherUsed(p.id);
+      var unlocked = isUnlocked();
+      var statusBadge = '<span class="status-badge status-par">&#127981; Voucher Partner</span>';
+      // `offer` (short badge, e.g. "10%") is a separate field from `offerLabel`
+      // (full headline, e.g. "10% Discount") — partners created without the
+      // short badge filled in fall back to the headline as-is, no "off" suffix.
+      var offerText = p.offer ? p.offer + ' off' : p.offerLabel;
+      var offerBadge = offerText
+        ? '<span class="card-year" style="background:var(--cha-parchment);color:var(--cha-red);border-color:var(--cha-stone)">' + escapeHtml(offerText) + '</span>'
+        : '';
+      var rightIcon = !unlocked
+        ? '<div class="card-stamp" style="border-color:#bbb;color:#bbb">&#128274;</div>'
+        : used
+          ? '<div class="card-stamp earned" style="background:var(--cha-red);border-color:var(--cha-red)">&#10003;</div>'
+          : '<div class="card-stamp" style="border-color:var(--cha-red);color:var(--cha-red)">&#127981;</div>';
+      html += '<div class="site-card" data-id="' + escapeHtml(safeToken(p.id)) + '" data-type="partner">' +
+        '<div class="card-accent" style="background:var(--cha-red)"></div>' +
+        '<div class="card-body">' +
+          (partnerLogoUrl(p)
+            ? '<div class="card-icon" style="background:#fff;overflow:hidden;padding:0"><img src="' + escapeHtml(partnerLogoUrl(p)) + '" alt="' + escapeHtml(p.name) + '" style="width:100%;height:100%;object-fit:contain" class="partner-logo-img"></div>'
+            : '<div class="card-icon">' + (escapeHtml(p.icon) || '&#127981;') + '</div>') +
+          '<div class="card-info">' +
+            '<div class="card-name">' + escapeHtml(p.name) + '</div>' +
+            '<div class="card-meta-row">' + statusBadge + offerBadge + '</div>' +
+            '<div class="card-addr">' + escapeHtml(p.address) + '</div>' +
+          '</div>' +
+          rightIcon +
+        '</div></div>';
+    });
+  }
+
+  document.getElementById('sitesList').innerHTML = html;
+  // Replaces the inline onerror="…innerHTML=…" attribute this markup used to
+  // carry: a string-built event handler around feed data is exactly the shape
+  // that turns a stored-XSS payload into executing script.
+  wireLogoFallback(document.getElementById('sitesList'));
+  document.querySelectorAll('.site-card[data-type="site"]').forEach(function(card) {
+    card.addEventListener('click', function() { openDetailWithHistory(this.dataset.id); });
+  });
+  document.querySelectorAll('.site-card[data-type="partner"]').forEach(function(card) {
+    card.addEventListener('click', function() {
+      history.pushState({ tab: 'partners' }, '');
+      switchTab('vouchers');
+    });
+  });
+}
+
+function openDetail(id) {
+  var s = null;
+  SITES.forEach(function(x) { if (x.id === id) s = x; });
+  cfTrack('site_open', {site_id: id});
+  document.getElementById('detailHeaderTitle').textContent = s.name;
+  var stamped = !!visited[id];
+  var imgSrc = (s.photo && safeUrl(s.photo) !== '#') ? safeUrl(s.photo) : getImg(id);
+  var photoHtml = imgSrc
+    ? '<img class="detail-photo" src="' + imgSrc + '" alt="' + escapeHtml(s.name) + '">' +
+      (s.photoCredit ? '<div class="detail-photo-credit">Photo: ' + escapeHtml(s.photoCredit) + '</div>' : '')
+    : '<div class="detail-photo-ph">' + escapeHtml(s.icon) + '</div>';
+  var factsHtml = '';
+  s.facts.forEach(function(f) {
+    factsHtml += '<div class="fact-row"><span class="fact-label">' + escapeHtml(f.l) + '</span><span class="fact-value">' + escapeHtml(f.v) + '</span></div>';
+  });
+  var storyHtml = '';
+  s.story.forEach(function(p) { storyHtml += '<p class="detail-text">' + escapeHtml(p) + '</p>'; });
+  var stampHtml = stamped
+    ? '<button class="btn-stamp stamped">&#10003; Stamp Already Collected</button>'
+    : '<button class="btn-stamp geo-checking" id="stamp-btn" disabled>&#8987; Checking location&hellip;</button>' +
+      '<div class="geo-msg" id="geo-msg"></div>';
+  document.getElementById('detailContent').innerHTML =
+    photoHtml +
+    '<div class="detail-body">' +
+      '<div class="plaque-badge ' + (s.cat === 'Blue Plaque Site' ? 'badge-bp' : s.cat === 'Natural Heritage' ? 'badge-nat' : s.cat === 'Cultural Heritage' ? 'badge-cul' : 'badge-her') + '">' +
+        (s.cat === 'Blue Plaque Site' ? '&#128308; Blue Plaque Site' : s.cat === 'Natural Heritage' ? '&#127807; Natural Heritage' : s.cat === 'Cultural Heritage' ? '&#127981; Cultural Heritage' : '&#128309; Heritage Site') +
+      '</div>' +
+      '<h1 class="detail-title">' + escapeHtml(s.name) + '</h1>' +
+      '<div class="detail-addr">&#128205; ' + escapeHtml(s.address) + '</div>' +
+      '<div class="facts-box"><h4>Quick Facts</h4>' + factsHtml + '</div>' +
+      '<div class="detail-divider"></div>' +
+      storyHtml + stampHtml +
+      '<a class="btn-maps" href="' + safeUrl(s.map) + '" target="_blank"' + (safeUrl(s.map) === '#' ? ' style="opacity:.4;pointer-events:none"' : '') + '>Open in Google Maps &#8599;</a>' +
+    '</div>';
+  if (!stamped) {
+    checkGeoForStamp(id, s);
+  }
+  var dv = document.getElementById('detail-view');
+  dv.classList.add('open');
+  dv.scrollTop = 0;
+}
+
+function closeDetail() {
+  document.getElementById('detail-view').classList.remove('open');
+  if (history.state && history.state.detailOpen) history.back();
+}
+
+function openDetailWithHistory(id) {
+  if (!canAccess(id)) {
+    showTokenModal(id);
+    return;
+  }
+  history.pushState({ detailOpen: true }, '');
+  openDetail(id);
+}
+
+window.addEventListener('popstate', function(e) {
+  var dv = document.getElementById('detail-view');
+  if (dv.classList.contains('open')) {
+    dv.classList.remove('open');
+  } else if (e.state && e.state.tab) {
+    switchTab(e.state.tab);
+  } else {
+    switchTab('map');
+  }
+});
+
+function calcDistance(lat1, lng1, lat2, lng2) {
+  var R = 6371000;
+  var dLat = (lat2 - lat1) * Math.PI / 180;
+  var dLng = (lng2 - lng1) * Math.PI / 180;
+  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function checkGeoForStamp(id, s) {
+  var btn = document.getElementById('stamp-btn');
+  var msg = document.getElementById('geo-msg');
+  if (!btn) return;
+
+  // Sites without coordinates cannot be geofenced — lock the button
+  if (!s.lat || !s.lng) {
+    btn.className = 'btn-stamp geo-locked';
+    btn.disabled = true;
+    btn.innerHTML = '&#128274; Location Required to Stamp';
+    if (msg) msg.textContent = 'GPS coordinates not set for this site.';
+    return;
+  }
+
+  // Browser has no geolocation support — lock the button
+  if (!navigator.geolocation) {
+    btn.className = 'btn-stamp geo-locked';
+    btn.disabled = true;
+    btn.innerHTML = '&#128274; Location Not Available';
+    if (msg) msg.textContent = 'Your device does not support GPS. You must be on-site to collect a stamp.';
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    var dist = calcDistance(pos.coords.latitude, pos.coords.longitude, s.lat, s.lng);
+    var radius = s.radius || 30;
+    var btn2 = document.getElementById('stamp-btn');
+    var msg2 = document.getElementById('geo-msg');
+    if (!btn2) return;
+    if (dist <= radius) {
+      btn2.className = 'btn-stamp';
+      btn2.disabled = false;
+      btn2.innerHTML = '&#128205; Collect My Stamp Here';
+      if (msg2) msg2.textContent = '';
+      btn2.addEventListener('click', function() { collectStamp(id); });
+    } else {
+      var distText = dist < 1000 ? Math.round(dist) + ' m' : (dist/1000).toFixed(1) + ' km';
+      btn2.className = 'btn-stamp geo-locked';
+      btn2.disabled = true;
+      btn2.innerHTML = '&#128274; Move Closer to Stamp';
+      if (msg2) msg2.textContent = 'You are ' + distText + ' away. Get within ' + (radius < 1000 ? radius + ' m' : (radius/1000).toFixed(1) + ' km') + ' to collect your stamp.';
+    }
+  }, function(err) {
+    // GPS access denied or timed out — lock the button
+    var btn3 = document.getElementById('stamp-btn');
+    var msg3 = document.getElementById('geo-msg');
+    if (!btn3) return;
+    btn3.className = 'btn-stamp geo-locked';
+    btn3.disabled = true;
+    btn3.innerHTML = '&#128274; Location Access Required';
+    var errMsg = 'Enable location access in your browser settings to collect stamps.';
+    if (err && err.code === 3) errMsg = 'Location request timed out. Please try again.';
+    if (msg3) msg3.textContent = errMsg;
+  }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
+}
+
+function collectStamp(id) {
+  visited[id] = true;
+  saveVisited();
+  renderTrail(); renderPassport();
+  var btn = document.getElementById('stamp-btn');
+  if (btn) { btn.classList.add('stamped'); btn.innerHTML = '&#10003; Stamp Already Collected'; }
+  var burst = document.getElementById('stampBurst');
+  burst.classList.add('show');
+  setTimeout(function() {
+    burst.classList.remove('show'); burst.classList.add('hide');
+    setTimeout(function() { burst.classList.remove('hide'); }, 300);
+  }, 1400);
+}
+
+function renderPassport() {
+  document.getElementById('passportScore').textContent = visitedCount();
+  var html = '';
+  SITES.forEach(function(s) {
+    var e = !!visited[s.id];
+    html += '<div class="stamp-card ' + (e ? 'earned' : 'locked') + '">' +
+      '<div class="stamp-icon">' + escapeHtml(s.icon) + '</div>' +
+      '<div class="stamp-name">' + escapeHtml(s.name) + '</div>' +
+      '<div class="stamp-status">' + (e ? '&#10003; Collected' : 'Not yet visited') + '</div>' +
+    '</div>';
+  });
+  document.getElementById('stampsGrid').innerHTML = html;
+}
+
+
+var PARTNERS = [
+  // TODO: GR partners/vouchers come from cha/v1/content; empty by design.
+];
+
+// ── Voucher helper constants ──────────────────────────────────────
+var CHA_REDEEM_URL         = CHA_API_BASE + '/cha/v1/redeem';
+var CHA_VOUCHER_STATUS_URL = CHA_API_BASE + '/cha/v1/voucher-status';
+
+// Server-authoritative redemption state for the current token, shaped
+// { partnerId: { redeemed: bool } }. Null until a batch voucher-status call
+// succeeds; while null (offline / no token / failed) the app falls back to the
+// per-device localStorage flag below.
+var remoteVoucherStatus = null;
+
+// ── Voucher used-state (server truth first, local flag as fallback) ─
+// The server holds ground truth per token (cha_redemptions), so a redeemed
+// flag there marks the voucher used even on a device that never saw the redeem
+// (e.g. a second device on the same token). The local flag is OR'd in so an
+// offline redemption — which sets the local flag but may never have reached the
+// server — still shows as used. A genuine re-redeem is blocked server-side by
+// the (token,partner) UNIQUE key regardless of what the UI shows.
+function isVoucherUsed(partnerId) {
+  if (remoteVoucherStatus && remoteVoucherStatus[partnerId] && remoteVoucherStatus[partnerId].redeemed) {
+    return true;
+  }
+  return !!localStorage.getItem(CONFIG.lsPrefix + 'voucher_' + partnerId);
+}
+
+function markVoucherUsedLocal(partnerId) {
+  localStorage.setItem(CONFIG.lsPrefix + 'voucher_' + partnerId, Date.now().toString());
+}
+
+// ── Batch-refresh server redemption state for the current token ────
+// One call covers every partner (not one request per partner). Fails soft: on
+// any network/parse error remoteVoucherStatus is left untouched and the local
+// flag governs, so the Vouchers tab never blocks on this. Calls onDone (if
+// given) after a successful refresh so the caller can re-render.
+function refreshVoucherStatus(onDone) {
+  var token = localStorage.getItem(CONFIG.lsPrefix + 'token') || '';
+  if (!token) { return; } // no token → server can't attribute redemptions; keep local fallback
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', CHA_VOUCHER_STATUS_URL + '?token=' + encodeURIComponent(token) + '&_=' + Date.now(), true);
+  xhr.timeout = 10000;
+  xhr.onload = function() {
+    try {
+      var data = JSON.parse(xhr.responseText);
+      if (data && typeof data === 'object') {
+        remoteVoucherStatus = data;
+        if (onDone) onDone();
+      }
+    } catch (e) { /* leave remoteVoucherStatus as-is → local fallback */ }
+  };
+  xhr.onerror   = function() { /* offline → local fallback, never block render */ };
+  xhr.ontimeout = function() { /* timeout → local fallback */ };
+  xhr.send();
+}
+
+// ── Evaluate all conditions for a partner ────────────────────────
+// GR partners set `condition: paid`, optionally `requiredSite`, and optionally
+// a date window (dateFrom/dateTo, from the content feed). The `stamps:N`
+// condition stays removed — no GR field ever backed it. Stock (maxVouchers) is
+// server-only knowledge and is applied in voucherButtonState via voucher-status.
+// Returns { ok: true } or { ok: false, reason: '...message...' }
+function checkVoucherConditions(p) {
+  var today = new Date();
+
+  // Date window — dateFrom (voucher not open yet).
+  if (p.dateFrom) {
+    var from = new Date(p.dateFrom);
+    if (today < from) {
+      return { ok: false, reason: 'This voucher opens on ' + from.toLocaleDateString('en-ZA', {day:'numeric',month:'long',year:'numeric'}) + '.' };
+    }
+  }
+
+  // Date window — dateTo (voucher expired; inclusive of the whole day).
+  if (p.dateTo) {
+    var to = new Date(p.dateTo + 'T23:59:59');
+    if (today > to) {
+      return { ok: false, reason: 'This voucher expired on ' + to.toLocaleDateString('en-ZA', {day:'numeric',month:'long',year:'numeric'}) + '.' };
+    }
+  }
+
+  // Access condition — GR uses `paid` (needs a valid unlock).
+  var cond = p.condition || 'paid';
+  if (cond === 'paid' || cond.indexOf('paid') === 0) {
+    if (!isUnlocked()) {
+      return { ok: false, reason: 'Purchase Phase 2 (' + formatPrice(currentPriceCents) + ') to unlock this voucher.' };
+    }
+  }
+
+  // Required site visit — optional gate on a specific heritage site.
+  if (p.requiredSite && !visited[p.requiredSite]) {
+    var reqSite = null;
+    SITES.forEach(function(s) { if (s.id === p.requiredSite) reqSite = s; });
+    // Escaped at source: `reason` is composed into button text via innerHTML
+    // (voucherButtonState), and both halves of this string are feed-derived.
+    var siteName = reqSite ? reqSite.name : p.requiredSite;
+    return { ok: false, reason: 'Visit ' + escapeHtml(siteName) + ' to unlock this voucher.' };
+  }
+
+  return { ok: true };
+}
+
+// ── Build voucher button state for a partner ──────────────────────
+function voucherButtonState(p) {
+  if (isVoucherUsed(p.id)) {
+    return { cls: 'btn-voucher used', disabled: true, text: '&#10003; Voucher Used' };
+  }
+  var check = checkVoucherConditions(p);
+  if (!check.ok) {
+    return { cls: 'btn-voucher locked', disabled: true, text: '&#128274; ' + check.reason };
+  }
+  // Server-authoritative stock/date gate. Sold-out (maxVouchers reached) is
+  // knowable only from voucher-status — the feed carries no live usedCount — so
+  // grey the button out without needing a failed redeem. `redeemed` is already
+  // covered by isVoucherUsed above.
+  var remote = remoteVoucherStatus && remoteVoucherStatus[p.id];
+  if (remote && remote.available === false && remote.reason && remote.reason !== 'redeemed') {
+    var gateText = { sold_out: 'Sold out', not_yet_available: 'Not yet available', expired: 'Voucher expired' }[remote.reason] || 'Unavailable';
+    return { cls: 'btn-voucher locked', disabled: true, text: '&#128274; ' + gateText };
+  }
+  return { cls: 'btn-voucher', disabled: false, text: '&#127981; Show My Voucher' };
+}
+
+// ── Partner logo URL, or '' when the feed value isn't a usable https URL ──
+// safeUrl() returns '#' for anything else (javascript:, data:, protocol-relative),
+// which as an <img src> is a request back to the app — so treat it as "no logo".
+function partnerLogoUrl(p) {
+  if (!p || !p.logo) return '';
+  var u = safeUrl(p.logo);
+  return u === '#' ? '' : u;
+}
+
+// Attach the "broken logo → fallback glyph" behaviour with a listener instead
+// of an inline onerror= attribute built from feed data.
+function wireLogoFallback(root) {
+  if (!root) return;
+  root.querySelectorAll('img.partner-logo-img').forEach(function(img) {
+    img.addEventListener('error', function() {
+      var parent = this.parentNode;
+      if (!parent) return;
+      parent.textContent = '\uD83C\uDFED';
+    });
+  });
+}
+
+// ── Render partner logo (WebP URL or fallback icon) ───────────────
+function partnerLogoHtml(p) {
+  var logo = partnerLogoUrl(p);
+  if (logo) {
+    return '<img src="' + escapeHtml(logo) + '" alt="' + escapeHtml(p.name) + '" class="partner-logo-img" style="width:48px;height:48px;border-radius:10px;object-fit:contain;background:rgba(255,255,255,.15);padding:3px;flex-shrink:0">';
+  }
+  return '<div class="partner-logo">' + (escapeHtml(p.icon) || '&#127978;') + '</div>';
+}
+
+function renderPartners() {
+  var html = '';
+  PARTNERS.forEach(function(p) {
+    var state = voucherButtonState(p);
+    // state.text is already escaped markup (voucherButtonState escapes the one
+    // feed-derived part, `reason`, at source) so it carries no raw quote and is
+    // safe in an attribute. Strip only the tags the app itself added, so the
+    // tooltip reads as plain text.
+    var btnTitle = state.disabled && state.text.length > 40
+      ? state.text.replace(/<[^>]+>/g, '')
+      : '';
+    html += '<div class="partner-card">' +
+      '<div class="partner-card-header">' +
+        partnerLogoHtml(p) +
+        '<div><div class="partner-card-title">' + escapeHtml(p.name) + '</div>' +
+        '<div class="partner-card-type">' + escapeHtml(p.type || '') + '</div></div>' +
+      '</div>' +
+      '<div class="partner-card-body">' +
+        '<div class="partner-offer">' +
+          (p.offer ? '<div class="partner-offer-pct">' + escapeHtml(p.offer) + '</div>' : '') +
+          '<div class="partner-offer-detail">' +
+            '<div class="partner-offer-label">' + escapeHtml(p.offerLabel) + '</div>' +
+            '<div class="partner-offer-sub">' + escapeHtml(p.offerSub) + '</div>' +
+          '</div>' +
+        '</div>' +
+        (p.desc ? '<p class="partner-desc">' + escapeHtml(p.desc) + '</p>' : '') +
+        '<div class="partner-addr">&#128205; ' + escapeHtml(p.address) + '</div>' +
+        '<button class="' + state.cls + '" ' +
+          (state.disabled ? 'disabled' : '') +
+          ' data-partner="' + escapeHtml(safeToken(p.id)) + '"' +
+          (btnTitle ? ' title="' + btnTitle + '"' : '') + '>' +
+          state.text +
+        '</button>' +
+      '</div></div>';
+  });
+  document.getElementById('partnersList').innerHTML = html;
+  wireLogoFallback(document.getElementById('partnersList'));
+  document.querySelectorAll('.btn-voucher:not([disabled])').forEach(function(btn) {
+    btn.addEventListener('click', function() { showVoucher(this.dataset.partner); });
+  });
+}
+
+// ── Redeem voucher via WordPress REST API ─────────────────────────
+function redeemVoucherRemote(partnerId, onSuccess, onError) {
+  var token = localStorage.getItem(CONFIG.lsPrefix + 'token') || '';
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', CHA_REDEEM_URL, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.timeout = 10000;
+  xhr.onload = function() {
+    var data = null;
+    try {
+      data = JSON.parse(xhr.responseText);
+    } catch(e) {
+      onError('Server error. Please try again.');
+      return;
+    }
+    // Success is narrow on purpose (audit item 1): a 200 carrying an explicit
+    // success:true, and nothing else. Any other status, shape, or body is a
+    // rejection — never a redemption.
+    if (xhr.status === 200 && data && data.success === true) {
+      onSuccess(data);
+    } else {
+      onError((data && data.message) || 'Voucher could not be redeemed.', data && data.code);
+    }
+  };
+  xhr.onerror   = function() { onError('Network error. Please check your connection.'); };
+  xhr.ontimeout = function() { onError('Request timed out. Please try again.'); };
+  xhr.send(JSON.stringify({ partnerId: partnerId, token: token }));
+}
+
+function showVoucher(partnerId) {
+  var p = PARTNERS.find(function(x) { return x.id === partnerId; });
+  if (!p) return;
+
+  var used = isVoucherUsed(partnerId);
+  document.getElementById('voucherPartnerName').textContent = p.name;
+  document.getElementById('voucherReward').textContent = p.offerLabel + ' \u2014 ' + p.offerSub;
+
+  // Generate display code: token + partner suffix
+  var token = localStorage.getItem(CONFIG.lsPrefix + 'token') || 'GUEST';
+  var code = token + '-' + p.id.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
+  document.getElementById('voucherCode').textContent = code;
+
+  document.getElementById('voucherErrMsg').style.display = 'none';
+
+  if (!used) {
+    document.getElementById('voucherActiveSection').style.display = 'block';
+    document.getElementById('voucherUsedMsg').style.display = 'none';
+    document.getElementById('voucherConfirmSection').style.display = 'none';
+    document.getElementById('voucherShowBtn').style.display = 'block';
+    resetVoucherConfirmBtn();
+  } else {
+    document.getElementById('voucherActiveSection').style.display = 'none';
+    document.getElementById('voucherUsedMsg').style.display = 'block';
+    document.getElementById('voucherUsedMsg').innerHTML =
+      '&#10003; This voucher has already been used.<br>Thank you for visiting ' + escapeHtml(p.name) + '!';
+  }
+
+  var modal = document.getElementById('voucherModal');
+  modal.style.display = 'flex';
+  modal.dataset.partnerId = partnerId;
+  document.body.style.overflow = 'hidden';
+}
+
+document.getElementById('voucherClose').addEventListener('click', function() {
+  document.getElementById('voucherModal').style.display = 'none';
+  document.body.style.overflow = '';
+});
+
+document.getElementById('voucherRevealBtn').addEventListener('click', function() {
+  document.getElementById('voucherShowBtn').style.display = 'none';
+  document.getElementById('voucherConfirmSection').style.display = 'block';
+});
+
+document.getElementById('voucherCancelBtn').addEventListener('click', function() {
+  document.getElementById('voucherConfirmSection').style.display = 'none';
+  document.getElementById('voucherShowBtn').style.display = 'block';
+});
+
+// Put the confirm button back to its resting state so the next voucher (or a
+// retry after a rejection) can be confirmed — the click handler leaves it
+// disabled/"Processing…".
+function resetVoucherConfirmBtn() {
+  var btn = document.getElementById('voucherConfirmBtn');
+  if (!btn) return;
+  btn.disabled = false;
+  btn.innerHTML = '&#10003; Confirm &amp; Use';
+}
+
+// A redemption that did NOT succeed. Shows the error panel and hides every
+// voucher-bearing element, so nothing on screen can be presented at a till.
+function showVoucherError(message) {
+  document.getElementById('voucherActiveSection').style.display = 'none';
+  document.getElementById('voucherUsedMsg').style.display = 'none';
+  var el = document.getElementById('voucherErrMsg');
+  el.style.display = 'block';
+  el.innerHTML = '&#9888; ' + escapeHtml(message || 'This voucher could not be redeemed.');
+  resetVoucherConfirmBtn();
+}
+
+document.getElementById('voucherConfirmBtn').addEventListener('click', function() {
+  var partnerId = document.getElementById('voucherModal').dataset.partnerId;
+  if (!partnerId) return;
+
+  var btn = document.getElementById('voucherConfirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'Processing\u2026';
+  document.getElementById('voucherErrMsg').style.display = 'none';
+
+  var p = PARTNERS.find(function(x) { return x.id === partnerId; });
+
+  // Server confirmation is mandatory — there is NO offline redemption path
+  // (Danie, 26 Aug 2026; audit item 1). onConfirmed() is reachable from exactly
+  // one place: a confirmed server success. Every other outcome — offline, a
+  // network error, a timeout, 401 invalid token, sold out, expired, an
+  // unparseable body — shows an error and leaves the voucher unredeemed and
+  // unmarked. The previous code called onConfirmed() on all of those, so a
+  // rejected request still rendered a usable voucher screen.
+  function onConfirmed() {
+    markVoucherUsedLocal(partnerId);
+    renderPartners();
+    document.getElementById('voucherErrMsg').style.display = 'none';
+    document.getElementById('voucherActiveSection').style.display = 'none';
+    document.getElementById('voucherUsedMsg').style.display = 'block';
+    document.getElementById('voucherUsedMsg').innerHTML =
+      '&#10003; Voucher confirmed!<br>Show this screen to the cashier at ' + escapeHtml(p ? p.name : '') + '.';
+  }
+
+  // A partner the server cannot identify can't be redeemed against it. Every
+  // partner on the cha/v1/content feed carries wpId, so this is a
+  // malformed-record guard, not a supported "local only" mode.
+  if (!p || !p.wpId) {
+    showVoucherError('This voucher cannot be verified right now. Please try again later.');
+    return;
+  }
+
+  if (!navigator.onLine) {
+    showVoucherError('You appear to be offline. A voucher can only be confirmed while connected.');
+    return;
+  }
+
+  redeemVoucherRemote(partnerId,
+    function() {
+      // Confirmed by the server. GR has no `remaining` count in the response —
+      // the 200/success is the whole verdict.
+      onConfirmed();
+    },
+    function(errMsg, code) {
+      if (code === 'already_redeemed') {
+        // A definitive server verdict, not a sync failure: this token has
+        // already redeemed this partner (typically another device sharing the
+        // token). Record it locally and show the used state — which is not a
+        // voucher, so this is not a bypass.
+        markVoucherUsedLocal(partnerId);
+        renderPartners();
+        document.getElementById('voucherActiveSection').style.display = 'none';
+        document.getElementById('voucherErrMsg').style.display = 'none';
+        document.getElementById('voucherUsedMsg').style.display = 'block';
+        document.getElementById('voucherUsedMsg').innerHTML =
+          '&#10003; This voucher has already been redeemed.';
+        return;
+      }
+      showVoucherError(errMsg);
+    }
+  );
+});
+
+document.getElementById('voucherModal').addEventListener('click', function(e) {
+  if (e.target === this) { this.style.display = 'none'; document.body.style.overflow = ''; }
+});
+var leafletMap = null;
+var mapMarkersLayer = null;
+
+// SVG pin builder — type: 'heritage' | 'bp' | 'partner' | 'combined'.
+// Module-level (not inside renderMap) so the legend and marker icons share
+// one definition across every re-render.
+function makePinSvg(type) {
+  // Literal hex, not var(): these feed SVG fill= presentation attributes,
+  // which do not resolve CSS custom properties. Keep in step with
+  // --plaque-blue / --cha-red / --cha-green in :root.
+  var pinColour = type === 'bp' ? '#1a4a7a' : type === 'partner' ? '#520410' : '#4E5530';
+  var dot = type === 'combined'
+    ? '<circle cx="14" cy="14" r="6" fill="#fff"/><circle cx="21" cy="8" r="5" fill="#520410" stroke="#fff" stroke-width="1.5"/>'
+    : '<circle cx="14" cy="14" r="6" fill="#fff"/>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="38" viewBox="0 0 28 38">' +
+    '<path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 24 14 24s14-14.67 14-24C28 6.27 21.73 0 14 0z" fill="' + pinColour + '"/>' +
+    dot + '</svg>';
+}
+
+function makeIcon(type) {
+  return L.divIcon({
+    className: '',
+    html: makePinSvg(type),
+    iconSize: [28, 38],
+    iconAnchor: [14, 38],
+    popupAnchor: [0, -38]
+  });
+}
+
+// Renders (or re-renders) site/partner markers onto the map.
+// Called once at splash-dismiss (before the feed has landed, so SITES/PARTNERS
+// are still empty) and again from mergeRemoteSites() once real data arrives —
+// map init (leafletMap/tileLayer/legend) only happens once; marker layers are
+// cleared and rebuilt every call so a second pass doesn't duplicate pins.
+function renderMap() {
+  if (typeof L === 'undefined') {
+    setTimeout(renderMap, 300);
+    return;
+  }
+
+  if (!leafletMap) {
+    leafletMap = L.map('leaflet-map', {
+      center: CONFIG.mapCenter,
+      zoom: CONFIG.mapZoom,
+      zoomControl: true
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19
+    }).addTo(leafletMap);
+
+    mapMarkersLayer = L.layerGroup().addTo(leafletMap);
+
+    // Map legend (static — built once, doesn't depend on site/partner data)
+    var legend = L.control({ position: 'topleft' });
+    legend.onAdd = function() {
+      var div = L.DomUtil.create('div');
+      div.style.cssText = 'background:rgba(255,255,255,0.93);border-radius:8px;padding:10px 12px;' +
+        'font-family:var(--cha-font-body);font-size:.72rem;color:var(--text);' +
+        'box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:160px;pointer-events:none;';
+      div.innerHTML =
+        '<div style="font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.62rem;color:#6b7a5a;margin-bottom:7px">Map Legend</div>' +
+        '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">' +
+          makePinSvg('heritage').replace('<svg ','<svg style="width:16px;height:22px;flex-shrink:0" ') +
+          '<span>Heritage Site</span></div>' +
+        '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">' +
+          makePinSvg('bp').replace('<svg ','<svg style="width:16px;height:22px;flex-shrink:0" ') +
+          '<span>Blue Plaque Site</span></div>' +
+        '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">' +
+          makePinSvg('partner').replace('<svg ','<svg style="width:16px;height:22px;flex-shrink:0" ') +
+          '<span>Voucher Partner</span></div>' +
+        '<div style="display:flex;align-items:center;gap:7px">' +
+          makePinSvg('combined').replace('<svg ','<svg style="width:16px;height:22px;flex-shrink:0" ') +
+          '<span>Heritage + Voucher</span></div>';
+      return div;
+    };
+    legend.addTo(leafletMap);
+
+    setTimeout(function() { leafletMap.invalidateSize(); }, 200);
+  } else {
+    mapMarkersLayer.clearLayers();
+  }
+
+  // Build a lookup: siteId -> partner (for combined markers)
+  var partnerBySiteId = {};
+  PARTNERS.forEach(function(p) {
+    if (p.siteId) partnerBySiteId[p.siteId] = p;
+  });
+
+  // Render site markers — combined if site is also a partner
+  SITES.forEach(function(s) {
+    if (!s.lat || !s.lng) return;
+    var partner = partnerBySiteId[s.id] || null;
+    var type = partner ? 'combined' : (s.bp ? 'bp' : 'heritage');
+    var marker = L.marker([s.lat, s.lng], { icon: makeIcon(type) }).addTo(mapMarkersLayer);
+
+    var popupHtml =
+      '<div class="map-popup-name">' + escapeHtml(s.icon) + ' ' + escapeHtml(s.name) + '</div>' +
+      '<div class="map-popup-addr">' + escapeHtml(s.address) + '</div>';
+    if (partner) {
+      popupHtml += '<div style="font-size:.72rem;color:var(--cha-red);font-weight:700;margin-top:4px;margin-bottom:6px">&#127981; ' + escapeHtml(partner.offerLabel) + '</div>';
+    }
+    popupHtml += '<button class="map-popup-btn" type="button">View Site</button>';
+
+    // The popup is built as a DOM node with a real listener rather than an
+    // onclick= attribute holding an interpolated site id. A string-built
+    // handler makes the feed's `id` executable code; a closure over `s.id`
+    // cannot be escaped out of, whatever the feed contains.
+    var popupEl = document.createElement('div');
+    popupEl.innerHTML = popupHtml;
+    var popupBtn = popupEl.querySelector('.map-popup-btn');
+    if (popupBtn) {
+      popupBtn.addEventListener('click', function() { openSiteFromMap(s.id); });
+    }
+    marker.bindPopup(popupEl);
+  });
+
+  // Render partner-only markers (partners without a matching siteId)
+  PARTNERS.forEach(function(p) {
+    if (!p.lat || !p.lng) return;
+    if (p.siteId) return; // already rendered as combined marker above
+    var marker = L.marker([p.lat, p.lng], { icon: makeIcon('partner') }).addTo(mapMarkersLayer);
+    marker.bindPopup(
+      '<div class="map-popup-name">' + (escapeHtml(p.icon) || '&#127981;') + ' ' + escapeHtml(p.name) + '</div>' +
+      '<div class="map-popup-addr">' + escapeHtml(p.address) + '</div>' +
+      '<div style="font-size:.72rem;color:var(--cha-red);font-weight:700;margin-top:4px">&#127981; ' + escapeHtml(p.offerLabel) + '</div>'
+    );
+  });
+}
+
+function openSiteFromMap(id) {
+  var s = SITES.find(function(x) { return x.id === id; });
+  if (!s) return;
+  leafletMap.closePopup();
+  openDetailWithHistory(id);
+}
+
+var _locateMarker = null;
+var _locateWatch = null;
+
+function showMapMsg(msg, isError) {
+  var el = document.getElementById('mapMsg');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'mapMsg';
+    el.style.cssText = 'position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:999;' +
+      'background:#fff;border-radius:8px;padding:9px 16px;font-size:.78rem;font-family:var(--cha-font-body);' +
+      'box-shadow:0 2px 12px rgba(0,0,0,.18);max-width:260px;text-align:center;pointer-events:none;';
+    document.querySelector('.map-wrap').appendChild(el);
+  }
+  el.style.color = isError ? 'var(--cha-red)' : 'var(--cha-green)';
+  el.style.borderLeft = isError ? '3px solid var(--cha-red)' : '3px solid var(--cha-green)';
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.style.display = 'none'; }, 4000);
+}
+
+function updateLocateMarker(pos) {
+  var latlng = [pos.coords.latitude, pos.coords.longitude];
+  if (_locateMarker) {
+    _locateMarker.setLatLng(latlng);
+  } else {
+    _locateMarker = L.circleMarker(latlng, {
+      radius: 10, fillColor: '#4285F4', color: '#fff',
+      weight: 3, opacity: 1, fillOpacity: 0.95
+    }).addTo(leafletMap).bindPopup('You are here');
+  }
+  leafletMap.setView(latlng, 17);
+  _locateMarker.openPopup();
+}
+
+document.getElementById('btnLocate').addEventListener('click', function() {
+  if (!navigator.geolocation) {
+    showMapMsg('Location not available on this device.', true);
+    return;
+  }
+  if (_locateWatch) {
+    navigator.geolocation.clearWatch(_locateWatch);
+    _locateWatch = null;
+    if (_locateMarker) { leafletMap.removeLayer(_locateMarker); _locateMarker = null; }
+    showMapMsg('Location tracking stopped.', false);
+    return;
+  }
+  showMapMsg('Finding your location…', false);
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    updateLocateMarker(pos);
+    showMapMsg('Location found.', false);
+    _locateWatch = navigator.geolocation.watchPosition(
+      updateLocateMarker,
+      function() {},
+      { enableHighAccuracy: true, maximumAge: 5000 }
+    );
+  }, function(err) {
+    var msg = 'Could not get your location.';
+    if (err.code === 1) msg = 'Location access denied. Please enable it in your browser settings.';
+    if (err.code === 3) msg = 'Location request timed out. Try again.';
+    showMapMsg(msg, true);
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
+});
+
+// Success modal close handler
+document.getElementById('unlockSuccessClose').addEventListener('click', function() {
+  document.getElementById('unlockSuccessModal').style.display = 'none';
+  document.body.style.overflow = '';
+  // Re-render to reflect newly unlocked state
+  renderTrail(); renderPassport(); renderPartners();
+});
+
+// Derive all site-count labels from SITES.length (single source of truth)
+function updateSiteCounts() {
+  var n = SITES.length;
+  [].forEach.call(document.querySelectorAll('.site-count-total'), function(el){ el.textContent = n; });
+}
+updateSiteCounts();
+
+// Fetch content.json and merge remote sites into SITES.
+// Same-ID sites override the hardcoded entry; new IDs are appended.
+// Called after splash — runs async and re-renders when data arrives.
+function mergeRemoteSites() {
+  fetch(CHA_API_BASE + '/cha/v1/content')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data) return;
+      // Live unlock price → user-facing copy (before the sites guard, since the
+      // feed can carry config even when the site list is empty).
+      if (data.config && typeof data.config.unlockPriceCents === 'number') {
+        currentPriceCents = data.config.unlockPriceCents;
+        updatePriceCopy();
+      }
+      // Partners/vouchers ride the same feed (cha/v1/content). They are
+      // WordPress-backed only (PARTNERS ships empty), so replace the array with
+      // the feed records — field names map 1:1 to what the render/condition code
+      // reads (id, wpId, name, lat, lng, type, logo, address, offer, offerLabel,
+      // offerSub, siteId, requiredSite, voucherKey, condition). Handled before
+      // the sites guard so vouchers load even when the site list is empty.
+      if (Array.isArray(data.partners)) {
+        PARTNERS = data.partners.filter(function(p) { return p && p.id && p.name; });
+        renderPartners();
+        // Pull authoritative per-token redemption state for all partners in one
+        // call, then re-render so used-state reflects the server (fails soft).
+        refreshVoucherStatus(renderPartners);
+      }
+      if (!Array.isArray(data.sites) || !data.sites.length) return;
+      var changed = false;
+      data.sites.forEach(function(remote) {
+        if (!remote.id || !remote.name) return;
+        var idx = -1;
+        SITES.forEach(function(s, i) { if (s.id === remote.id) idx = i; });
+        if (idx !== -1) {
+          SITES[idx] = remote;
+        } else {
+          SITES.push(remote);
+        }
+        if (remote.free && FREE_SITES.indexOf(remote.id) === -1) {
+          FREE_SITES.push(remote.id);
+        }
+        changed = true;
+      });
+      if (changed) {
+        updateSiteCounts();
+        renderTrail();
+        renderPassport();
+        renderMap();
+      }
+    })
+    .catch(function() {}); // offline or empty — stay with hardcoded sites
+}
+
+// Auto-skip splash on a Paystack return (?token / ?trxref / ?reference / ?status)
+// so the unlock/confirming flow isn't hidden behind the splash.
+(function() {
+  var sp = new URLSearchParams(window.location.search);
+  if (sp.get('token') || sp.get('trxref') || sp.get('reference') || sp.get('externalReference') || sp.get('status')) {
+    setTimeout(function() {
+      var b = document.getElementById('btnStart');
+      if (b) b.click();
+    }, 100);
+  }
+})();
+</script></body></html>
+
