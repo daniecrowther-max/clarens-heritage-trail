@@ -369,6 +369,25 @@ function esc_url( $s ) {
 
 /* ---- post meta (backed by Fake_WPDB::$meta_rows) ----------------------- */
 
+// Mirrors CHA_Meta::register_partner_meta()'s registered defaults. Real
+// WordPress serves these from get_post_meta() (single=true) even when NO row
+// exists in the database at all -- register_post_meta()'s 'default' is wired
+// through the `default_post_metadata` filter, which fires before any DB read
+// returns empty. A stub that just returned '' for an absent row (as this one
+// used to) hides exactly the class of bug fixed on 1 Sep 2026 in
+// CHA_Redeem::claim_stock(): code that tests `'' === get_post_meta(...)` to
+// decide whether a meta row exists works against this stub but not against
+// real WordPress, where a registered default of '0' makes that comparison
+// always false. See class-cha-redeem.php's claim_stock() for the fix
+// (metadata_exists() instead), and the regression test in
+// test-redeem-stock.php ("no usedCount meta row exists (real WP default
+// masking)") that this default map exists to make meaningful.
+$GLOBALS['cha_test_meta_defaults'] = array(
+	'usedCount'   => '0',
+	'maxVouchers' => '0',
+	'condition'   => 'paid',
+);
+
 function get_post_meta( $post_id, $key, $single = false ) {
 	global $wpdb;
 	$hits = array();
@@ -378,14 +397,34 @@ function get_post_meta( $post_id, $key, $single = false ) {
 		}
 	}
 	if ( $single ) {
-		return $hits ? $hits[0] : '';
+		if ( $hits ) {
+			return $hits[0];
+		}
+		// No real row: fall back to the registered default, same as real
+		// WordPress -- NOT an empty string. See the note above.
+		return isset( $GLOBALS['cha_test_meta_defaults'][ $key ] ) ? $GLOBALS['cha_test_meta_defaults'][ $key ] : '';
 	}
 	return $hits;
 }
 
+/**
+ * Mirrors real WordPress's metadata_exists(): true only when a row genuinely
+ * exists in the database, unlike get_post_meta() which is masked by a
+ * registered default (see above). This is the check claim_stock() now uses.
+ */
+function metadata_exists( $meta_type, $post_id, $key ) {
+	global $wpdb;
+	foreach ( $wpdb->meta_rows as $row ) {
+		if ( $row['post_id'] === (int) $post_id && $row['meta_key'] === $key ) {
+			return true;
+		}
+	}
+	return false;
+}
+
 function add_post_meta( $post_id, $key, $value, $unique = false ) {
 	global $wpdb;
-	if ( $unique && '' !== (string) get_post_meta( $post_id, $key, true ) ) {
+	if ( $unique && metadata_exists( 'post', $post_id, $key ) ) {
 		return false;
 	}
 	$wpdb->meta_rows[] = array( 'post_id' => (int) $post_id, 'meta_key' => $key, 'meta_value' => (string) $value );

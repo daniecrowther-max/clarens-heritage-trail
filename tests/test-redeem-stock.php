@@ -129,10 +129,18 @@ for ( $i = 0; $i < 5; $i++ ) {
 T::is( count( array_filter( $results ) ), 3, '5 interleaved claims against a stock of 3: exactly 3 succeed' );
 T::is( used_count(), 3, 'usedCount never passes maxVouchers' );
 
-// A partner that has never been redeemed has no usedCount row at all.
+// A partner that has never been redeemed has no usedCount row at all. Real
+// WordPress serves the registered default ('0') from get_post_meta() even
+// with no row present (CHA_Meta::register_partner_meta() registers 'usedCount'
+// with default 0) -- the bootstrap stub mirrors that masking on purpose (see
+// its note) so this test exercises the same trap that broke every partner's
+// first-ever live redemption on 1 Sep 2026 until claim_stock() was fixed to
+// use metadata_exists() instead of a get_post_meta() emptiness check.
 set_stock( 2, -1 );
-T::is( get_post_meta( PARTNER_ID, 'usedCount', true ), '', 'precondition: no usedCount meta row exists' );
-T::is( redeem_call( 'claim_stock', PARTNER_ID ), true, 'the first-ever redemption is not misread as sold out' );
+T::is( metadata_exists( 'post', PARTNER_ID, 'usedCount' ), false, 'precondition: no usedCount meta row exists in the DB' );
+T::is( get_post_meta( PARTNER_ID, 'usedCount', true ), '0', 'precondition: get_post_meta() masks that absence with the registered default -- NOT an empty string (this is what fooled the old code)' );
+T::is( redeem_call( 'claim_stock', PARTNER_ID ), true, 'the first-ever redemption is not misread as sold out, despite the default-masked read above' );
+T::is( metadata_exists( 'post', PARTNER_ID, 'usedCount' ), true, 'the real row now exists' );
 T::is( used_count(), 1, 'the counter starts at 1 after the first claim' );
 
 // Unlimited stock still counts, and never rejects.

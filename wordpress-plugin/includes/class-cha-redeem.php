@@ -222,7 +222,20 @@ class CHA_Redeem {
 		// That cannot oversell — the UPDATE below matches every usedCount row
 		// for the post and its `< max` predicate applies to each — it only
 		// makes the displayed counter for that one partner briefly odd.
-		if ( '' === (string) get_post_meta( $post_id, 'usedCount', true ) ) {
+		// NOTE (1 Sep 2026 fix): usedCount is registered via register_post_meta()
+		// with a default of 0 (see CHA_Meta::register_partner_meta()) so that
+		// the REST/admin reads never see an empty value. That default masking
+		// is exactly what breaks the emptiness check this replaced: real
+		// WordPress returns the registered default ('0') from get_post_meta()
+		// even when NO row exists yet, so `'' === get_post_meta(...)` was never
+		// true on a partner's first-ever redemption -- add_post_meta() never
+		// ran, the row was never created, and the raw UPDATE below then found
+		// nothing to update (0 rows affected), so claim_stock() reported
+		// sold-out for every partner's first redemption regardless of
+		// maxVouchers. metadata_exists() checks the database directly, not
+		// through the default-value filter, so it correctly distinguishes "no
+		// row yet" from "row explicitly set to 0".
+		if ( ! metadata_exists( 'post', $post_id, 'usedCount' ) ) {
 			add_post_meta( $post_id, 'usedCount', '0', true );
 		}
 
