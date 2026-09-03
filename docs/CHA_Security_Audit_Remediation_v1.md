@@ -256,8 +256,8 @@ run against a local mock API.
 | Suite | Covers | Result |
 |---|---|---|
 | `tests/test-checkout.php` | items 2, 3 | **19 passed, 0 failed** |
-| `tests/test-redeem-stock.php` | item 4 | **22 passed, 0 failed** |
-| `tests/test-app-browser.js` | items 1, 5 | **47 passed, 0 failed** |
+| `tests/test-redeem-stock.php` | item 4 | **24 passed, 0 failed** |
+| `tests/test-app-browser.js` | items 1, 5 | **51 passed, 0 failed** |
 
 Requires `php`, `node`, and a Chrome/Chromium binary. `tests/mock-api-server.js` can
 also be run on its own (`node tests/mock-api-server.js`) to click through the
