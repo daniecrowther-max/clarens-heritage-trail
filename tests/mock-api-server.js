@@ -16,6 +16,9 @@
  *   ?scenario=hang          redeem never answers (client timeout path)
  *   ?scenario=refused       the redeem route drops the connection
  *   &xss=1                  feed fields carry stored-XSS payloads
+ *   &feed=ok                cha/v1/content serves config.unlockPriceCents (default)
+ *   &feed=noconfig          cha/v1/content serves sites/partners but no `config` key
+ *   &feed=down              cha/v1/content drops the connection
  *
  * Usage:  node tests/mock-api-server.js [port]
  *
@@ -100,6 +103,7 @@ const SCENARIOS = {
 
 let scenario = 'ok';
 let xssOn = false;
+let feedMode = 'ok'; // 'ok' | 'noconfig' | 'down' — controls cha/v1/content only, independent of `scenario`
 
 function json(res, status, obj) {
   const body = JSON.stringify(obj);
@@ -113,6 +117,7 @@ const server = http.createServer((req, res) => {
 
   if (url.searchParams.has('scenario')) scenario = url.searchParams.get('scenario');
   if (url.searchParams.has('xss')) xssOn = url.searchParams.get('xss') === '1';
+  if (url.searchParams.has('feed')) feedMode = url.searchParams.get('feed');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
@@ -123,7 +128,12 @@ const server = http.createServer((req, res) => {
     return res.end();
   }
 
-  if (p === '/cha/v1/content') return json(res, 200, feed(xssOn));
+  if (p === '/cha/v1/content') {
+    if (feedMode === 'down') return req.socket.destroy();
+    const body = feed(xssOn);
+    if (feedMode === 'noconfig') delete body.config; // sites/partners still present — only config is missing
+    return json(res, 200, body);
+  }
 
   if (p === '/cha/v1/voucher-status') return json(res, 200, {});
 

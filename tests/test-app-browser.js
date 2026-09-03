@@ -1,16 +1,20 @@
 #!/usr/bin/env node
 /**
- * Audit items 1 and 5, in a real browser.
+ * Audit items 1 and 5, plus unlock-price coverage, in a real browser.
  *
  * Drives headless Chrome over the DevTools protocol against
  * tests/mock-api-server.js, which serves the real app/index.html with its API
- * pointed at a stub that can produce every rejection the live server can — and
- * a stored-XSS variant of the content feed.
+ * pointed at a stub that can produce every rejection the live server can, a
+ * stored-XSS variant of the content feed, and a feed with no config, or none
+ * at all.
  *
  * Item 1: for each rejection, assert the voucher screen is NOT shown, the
  *         local "used" flag is NOT written, and an error is.
  * Item 5: feed every WordPress-sourced field a script payload and assert
  *         nothing executes and the payload renders as text.
+ * Unlock price: the feed's config.unlockPriceCents overrides the CONFIG
+ *         fallback, and the fallback survives a feed that fails outright or
+ *         omits config.
  *
  * Usage:  node tests/test-app-browser.js
  *
@@ -91,7 +95,8 @@ class Page {
     return r.result.value;
   }
 
-  async goto(url) {
+  async goto(url, opts) {
+    const waitForFeed = !opts || opts.waitForFeed !== false;
     await this.send('Page.navigate', { url });
 
     // The content feed is only fetched once the splash is dismissed, so the
@@ -112,6 +117,11 @@ class Page {
         if (started) break;
       } catch (e) { /* still navigating */ }
     }
+
+    // Some scenarios (e.g. the content feed's connection being dropped)
+    // deliberately leave PARTNERS/SITES empty forever — waiting on them
+    // below would just time out, so those callers skip this part.
+    if (!waitForFeed) return;
 
     for (let i = 0; i < 150; i++) {
       await sleep(100);
@@ -195,6 +205,34 @@ async function runRedeem(page, scenario) {
       confirmEnabled: !document.getElementById('voucherConfirmBtn').disabled
     };
   `);
+}
+
+/**
+ * Read what the buyer actually sees for the unlock price: the text content
+ * of every .unlock-price span (the buyPhaseBtn button copy and the buyModal
+ * price line — both hidden behind display:none but still in the DOM, so no
+ * modal needs to be opened to read them).
+ *
+ * @param {Page} page
+ * @returns {string[]}
+ */
+function unlockPriceText(page) {
+  return page.evalIn(`
+    return [].map.call(document.querySelectorAll('.unlock-price'), function(el) { return el.textContent; });
+  `);
+}
+
+/**
+ * Like Page.goto(), but for scenarios where the content feed deliberately
+ * never resolves (e.g. a dropped connection) — PARTNERS/SITES stay empty
+ * forever there, so goto()'s normal readiness wait would just time out.
+ * This only waits for the splash to be dismissed.
+ *
+ * @param {Page}   page
+ * @param {string} url
+ */
+async function gotoAppOnly(page, url) {
+  await page.goto(url, { waitForFeed: false });
 }
 
 /* ---- main -------------------------------------------------------------- */
@@ -284,6 +322,37 @@ async function runRedeem(page, scenario) {
     ok(offline.errorShown && /offline/i.test(offline.errorText), 'offline: an offline-specific error is shown');
     ok(!offline.localFlag, 'offline: nothing is marked used locally');
     }
+
+    /* ---------------------------------------------------------------- */
+    group('Unlock price — the feed overrides the CONFIG fallback');
+
+    // The mock feed (tests/mock-api-server.js) serves config.unlockPriceCents:
+    // 9900 — deliberately different from CONFIG.unlockPriceCents (10000) in
+    // app/index.html — so this only passes if the app is actually reading the
+    // feed's price rather than just re-displaying its own built-in fallback.
+    await page.goto(`${ORIGIN}/?feed=ok`);
+    is(await unlockPriceText(page), ['R99.00', 'R99.00'], 'the feed price (R99.00) is shown, not the CONFIG fallback (R100.00)');
+
+    // The feed responds 200 with sites/partners present but no `config` key at
+    // all — mergeRemoteSites() must leave the CONFIG fallback in place rather
+    // than throw or blank the price out.
+    await page.goto(`${ORIGIN}/?feed=noconfig`);
+    is(await unlockPriceText(page), ['R100.00', 'R100.00'], 'a feed response with no config: the CONFIG fallback price is shown');
+
+    // The feed request itself never completes (dropped connection). PARTNERS/
+    // SITES never populate here, so this uses gotoAppOnly() instead of goto()
+    // and only waits for the splash to be dismissed.
+    await gotoAppOnly(page, `${ORIGIN}/?feed=down`);
+    await sleep(1000); // let the failed fetch reject and reach mergeRemoteSites()'s .catch()
+    const downPrice = await unlockPriceText(page);
+    const appVisible = await page.evalIn(`return document.getElementById('app').classList.contains('visible');`);
+    is(downPrice, ['R100.00', 'R100.00'], 'the feed request fails outright: the CONFIG fallback price is shown');
+    ok(appVisible, 'the feed request fails outright: the app is not stuck on the splash screen');
+
+    // feedMode is persistent server state, like `scenario` — reset it so it
+    // doesn't leak into a later group that navigates without an explicit
+    // &feed= param (Item 5 loads plain ?xss=1 and needs the feed to succeed).
+    await fetch(`${ORIGIN}/?feed=ok`);
 
     /* ---------------------------------------------------------------- */
     if (ONLY !== 'item1') {
