@@ -18,8 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 class CHA_Settings {
 
 	const PRICE_OPTION  = 'cha_unlock_price_cents';
-	const PRICE_DEFAULT = 9900; // R99.00 — Danie's decision, 19 Aug 2026.
-	const PRICE_FLOOR   = 100;  // R1.00 — guard against a fat-fingered R0.
+	const PRICE_DEFAULT = 10000; // R100.00 — raised 3 Sep 2026. Was 9900 (R99.00), Danie's decision, 19 Aug 2026.
+	const PRICE_FLOOR   = 100;   // R1.00 — guard against a fat-fingered R0.
 
 	/**
 	 * Register the setting.

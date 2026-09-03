@@ -496,7 +496,7 @@ class CHA_Env {
 
 class CHA_Settings {
 	public static function unlock_price_cents() {
-		return 9900;
+		return 10000; // mirrors CHA_Settings::PRICE_DEFAULT
 	}
 }
 
