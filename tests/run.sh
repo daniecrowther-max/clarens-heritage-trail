@@ -9,6 +9,8 @@
 #                                item 5 (stored-XSS escaping of feed data)
 #   tests/test-build-zip.php     tools/build-zip.sh produces a correctly-prefixed plugin zip
 #   tests/test-short-links.php  /s/{site_id} QR plaque redirect (resolve, repoint, scan counter)
+#   tests/test-category-model.php  data-driven categories: palette, matcher, migration
+#   tests/test-category-render.js  category colour/glyph rendering + hostile feed values
 #   tests/test-app-deep-link.js  ?site={id} deep link + the localStorage hand-off across Paystack
 #
 # Requires: php CLI, node, and a Chrome/Chromium binary. No WordPress, no
@@ -18,10 +20,13 @@ set -u
 cd "$(dirname "$0")/.."
 
 fail=0
-for t in tests/test-checkout.php tests/test-redeem-stock.php tests/test-webhook-idempotency.php tests/test-build-zip.php tests/test-short-links.php; do
+for t in tests/test-checkout.php tests/test-redeem-stock.php tests/test-webhook-idempotency.php tests/test-build-zip.php tests/test-short-links.php tests/test-category-model.php; do
   echo "=== $t ==="
   php "$t" || fail=1
 done
+
+echo "=== tests/test-category-render.js ==="
+node tests/test-category-render.js || fail=1
 
 echo "=== tests/test-app-deep-link.js ==="
 node tests/test-app-deep-link.js || fail=1

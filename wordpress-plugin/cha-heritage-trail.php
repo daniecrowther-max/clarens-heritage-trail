@@ -38,6 +38,8 @@ require_once CHA_PLUGIN_DIR . 'includes/class-cha-social-meta.php';
 require_once CHA_PLUGIN_DIR . 'includes/class-cha-xlsx-reader.php';
 require_once CHA_PLUGIN_DIR . 'includes/class-cha-importer.php';
 require_once CHA_PLUGIN_DIR . 'includes/class-cha-short-links.php';
+require_once CHA_PLUGIN_DIR . 'includes/class-cha-category-admin.php';
+require_once CHA_PLUGIN_DIR . 'includes/class-cha-category-colours.php';
 
 // Payments (step 5). Secrets load from .env only — never the DB, never the bundle.
 require_once CHA_PLUGIN_DIR . 'includes/class-cha-env.php';
@@ -51,6 +53,7 @@ require_once CHA_PLUGIN_DIR . 'includes/class-cha-voucher-metrics.php';
 
 add_action( 'init', array( 'CHA_Post_Types', 'register' ) );
 add_action( 'init', array( 'CHA_Taxonomy', 'register' ) );
+add_action( 'init', array( 'CHA_Taxonomy', 'register_term_meta' ) );
 add_action( 'init', array( 'CHA_Meta', 'register' ) );
 add_action( 'init', array( 'CHA_Shortcodes', 'register' ) );
 CHA_Site_Meta_Box::init();    // Heritage Site details editor on the site CPT.
@@ -59,6 +62,8 @@ CHA_Rest::init();
 CHA_Cors::init(); // Allow the app subdomain to call cha/v1 cross-origin.
 CHA_Importer::init();
 CHA_Social_Meta::init(); // og:*/twitter:card/description on site+partner singulars.
+CHA_Category_Admin::init(); // Category colour/glyph editing + uncategorised view.
+CHA_Category_Colours::init(); // Category colour/icon + per-site photo as CSS custom properties on the website front end.
 CHA_Short_Links::init(); // Permanent QR redirect: /s/{site_id} → the site's page (or, via the base option, the app's ?site= deep link).
 
 CHA_Env::boot();
@@ -137,6 +142,30 @@ function cha_maybe_migrate_token_email_columns() {
 add_action( 'admin_init', 'cha_maybe_migrate_token_email_columns' );
 
 /**
+ * One-shot retirement of the per-site ac/dot style meta (and any icon the old
+ * importer derived from a category), now that category styling comes from the
+ * category itself (see CHA_Taxonomy). Guarded by an option so it never repeats,
+ * and it records every value it deletes into cha_category_style_backup first —
+ * the plugin ships as a manual zip upload, so an unrecoverable delete on a live
+ * site is not an acceptable failure mode. Restore with
+ * CHA_Taxonomy::restore_style_meta_backup() or `wp cha category-styles restore`.
+ */
+function cha_maybe_migrate_category_styles() {
+	if ( get_option( 'cha_category_styles_migrated' ) ) {
+		return;
+	}
+	CHA_Taxonomy::migrate_style_meta();
+	update_option( 'cha_category_styles_migrated', 1 );
+}
+add_action( 'admin_init', 'cha_maybe_migrate_category_styles' );
+
+// Self-heal for an install upgraded by file-replace rather than reactivated:
+// the seeded terms get their starting glyph, and any category still without a
+// stored colour gets one, on the next admin hit. Both are no-ops once done.
+add_action( 'admin_init', array( 'CHA_Taxonomy', 'seed_glyphs' ) );
+add_action( 'admin_init', array( 'CHA_Taxonomy', 'persist_all_colours' ) );
+
+/**
  * One-shot rewrite flush for the /s/{site_id} short-link route. This plugin
  * is deployed by zip upload / file replace, which never fires the activation
  * hook, so a route added between deploys would otherwise 404 silently until
@@ -161,6 +190,7 @@ add_action( 'admin_init', 'cha_maybe_flush_short_link_rewrites' );
 function cha_activate() {
 	CHA_Post_Types::register();
 	CHA_Taxonomy::register();
+	CHA_Taxonomy::register_term_meta();
 	CHA_Taxonomy::seed_terms();
 	CHA_Taxonomy::migrate_trail_meta_to_taxonomy();
 	CHA_Meta::migrate_site_id_from_slug();

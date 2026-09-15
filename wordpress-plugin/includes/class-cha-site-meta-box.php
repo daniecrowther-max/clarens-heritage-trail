@@ -68,10 +68,10 @@ class CHA_Site_Meta_Box {
 		return array(
 			// `trail` is now the heritage_trail taxonomy — handled by WordPress's
 			// native "Trails" panel, so it is deliberately not an input here.
+			// `ac` and `dot` are retired — the category now supplies the badge
+			// and accent colour, and map pin colour is typed by bp/partner.
 			'address' => array( __( 'Street address', 'cha' ), '' ),
-			'icon'    => array( __( 'Marker glyph / emoji', 'cha' ), __( 'Optional — a fallback pin glyph.', 'cha' ) ),
-			'ac'      => array( __( 'Accent style class', 'cha' ), __( 'Optional override — defaults from the category if left blank.', 'cha' ) ),
-			'dot'     => array( __( 'Map-marker colour (hex)', 'cha' ), __( 'Optional override — defaults from the category if left blank.', 'cha' ) ),
+			'icon'    => array( __( 'Marker glyph / emoji', 'cha' ), __( 'Optional override — leave blank to use this site\'s category glyph. An HTML entity such as &#127968; is accepted.', 'cha' ) ),
 		);
 	}
 

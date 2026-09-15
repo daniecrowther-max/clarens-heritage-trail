@@ -42,6 +42,29 @@ class CHA_Rest {
 
 		// A price change must show in the feed (and thus app copy) immediately.
 		add_action( 'update_option_' . CHA_Settings::PRICE_OPTION, array( __CLASS__, 'flush_cache' ) );
+
+		// A category restyle must too — the whole point of the categories block
+		// is that recolouring a category does not need a re-import, and that
+		// only holds if creating/editing/deleting a term drops the cached feed
+		// (the set_object_terms hook above covers a site being re-categorised).
+		foreach ( array( 'created_term', 'edited_term', 'delete_term' ) as $hook ) {
+			add_action( $hook, array( __CLASS__, 'flush_cache_for_term' ), 10, 3 );
+		}
+	}
+
+	/**
+	 * Term hooks pass ( $term_id, $tt_id, $taxonomy ); only heritage_category
+	 * changes affect the feed's categories block.
+	 *
+	 * @param int    $term_id  Ignored.
+	 * @param int    $tt_id    Ignored.
+	 * @param string $taxonomy Taxonomy the term belongs to.
+	 */
+	public static function flush_cache_for_term( $term_id, $tt_id = 0, $taxonomy = '' ) {
+		if ( 'heritage_category' === $taxonomy ) {
+			CHA_Taxonomy::flush_definitions();
+			self::flush_cache();
+		}
 	}
 
 	/**
@@ -100,9 +123,10 @@ class CHA_Rest {
 
 		if ( false === $feed ) {
 			$feed = array(
-				'sites'    => self::build_sites(),
-				'partners' => self::build_partners(),
-				'config'   => self::build_config(),
+				'sites'      => self::build_sites(),
+				'partners'   => self::build_partners(),
+				'categories' => CHA_Taxonomy::category_definitions(),
+				'config'     => self::build_config(),
 			);
 			set_transient( self::CACHE_KEY, $feed, self::CACHE_TTL );
 		}
@@ -164,10 +188,13 @@ class CHA_Rest {
 			'name' => $name,
 		);
 
-		// `cat` — first heritage_category term name.
+		// `cat` — first heritage_category term name, for display; `catSlug` is
+		// the stable key into the feed's `categories` block. Names are
+		// editorial and get renamed; slugs are not.
 		$terms = get_the_terms( $post, 'heritage_category' );
 		if ( is_array( $terms ) && ! empty( $terms ) ) {
-			$record['cat'] = $terms[0]->name;
+			$record['cat']     = $terms[0]->name;
+			$record['catSlug'] = $terms[0]->slug;
 		}
 
 		// `trail` — first heritage_trail term SLUG. Unlike `cat` (which the app
@@ -190,20 +217,35 @@ class CHA_Rest {
 		self::add_number( $record, $post->ID, 'lat' );
 		self::add_number( $record, $post->ID, 'lng' );
 
-		foreach ( array( 'address', 'ac', 'dot', 'photo' ) as $key ) {
+		// `ac` and `dot` are retired: `dot` was never read by the app, and the
+		// card accent / badge colour now comes from the `categories` block.
+		foreach ( array( 'address', 'photo' ) as $key ) {
 			self::add_string( $record, $post->ID, $key );
 		}
 
-		// `icon` is typed into wp-admin as an HTML numeric character reference
-		// (e.g. "&#127968;") so editors can enter an emoji into a plain text
-		// field. Decode it here into the actual Unicode character so the
-		// app's escapeHtml() — applied consistently to every WP feed value
-		// since the Aug 2026 security audit — treats it like any other safe
-		// text value instead of escaping the "&" and showing the raw entity
-		// code on screen (e.g. literal "&#127968;" instead of the emoji).
+		// `icon` is RESOLVED here rather than denormalised at import time: a
+		// per-site override if one was set by hand, otherwise the category's
+		// glyph. Resolving at feed-build time is what stops a site keeping a
+		// stale glyph after its category changes.
+		//
+		// A per-site icon is typed into wp-admin as an HTML numeric character
+		// reference (e.g. "&#127968;") so editors can enter an emoji into a
+		// plain text field. Decode it here into the actual Unicode character
+		// so the app's escapeHtml() — applied consistently to every WP feed
+		// value since the Aug 2026 security audit — treats it like any other
+		// safe text value instead of escaping the "&" and showing the raw
+		// entity code on screen (e.g. literal "&#127968;" instead of the emoji).
 		$icon = (string) get_post_meta( $post->ID, 'icon', true );
 		if ( '' !== $icon ) {
-			$record['icon'] = html_entity_decode( $icon, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			$icon = html_entity_decode( $icon, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		} elseif ( isset( $record['catSlug'] ) ) {
+			$definitions = CHA_Taxonomy::category_definitions();
+			if ( isset( $definitions[ $record['catSlug'] ]['icon'] ) ) {
+				$icon = $definitions[ $record['catSlug'] ]['icon'];
+			}
+		}
+		if ( '' !== $icon ) {
+			$record['icon'] = $icon;
 		}
 
 		self::add_map( $record, $post->ID );

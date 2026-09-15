@@ -486,13 +486,54 @@ async function gotoAppOnly(page, url) {
     `);
     ok(opened, 'the map popup button still opens the site detail');
 
-    // A CSS-class payload must not become an attribute or a live handler.
-    const acAttr = await page.evalIn(`
-      var el = document.querySelector('#sitesList .card-accent');
-      return el ? el.getAttribute('class') : null;
+    // A category colour is written into a style attribute, so a payload in the
+    // feed's categories block must be dropped for the grey fallback, never
+    // written through — and the badge text is still rendered as text.
+    const catStyle = await page.evalIn(`
+      var acc = document.querySelector('#sitesList .card-accent');
+      var badge = document.querySelector('#sitesList .status-badge');
+      return {
+        accentBg: acc ? acc.style.background : null,
+        accentAttr: acc ? acc.getAttribute('style') : null,
+        badgeBg: badge ? badge.style.background : null,
+        badgeText: badge ? badge.textContent : '',
+        badgeHandlers: badge ? badge.hasAttribute('onmouseover') : null
+      };
     `);
-    is(acAttr, 'card-accent ', 'a non-token `ac` value is dropped rather than written into class=');
+    is(catStyle.accentBg, 'rgb(140, 140, 140)', 'a hostile category colour is dropped: the card accent falls back to grey');
+    ok(catStyle.accentAttr && catStyle.accentAttr.indexOf('onmouseover') === -1 && catStyle.accentAttr.indexOf('javascript') === -1, 'nothing from the payload reached the style attribute');
+    is(catStyle.badgeBg, 'rgb(140, 140, 140)', 'the badge falls back to grey too');
+    ok(catStyle.badgeText.includes('<script>'), 'the category name renders the payload as visible text');
+    is(catStyle.badgeHandlers, false, 'no handler attribute survives on the badge');
     }
+
+    /* ---------------------------------------------------------------- */
+    group('Category model — badge and accent come from the feed\'s categories block');
+
+    // xss is persistent server state like feedMode — switch it off explicitly.
+    await page.goto(`${ORIGIN}/?feed=ok&xss=0`);
+    const cat = await page.evalIn(`
+      var acc = document.querySelector('#sitesList .card-accent');
+      var badge = document.querySelector('#sitesList .status-badge');
+      document.querySelector('#sitesList .site-card').click();
+      var pb = document.querySelector('#detailContent .plaque-badge');
+      return {
+        accentBg: acc ? acc.style.background : null,
+        badgeBg: badge ? badge.style.background : null,
+        badgeColor: badge ? badge.style.color : null,
+        badgeText: badge ? badge.textContent.trim() : '',
+        undefinedMarked: badge ? badge.classList.contains('status-undefined') : null,
+        detailBg: pb ? pb.style.background : null,
+        detailText: pb ? pb.textContent.trim() : ''
+      };
+    `);
+    is(cat.accentBg, 'rgb(78, 85, 48)', 'the card accent is the category colour from the feed (#4E5530)');
+    is(cat.badgeBg, 'rgb(78, 85, 48)', 'the site-card badge carries the category colour');
+    is(cat.badgeColor, 'rgb(255, 255, 255)', 'and the category text colour');
+    is(cat.badgeText, '🏛️ Heritage Site', 'the badge shows the category glyph and name from the feed');
+    is(cat.undefinedMarked, false, 'a category the feed defines is not flagged as undefined');
+    is(cat.detailBg, 'rgb(78, 85, 48)', 'the detail-view badge carries the category colour');
+    is(cat.detailText, '🏛️ Heritage Site', 'and the same glyph and name');
   } catch (e) {
     failed++;
     console.error('\n  ERROR ' + (e && e.stack || e));

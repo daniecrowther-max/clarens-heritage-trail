@@ -292,6 +292,7 @@ class CHA_Importer {
 				'action'   => 'skipped',
 				'id'       => $id_raw,
 				'warnings' => array( __( 'Example row.', 'cha' ) ),
+				'errors'   => array(),
 			);
 		}
 
@@ -300,10 +301,12 @@ class CHA_Importer {
 				'action'   => 'skipped',
 				'id'       => '' !== $id_raw ? $id_raw : $name,
 				'warnings' => array( __( 'Missing Site ID or Site Name.', 'cha' ) ),
+				'errors'   => array(),
 			);
 		}
 
 		$warnings = array();
+		$errors   = array();
 		// Normalised the same way post_name has always been derived from the
 		// Site ID cell, so a re-import matches/produces the exact same feed
 		// `id` a site had before site_id existed (see CHA_Meta::string()
@@ -351,6 +354,7 @@ class CHA_Importer {
 					'action'   => 'skipped',
 					'id'       => $id_raw,
 					'warnings' => array( $post_id->get_error_message() ),
+					'errors'   => array(),
 				);
 			}
 			update_post_meta( $post_id, 'site_id', $site_id );
@@ -358,16 +362,37 @@ class CHA_Importer {
 		}
 
 		// Category → taxonomy term (+ the bp subset flag).
-		$term = self::map_category( $data['cat'] );
-		if ( null !== $term ) {
-			wp_set_object_terms( $post_id, $term, 'heritage_category', false );
+		$match = self::match_category( $data['cat'] );
+		if ( null !== $match ) {
+			wp_set_object_terms( $post_id, array( (int) $match['term_id'] ), 'heritage_category', false );
+
+			// A substring hit is a guess, not a match, and saying so is the
+			// point: silent substring matching is how a vocabulary drift stays
+			// hidden. "Heritage" alone would otherwise land on whichever
+			// heritage-named term sorts first without a word.
+			if ( 'fuzzy' === $match['how'] ) {
+				$errors[] = sprintf(
+					/* translators: 1: the spreadsheet value, 2: the term it was matched to */
+					__( 'Category "%1$s" only partly matched — imported as "%2$s". Check this is right.', 'cha' ),
+					$data['cat'],
+					$match['name']
+				);
+			}
 		} elseif ( '' !== $data['cat'] ) {
-			/* translators: %s: the unrecognised category value */
-			$warnings[] = sprintf( __( 'Unknown category "%s" — no category set.', 'cha' ), $data['cat'] );
+			$errors[] = sprintf(
+				/* translators: %s: the unrecognised category value */
+				__( 'No category matches "%s" — this site imported UNCATEGORISED. Add the category under Heritage Categories, then re-import.', 'cha' ),
+				$data['cat']
+			);
 		} else {
-			$warnings[] = __( 'Category is empty.', 'cha' );
+			$errors[] = __( 'Category is empty — this site imported UNCATEGORISED.', 'cha' );
 		}
-		update_post_meta( $post_id, 'bp', 'Blue Plaque Site' === $term || '' !== $data['plaque'] );
+
+		// bp marks the physical Blue Plaque / QR subset. It is deliberately still
+		// settable on its own (the meta box checkbox); the category is a
+		// convenience, not the rule.
+		$is_plaque_term = null !== $match && CHA_Taxonomy::PLAQUE_SLUG === $match['slug'];
+		update_post_meta( $post_id, 'bp', $is_plaque_term || '' !== $data['plaque'] );
 
 		// GPS.
 		foreach ( array( 'lat', 'lng' ) as $coord ) {
@@ -400,10 +425,12 @@ class CHA_Importer {
 			$warnings[] = __( 'No primary photo filename — the app will derive a placeholder from the Site ID.', 'cha' );
 		}
 
-		// ac/dot/icon: curated per-site defaults where we have them, filled
-		// only when empty so manual tweaks survive re-imports. radius flows
-		// from the meta default (30).
-		self::fill_style_defaults( $post_id, $site_id, $term );
+		// icon: the curated per-site glyph where we have one, written only when
+		// empty so a manual tweak survives re-imports. A site without one shows
+		// its category's glyph (resolved at feed-build time — nothing is written).
+		// ac/dot are no longer written: colour comes from the category.
+		// radius flows from the meta default (30).
+		self::fill_icon_default( $post_id, $site_id );
 
 		// Provenance — kept on the post, never sent to the app feed.
 		foreach ( array(
@@ -426,39 +453,119 @@ class CHA_Importer {
 			'action'   => $action,
 			'id'       => $id_raw,
 			'warnings' => $warnings,
+			'errors'   => $errors,
 		);
 	}
 
 	/* ---- field builders ---------------------------------------------- */
 
 	/**
-	 * Category cell → taxonomy term. Clarens's Category column values are
-	 * Clarens's own real category names (CHA_Taxonomy::TERMS), not a
-	 * dropdown of shorter codes — the migrated site-content-import.csv (see
-	 * scripts/migrate-site-content.js) passes them through unchanged, so
-	 * these needles are checked most-specific-first to disambiguate the
-	 * three cells that all contain the substring "heritage" ('Heritage
-	 * Site', 'Cultural Heritage', 'Natural Heritage').
+	 * Spreadsheet category cell → a REGISTERED heritage_category term.
+	 *
+	 * Matches the terms that actually exist rather than a hardcoded list, so
+	 * adding a category in the admin is the only step needed for it to import.
+	 * Three passes, narrowest first:
+	 *
+	 *   1. exact      — the cell equals the term name or slug, ignoring case,
+	 *                   punctuation and spacing.
+	 *   2. normalised — singular/plural differences only ("Blue Plaque Sites"
+	 *                   → "Blue Plaque Site").
+	 *   3. fuzzy      — the cell contains the term name, or vice versa.
+	 *
+	 * Fuzzy is LAST and is reported to the admin. Permissive silent substring
+	 * matching is exactly how a vocabulary drift stays hidden. Longer terms are
+	 * tried first within that pass so a value cannot be captured by a shorter
+	 * term that happens to appear inside it ("Heritage" is inside all four
+	 * Clarens terms).
 	 *
 	 * @param string $value Cell value.
-	 * @return string|null Term name, or null when unrecognised.
+	 * @return array|null [ term_id, name, slug, how ], or null for no match.
 	 */
-	private static function map_category( $value ) {
-		$value = self::normalize( $value );
-		$map   = apply_filters(
-			'cha_import_category_map',
+	private static function match_category( $value ) {
+		$needle = self::normalize( $value );
+		if ( '' === $needle ) {
+			return null;
+		}
+
+		$terms = get_terms(
 			array(
-				'blue plaque'      => 'Blue Plaque Site',
-				'cultural heritage' => 'Cultural Heritage',
-				'natural heritage'  => 'Natural Heritage',
-				'heritage site'     => 'Heritage Site',
+				'taxonomy'   => 'heritage_category',
+				'hide_empty' => false,
 			)
 		);
-		foreach ( $map as $needle => $term ) {
-			if ( false !== strpos( $value, $needle ) ) {
-				return $term;
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return null;
+		}
+
+		$found = static function ( $term, $how ) {
+			return array(
+				'term_id' => (int) $term->term_id,
+				'name'    => $term->name,
+				'slug'    => $term->slug,
+				'how'     => $how,
+			);
+		};
+
+		$flat = static function ( $text ) {
+			return preg_replace( '/[^a-z0-9]/', '', self::normalize( $text ) );
+		};
+
+		/**
+		 * An explicitly configured needle → term-name map.
+		 *
+		 * @deprecated 0.2.0 The registered terms are now the vocabulary, so
+		 *             this is only needed for a mapping the three matching
+		 *             passes below cannot express. Honoured so an existing
+		 *             override does not silently stop working.
+		 *
+		 * @param array $map Needle => term name. Empty by default.
+		 */
+		$legacy = apply_filters( 'cha_import_category_map', array() );
+		foreach ( (array) $legacy as $legacy_needle => $term_name ) {
+			if ( '' === (string) $legacy_needle || false === strpos( $needle, self::normalize( $legacy_needle ) ) ) {
+				continue;
+			}
+			foreach ( $terms as $term ) {
+				if ( self::normalize( $term->name ) === self::normalize( $term_name ) ) {
+					return $found( $term, 'configured' );
+				}
 			}
 		}
+
+		// 1. Exact, on name or slug.
+		foreach ( $terms as $term ) {
+			if ( self::normalize( $term->name ) === $needle || self::normalize( $term->slug ) === $needle ) {
+				return $found( $term, 'exact' );
+			}
+		}
+
+		// 2. Normalised — punctuation stripped, and a trailing plural 's'
+		//    treated as noise in either direction.
+		$bare   = $flat( $value );
+		$plural = array( $bare, rtrim( $bare, 's' ), $bare . 's' );
+		foreach ( $terms as $term ) {
+			$term_bare = $flat( $term->name );
+			if ( in_array( $term_bare, $plural, true ) || rtrim( $term_bare, 's' ) === rtrim( $bare, 's' ) ) {
+				return $found( $term, 'normalised' );
+			}
+		}
+
+		// 3. Fuzzy, longest term name first.
+		$sorted = $terms;
+		usort(
+			$sorted,
+			static function ( $a, $b ) {
+				return strlen( $b->name ) - strlen( $a->name );
+			}
+		);
+		foreach ( $sorted as $term ) {
+			$term_needle = self::normalize( $term->name );
+			if ( '' !== $term_needle
+				&& ( false !== strpos( $needle, $term_needle ) || false !== strpos( $term_needle, $needle ) ) ) {
+				return $found( $term, 'fuzzy' );
+			}
+		}
+
 		return null;
 	}
 
@@ -526,100 +633,72 @@ class CHA_Importer {
 	}
 
 	/**
-	 * ac/dot/icon defaults — written only when empty, so manual tweaks
-	 * survive re-imports.
+	 * Curated per-site glyph — written only when empty, so a manual tweak
+	 * survives re-imports.
 	 *
-	 * In Clarens's real data these are never derived from category — every
-	 * site has its own hand-picked icon/accent, uncorrelated with its `cat`
-	 * (e.g. two 'Heritage Site' sites can be ac-gold and ac-blue). So the
-	 * per-site table below (site_id → ac/dot/icon, taken verbatim from
-	 * clarens-heritage-trail repo commit a8627de — the same source
-	 * scripts/migrate-site-content.js used) is checked first. The
-	 * category-keyed fallback exists only for a site that isn't in that
-	 * table yet (e.g. a brand new one) and uses the app's REAL CSS accent
-	 * classes (see app/index.html: .ac-blue/.ac-olive/.ac-gold/.ac-mid),
-	 * not placeholder class names.
+	 * In Clarens's real data the glyph is never derived from category — every
+	 * one of the 31 original sites has its own hand-picked icon, uncorrelated
+	 * with its `cat` (two 'Heritage Site' sites can be a house and a school).
+	 * So the per-site table below (taken verbatim from clarens-heritage-trail
+	 * repo commit a8627de — the same source scripts/migrate-site-content.js
+	 * used) is the one thing still written per site. A site that is not in it
+	 * gets nothing written: the feed resolves its category's glyph instead
+	 * (CHA_Taxonomy::category_definitions()), so a restyle never needs a
+	 * re-import. The old per-site `ac`/`dot` colour meta is gone — colour is
+	 * the category's.
 	 *
-	 * @param int         $post_id Site post ID.
-	 * @param string      $site_id Site ID (matches the `id` used by the app).
-	 * @param string|null $term    Category term name.
+	 * @param int    $post_id Site post ID.
+	 * @param string $site_id Site ID (matches the `id` used by the app).
 	 */
-	private static function fill_style_defaults( $post_id, $site_id, $term ) {
-		$per_site = apply_filters( 'cha_site_styles', self::site_style_defaults() );
-
-		if ( isset( $per_site[ $site_id ] ) ) {
-			self::apply_style_defaults( $post_id, $per_site[ $site_id ] );
+	private static function fill_icon_default( $post_id, $site_id ) {
+		$per_site = apply_filters( 'cha_site_icons', self::site_icon_defaults() );
+		if ( ! isset( $per_site[ $site_id ] ) ) {
 			return;
 		}
-
-		$per_category = apply_filters(
-			'cha_category_styles',
-			array(
-				'Blue Plaque Site'  => array( 'ac' => 'ac-blue', 'dot' => '#1a4a7a', 'icon' => '🔵' ),
-				'Heritage Site'     => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '🏛️' ),
-				'Cultural Heritage' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '🎭' ),
-				'Natural Heritage'  => array( 'ac' => 'ac-mid', 'dot' => '#606e42', 'icon' => '🌿' ),
-			)
-		);
-
-		if ( null !== $term && isset( $per_category[ $term ] ) ) {
-			self::apply_style_defaults( $post_id, $per_category[ $term ] );
+		if ( '' === (string) get_post_meta( $post_id, 'icon', true ) ) {
+			update_post_meta( $post_id, 'icon', $per_site[ $site_id ] );
 		}
 	}
 
 	/**
-	 * Write ac/dot/icon meta, each only when currently empty.
+	 * Per-site glyphs (HTML numeric character references, decoded by the
+	 * feed), taken verbatim from Clarens's real site data.
 	 *
-	 * @param int   $post_id Site post ID.
-	 * @param array $style   { ac, dot, icon }.
+	 * @return array<string,string> site_id => icon.
 	 */
-	private static function apply_style_defaults( $post_id, $style ) {
-		foreach ( $style as $key => $value ) {
-			if ( '' === (string) get_post_meta( $post_id, $key, true ) ) {
-				update_post_meta( $post_id, $key, $value );
-			}
-		}
-	}
-
-	/**
-	 * Per-site ac/dot/icon, taken verbatim from Clarens's real site data
-	 * (clarens-heritage-trail repo, commit a8627de).
-	 *
-	 * @return array<string,array{ac:string,dot:string,icon:string}>
-	 */
-	private static function site_style_defaults() {
+	private static function site_icon_defaults() {
 		return array(
-			'supply-store' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#127978;' ),
-			'firkin' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '&#127866;' ),
-			'president-square' => array( 'ac' => 'ac-blue', 'dot' => '#1a4a7a', 'icon' => '&#127963;' ),
-			'die-spens' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '&#127860;' ),
-			'old-library' => array( 'ac' => 'ac-mid', 'dot' => '#606e42', 'icon' => '&#128218;' ),
-			'ou-slaghuis' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '&#127830;' ),
-			'clementines' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '&#127869;' ),
-			'railway-building' => array( 'ac' => 'ac-mid', 'dot' => '#606e42', 'icon' => '&#128649;' ),
-			'bibliophile' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#128218;' ),
-			'frost-house' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#127968;' ),
-			'fischer-house' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#127981;' ),
-			'posthouse' => array( 'ac' => 'ac-blue', 'dot' => '#1a4a7a', 'icon' => '&#9993;' ),
-			'ng-kerk' => array( 'ac' => 'ac-blue', 'dot' => '#1a4a7a', 'icon' => '&#9962;' ),
-			'pastorie' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '&#127968;' ),
-			'ou-kliphuis' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '&#129704;' ),
-			'kruger-gedenksaal' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#127968;' ),
-			'methodist-church' => array( 'ac' => 'ac-mid', 'dot' => '#606e42', 'icon' => '&#9962;' ),
-			'primary-school' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#127979;' ),
-			'leliehoek' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#127968;' ),
-			'sutherlands-cottage' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '&#127968;' ),
-			'berg-429' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '&#127968;' ),
-			'berg-cottage' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#127968;' ),
-			'blacksmith-cottage' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#128296;' ),
-			'ou-werf' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '&#127968;' ),
-			'short-street-438' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '&#127968;' ),
-			'maluti-lodge' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#127960;' ),
-			'titanic-rock' => array( 'ac' => 'ac-blue', 'dot' => '#1a4a7a', 'icon' => '&#129704;' ),
-			'schaapplaats' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#127775;' ),
-			'surrender-hill' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#127988;' ),
-			'basotho-village' => array( 'ac' => 'ac-olive', 'dot' => '#4E5530', 'icon' => '&#127968;' ),
-			'dinosaur-centre' => array( 'ac' => 'ac-gold', 'dot' => '#c8a052', 'icon' => '&#129430;' ),
+			'supply-store' => '&#127978;',
+			'firkin' => '&#127866;',
+			'president-square' => '&#127963;',
+			'die-spens' => '&#127860;',
+			'old-library' => '&#128218;',
+			'ou-slaghuis' => '&#127830;',
+			'clementines' => '&#127869;',
+			'railway-building' => '&#128649;',
+			'bibliophile' => '&#128218;',
+			'frost-house' => '&#127968;',
+			'fischer-house' => '&#127981;',
+			'posthouse' => '&#9993;',
+			'ng-kerk' => '&#9962;',
+			'pastorie' => '&#127968;',
+			'ou-kliphuis' => '&#129704;',
+			'kruger-gedenksaal' => '&#127968;',
+			'methodist-church' => '&#9962;',
+			'primary-school' => '&#127979;',
+			'leliehoek' => '&#127968;',
+			'sutherlands-cottage' => '&#127968;',
+			'berg-429' => '&#127968;',
+			'berg-cottage' => '&#127968;',
+			'blacksmith-cottage' => '&#128296;',
+			'ou-werf' => '&#127968;',
+			'short-street-438' => '&#127968;',
+			'maluti-lodge' => '&#127960;',
+			'titanic-rock' => '&#129704;',
+			'schaapplaats' => '&#127775;',
+			'surrender-hill' => '&#127988;',
+			'basotho-village' => '&#127968;',
+			'dinosaur-centre' => '&#129430;',
 		);
 	}
 
@@ -645,6 +724,32 @@ class CHA_Importer {
 				);
 				?>
 			</p>
+			<?php
+			$error_rows = 0;
+			foreach ( $report['rows'] as $row ) {
+				if ( ! empty( $row['errors'] ) ) {
+					++$error_rows;
+				}
+			}
+			if ( $error_rows ) :
+				?>
+				<p style="color:#b91c1c;font-weight:600">
+					<?php
+					printf(
+						/* translators: %d: number of rows with an error */
+						esc_html(
+							_n(
+								'%d row needs attention — see the red notes below. Uncategorised sites are also listed on the Heritage Sites screen.',
+								'%d rows need attention — see the red notes below. Uncategorised sites are also listed on the Heritage Sites screen.',
+								$error_rows,
+								'cha'
+							)
+						),
+						(int) $error_rows
+					);
+					?>
+				</p>
+			<?php endif; ?>
 		</div>
 		<table class="widefat striped" style="max-width:900px">
 			<thead>
@@ -652,7 +757,7 @@ class CHA_Importer {
 					<th><?php esc_html_e( 'Row', 'cha' ); ?></th>
 					<th><?php esc_html_e( 'Site ID', 'cha' ); ?></th>
 					<th><?php esc_html_e( 'Action', 'cha' ); ?></th>
-					<th><?php esc_html_e( 'Warnings', 'cha' ); ?></th>
+					<th><?php esc_html_e( 'Notes', 'cha' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -661,7 +766,14 @@ class CHA_Importer {
 						<td><?php echo (int) $row['row']; ?></td>
 						<td><?php echo esc_html( $row['id'] ); ?></td>
 						<td><?php echo esc_html( $row['action'] ); ?></td>
-						<td><?php echo esc_html( implode( ' ', $row['warnings'] ) ); ?></td>
+						<td>
+							<?php if ( ! empty( $row['errors'] ) ) : ?>
+								<div style="color:#b91c1c;font-weight:600">
+									&#10007; <?php echo esc_html( implode( ' ', $row['errors'] ) ); ?>
+								</div>
+							<?php endif; ?>
+							<?php echo esc_html( implode( ' ', $row['warnings'] ) ); ?>
+						</td>
 					</tr>
 				<?php endforeach; ?>
 			</tbody>

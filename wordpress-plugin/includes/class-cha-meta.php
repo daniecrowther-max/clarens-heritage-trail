@@ -155,8 +155,8 @@ class CHA_Meta {
 		// Strings. (`trail` is now the heritage_trail taxonomy, not meta.)
 		self::string( 'site', 'address', __( 'Street address', 'cha' ) );
 		self::string( 'site', 'icon', __( 'Marker/placeholder glyph when no photo', 'cha' ) );
-		self::string( 'site', 'ac', __( 'Accent style class — can default from category', 'cha' ) );
-		self::string( 'site', 'dot', __( 'Map-marker colour (hex) — can default from category', 'cha' ) );
+		self::string( 'site', 'ac', __( 'Retired — accent colour now comes from the category (kept registered only so a style-meta rollback can restore it)', 'cha' ) );
+		self::string( 'site', 'dot', __( 'Retired — never read by the app (kept registered only so a style-meta rollback can restore it)', 'cha' ) );
 		self::string( 'site', 'plaqueText', __( 'Exact wording on the Blue Plaque — captured by the interns; not read by the app yet', 'cha' ) );
 
 		// URLs.

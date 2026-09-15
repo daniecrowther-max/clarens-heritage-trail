@@ -49,6 +49,17 @@ function feed(xss) {
   const t = (clean) => (xss ? clean + XSS : clean);
   return {
     config: { unlockPriceCents: 9900, currency: 'ZAR' },
+    // Category definitions keyed by slug (see CHA_Taxonomy::category_definitions()).
+    // In XSS mode the colour is a style-attribute payload — the app must drop it
+    // for its grey fallback rather than let it reach style="…".
+    categories: {
+      'heritage-site': {
+        name: t('Heritage Site'),
+        colour: xss ? '#4E5530;background:url(javascript:1)" onmouseover="window.__xss=1' : '#4E5530',
+        text: '#FFFFFF',
+        icon: t('🏛️'),
+      },
+    },
     sites: [
       {
         id: 'mock-site-one',
@@ -56,7 +67,7 @@ function feed(xss) {
         address: t('1 Test Street'),
         icon: t('🏛'),
         cat: 'Heritage Site',
-        ac: xss ? 'ac-blue" onmouseover="window.__xss=1' : 'ac-blue',
+        catSlug: 'heritage-site',
         trail: 'clarens-town',
         trailNum: 1,
         lat: -28.5148,
