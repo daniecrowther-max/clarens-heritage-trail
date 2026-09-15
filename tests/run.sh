@@ -8,6 +8,7 @@
 #   tests/test-app-browser.js    item 1 (server-confirmed redemption only)
 #                                item 5 (stored-XSS escaping of feed data)
 #   tests/test-build-zip.php     tools/build-zip.sh produces a correctly-prefixed plugin zip
+#   tests/test-short-links.php  /s/{site_id} QR plaque redirect (resolve, repoint, scan counter)
 #   tests/test-app-deep-link.js  ?site={id} deep link + the localStorage hand-off across Paystack
 #
 # Requires: php CLI, node, and a Chrome/Chromium binary. No WordPress, no
@@ -17,7 +18,7 @@ set -u
 cd "$(dirname "$0")/.."
 
 fail=0
-for t in tests/test-checkout.php tests/test-redeem-stock.php tests/test-webhook-idempotency.php tests/test-build-zip.php; do
+for t in tests/test-checkout.php tests/test-redeem-stock.php tests/test-webhook-idempotency.php tests/test-build-zip.php tests/test-short-links.php; do
   echo "=== $t ==="
   php "$t" || fail=1
 done

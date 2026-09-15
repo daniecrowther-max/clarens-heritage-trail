@@ -85,3 +85,27 @@
 		border-bottom: 1px solid #ECE9E3;
 	}
 }
+
+/*
+ * [/s/{site_id}] fallback note (CHA_Short_Links::render_fallback_note()) —
+ * shown on the trail page when a plaque's QR code resolves to an unknown or
+ * not-yet-published site. Deliberately calm rather than error-red: nothing
+ * is broken from a visitor's point of view, and the trail page right below
+ * it is exactly what they'd have reached from the site menu anyway. A plaque
+ * must never dead-end at a blank page.
+ */
+.cha-plaque-note {
+	background: #ECE9E3; /* Parchment */
+	border: 1px solid #D4CBB6; /* Fossil */
+	border-radius: 10px;
+	padding: 14px 18px;
+	margin: 16px 0;
+	font-family: 'Source Sans 3', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+	font-size: 0.95rem;
+	color: #14110D; /* Text */
+	box-sizing: border-box;
+}
+
+.cha-plaque-note p {
+	margin: 0;
+}

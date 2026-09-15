@@ -37,6 +37,7 @@ require_once CHA_PLUGIN_DIR . 'includes/class-cha-shortcodes.php';
 require_once CHA_PLUGIN_DIR . 'includes/class-cha-social-meta.php';
 require_once CHA_PLUGIN_DIR . 'includes/class-cha-xlsx-reader.php';
 require_once CHA_PLUGIN_DIR . 'includes/class-cha-importer.php';
+require_once CHA_PLUGIN_DIR . 'includes/class-cha-short-links.php';
 
 // Payments (step 5). Secrets load from .env only — never the DB, never the bundle.
 require_once CHA_PLUGIN_DIR . 'includes/class-cha-env.php';
@@ -58,6 +59,7 @@ CHA_Rest::init();
 CHA_Cors::init(); // Allow the app subdomain to call cha/v1 cross-origin.
 CHA_Importer::init();
 CHA_Social_Meta::init(); // og:*/twitter:card/description on site+partner singulars.
+CHA_Short_Links::init(); // Permanent QR redirect: /s/{site_id} → the site's page (or, via the base option, the app's ?site= deep link).
 
 CHA_Env::boot();
 CHA_Settings::init();
@@ -135,6 +137,24 @@ function cha_maybe_migrate_token_email_columns() {
 add_action( 'admin_init', 'cha_maybe_migrate_token_email_columns' );
 
 /**
+ * One-shot rewrite flush for the /s/{site_id} short-link route. This plugin
+ * is deployed by zip upload / file replace, which never fires the activation
+ * hook, so a route added between deploys would otherwise 404 silently until
+ * someone happens to visit Settings → Permalinks. Guarded by an option so it
+ * never repeats; CHA_Short_Links::rewrite_notice() covers the ongoing case
+ * (something ELSE clobbers the rules later) with a visible admin notice and a
+ * one-click re-flush, since this guard only fires once.
+ */
+function cha_maybe_flush_short_link_rewrites() {
+	if ( get_option( CHA_Short_Links::REWRITE_FLUSH_OPTION ) ) {
+		return;
+	}
+	flush_rewrite_rules();
+	update_option( CHA_Short_Links::REWRITE_FLUSH_OPTION, 1 );
+}
+add_action( 'admin_init', 'cha_maybe_flush_short_link_rewrites' );
+
+/**
  * Activation: register everything, seed the taxonomy terms, create the payment
  * tables, flush rewrites.
  */
@@ -148,6 +168,7 @@ function cha_activate() {
 	CHA_Tokens::create_table();
 	CHA_Purchases::create_table();
 	CHA_Redeem::create_table();
+	CHA_Short_Links::register_rewrite();
 	flush_rewrite_rules();
 }
 register_activation_hook( __FILE__, 'cha_activate' );

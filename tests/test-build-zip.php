@@ -107,13 +107,14 @@ t_ok( false !== $zip->locateName( 'cha-heritage-trail/cha-heritage-trail.php' ),
 
 /* ── 5. The classes a broken archive would silently drop ─────────────────── */
 
-t_group( '5. The payment and env classes are present' );
+t_group( '5. The payment, env and short-link classes are present' );
 
 $named_classes = array(
 	'class-cha-paystack.php',      // Checkout, verify-token and the webhook — the live payment rail.
 	'class-cha-env.php',           // Without it no secret loads and every payment call fails.
 	'class-cha-settings.php',      // The unlock price.
 	'class-cha-redeem.php',
+	'class-cha-short-links.php',   // The QR plaque redirect — dropping this breaks every physical plaque, invisibly.
 );
 foreach ( $named_classes as $class_file ) {
 	t_ok(
