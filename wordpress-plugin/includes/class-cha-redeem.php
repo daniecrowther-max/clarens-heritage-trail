@@ -308,7 +308,7 @@ class CHA_Redeem {
 					array(
 						'success' => false,
 						'code'    => 'invalid_token',
-						'message' => 'A valid trail pass is required to redeem this voucher.',
+						'message' => 'A valid Heritage Pass is required to redeem this voucher.',
 					),
 					401
 				);

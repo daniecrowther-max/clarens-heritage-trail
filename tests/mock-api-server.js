@@ -91,7 +91,7 @@ function feed(xss) {
 
 const SCENARIOS = {
   ok: { status: 200, body: { success: true, code: 'redeemed', message: 'Voucher redeemed successfully.', partner_name: 'Mock Partner' } },
-  invalid: { status: 401, body: { success: false, code: 'invalid_token', message: 'A valid trail pass is required to redeem this voucher.' } },
+  invalid: { status: 401, body: { success: false, code: 'invalid_token', message: 'A valid Heritage Pass is required to redeem this voucher.' } },
   sold_out: { status: 403, body: { success: false, code: 'sold_out', message: 'This voucher is sold out.' } },
   expired: { status: 403, body: { success: false, code: 'expired', message: 'This voucher has expired.' } },
   already: { status: 409, body: { success: false, code: 'already_redeemed', message: 'This voucher has already been redeemed.' } },

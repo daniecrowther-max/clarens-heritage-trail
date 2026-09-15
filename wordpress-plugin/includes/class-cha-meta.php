@@ -144,7 +144,7 @@ class CHA_Meta {
 
 		// Booleans.
 		self::boolean( 'site', 'bp', __( 'One of the 20 Blue Plaque sites (subset flag, independent of category)', 'cha' ) );
-		self::boolean( 'site', 'free', __( 'Part of the free set — open without the trail pass', 'cha' ) );
+		self::boolean( 'site', 'free', __( 'Part of the free set — open without the Heritage Pass', 'cha' ) );
 
 		// Numbers.
 		self::number( 'site', 'trailNum', __( 'Order within the trail', 'cha' ) );
@@ -221,7 +221,7 @@ class CHA_Meta {
 		self::string( 'partner', 'offerLabel', __( 'Headline (e.g. "10% Discount")', 'cha' ) );
 		self::string( 'partner', 'offerSub', __( 'Detail / conditions line', 'cha' ) );
 		self::string( 'partner', 'siteId', __( 'Optional link to a Heritage Site id (slug)', 'cha' ) );
-		self::string( 'partner', 'condition', __( 'Unlock rule (paid = needs the trail pass)', 'cha' ), 'paid' );
+		self::string( 'partner', 'condition', __( 'Unlock rule (paid = needs the Heritage Pass)', 'cha' ), 'paid' );
 		self::string( 'partner', 'requiredSite', __( 'Optional — a specific site that gates the voucher', 'cha' ) );
 		self::string( 'partner', 'voucherKey', __( 'On-device redemption key (cht_ prefix, derived)', 'cha' ) );
 

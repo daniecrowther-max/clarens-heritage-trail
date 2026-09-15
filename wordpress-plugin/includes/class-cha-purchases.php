@@ -219,7 +219,7 @@ class CHA_Purchases {
 			sprintf( 'From: %s <%s>', $from_name, $from_addr ),
 		);
 
-		$subject  = 'Your Clarens Heritage Trail Pass';
+		$subject  = 'Your Clarens Heritage Pass';
 		$message  = self::email_html( $purchase->token );
 		$attempts = (int) $purchase->email_attempts + 1;
 
@@ -287,8 +287,8 @@ class CHA_Purchases {
 		return "
 <div style='font-family:Georgia,serif;max-width:520px;margin:0 auto;padding:20px'>
 	<h1 style='font-size:22px;margin:0 0 4px'>Clarens Heritage Trail</h1>
-	<p style='color:#666;margin:0 0 16px'>Your trail pass is ready</p>
-	<p>Thank you for purchasing the Clarens Heritage Trail Pass.</p>
+	<p style='color:#666;margin:0 0 16px'>Your Heritage Pass is ready</p>
+	<p>Thank you for purchasing the Clarens Heritage Pass.</p>
 	<p>Your unlock token is:</p>
 	<div style='border:2px solid #c8a052;border-radius:8px;padding:16px;text-align:center;margin:16px 0'>
 		<span style='font-family:monospace;font-size:20px;font-weight:bold;letter-spacing:2px'>$safe</span>

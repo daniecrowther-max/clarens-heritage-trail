@@ -92,7 +92,7 @@ class CHA_Partner_Meta_Box {
 	 */
 	protected static function condition_options() {
 		return array(
-			'paid' => __( 'Trail pass required (default)', 'cha' ),
+			'paid' => __( 'Heritage Pass required (default)', 'cha' ),
 		);
 	}
 

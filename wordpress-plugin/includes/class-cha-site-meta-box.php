@@ -121,7 +121,7 @@ class CHA_Site_Meta_Box {
 			'<tr><th>%s</th><td><label><input type="checkbox" name="cha_free" value="1"%s> %s</label></td></tr>',
 			esc_html__( 'Free', 'cha' ),
 			checked( $free, true, false ),
-			esc_html__( 'Part of the free set — open without the trail pass', 'cha' )
+			esc_html__( 'Part of the free set — open without the Heritage Pass', 'cha' )
 		);
 
 		// Numbers.

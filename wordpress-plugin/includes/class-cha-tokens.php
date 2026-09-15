@@ -302,7 +302,7 @@ class CHA_Tokens {
 
 		$intro = 'admin' === $type
 			? 'You have been issued admin access to the Clarens Heritage Trail.'
-			: 'You have been issued a promotional Heritage Trail pass.';
+			: 'You have been issued a promotional Heritage Pass.';
 
 		$expiry_html = '';
 		if ( 'promo' === $type && $expires_at ) {

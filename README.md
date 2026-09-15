@@ -216,7 +216,7 @@ deploy model (Cloudflare Worker, not Pages; manual `wrangler deploy`; no git
 integration). `trail.clarensheritage.org` has already been cut over from
 the old `clarens-heritage-trail` repo's maintenance page to this `/app` —
 independently confirmed via a live browser visit. Free sites are already
-usable by real visitors, and the paid Phase 2 unlock has passed the live
+usable by real visitors, and the paid Heritage Pass unlock has passed the live
 Paystack transaction test (twice), so the app can be advertised with full
 confidence.
 

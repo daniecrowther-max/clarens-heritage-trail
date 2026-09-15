@@ -309,7 +309,7 @@ nav::-webkit-scrollbar{display:none}
           //     normal app-open, not an interruption.
           //   - If an update takes control while the app is actively open and
           //     visible, don't yank it out from under someone mid-task (e.g.
-          //     typing an email to buy Phase 2) — show a small banner instead
+          //     typing an email to buy the Heritage Pass) — show a small banner instead
           //     and let them tap to refresh on their own terms.
           //   - Foregrounding also proactively calls reg.update(): mobile
           //     browsers don't reliably re-check for a new SW just because a
@@ -472,7 +472,7 @@ nav::-webkit-scrollbar{display:none}
         <span class="free-sites-title">&#127381; Start Here &mdash; Free Sites</span>
         <span class="free-sites-badge">Always Free</span>
       </div>
-      <p class="free-sites-desc">These 5 sites are free to explore &mdash; no token required. Visit them to get a taste of the trail before unlocking Phase 2.</p>
+      <p class="free-sites-desc">These <span class="free-site-count">5</span> sites are free to explore &mdash; no token required. Visit them to get a taste of the trail before unlocking the Heritage Pass.</p>
       <div class="free-sites-list" id="freeSitesList"></div>
     </div>
     <span class="section-label">All Heritage Sites</span>
@@ -514,7 +514,7 @@ nav::-webkit-scrollbar{display:none}
       <span class="section-label">Active Partners</span>
       <div id="partnersList"></div>
       <div class="partners-note">
-        <p>&#9432; Vouchers are for Phase 2 trail users only. Each voucher can be used once. Present your voucher screen to the cashier.</p>
+        <p>&#9432; Vouchers are for Heritage Pass holders only. Each voucher can be used once. Present your voucher screen to the cashier.</p>
       </div>
     </div>
   </div>
@@ -613,7 +613,7 @@ nav::-webkit-scrollbar{display:none}
     </div>
     <div style="padding:24px 22px;text-align:center">
       <p style="font-size:.9rem;color:var(--text);line-height:1.6;margin-bottom:6px">Thank you for your purchase.</p>
-      <p style="font-size:.82rem;color:var(--text-light);line-height:1.55;margin-bottom:8px">Your <strong id="unlockSuccessLabel" style="color:var(--olive)">Phase 2 Access</strong> is now active. All <span class="site-count-total">31</span> heritage sites are unlocked.</p>
+      <p style="font-size:.82rem;color:var(--text-light);line-height:1.55;margin-bottom:8px">Your <strong id="unlockSuccessLabel" style="color:var(--olive)">Heritage Pass</strong> is now active. All <span class="site-count-total">31</span> heritage sites are unlocked.</p>
       <p style="font-size:.72rem;color:var(--text-light);line-height:1.5;margin-bottom:20px">A copy of your token has been emailed to you for safekeeping.</p>
       <button id="unlockSuccessClose" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Start Exploring</button>
     </div>
@@ -624,14 +624,14 @@ nav::-webkit-scrollbar{display:none}
   <div style="background:var(--cream);border-radius:14px;padding:28px 24px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.25)">
     <button id="tokenClose" style="position:absolute;top:14px;right:14px;background:rgba(74,82,64,.1);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;color:var(--olive);display:flex;align-items:center;justify-content:center">&#215;</button>
     <div style="font-size:2rem;text-align:center;margin-bottom:10px">&#128274;</div>
-    <div style="font-family:var(--cha-font-display);font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:6px;text-align:center">Phase 2 — Unlock</div>
-    <p style="font-size:.82rem;color:var(--text-light);line-height:1.65;margin-bottom:20px;text-align:center">This site is part of Phase 2.<br>Enter your unlock token to access all <span class="site-count-total">31</span> sites.</p>
+    <div style="font-family:var(--cha-font-display);font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:6px;text-align:center">Unlock with the Heritage Pass</div>
+    <p style="font-size:.82rem;color:var(--text-light);line-height:1.65;margin-bottom:20px;text-align:center">This site is included in the Heritage Pass.<br>Enter your unlock token to access all <span class="site-count-total">31</span> sites.</p>
     <input id="tokenInput" type="text" placeholder="Enter token (e.g. CHT-XXXX-XXXX-XXXX-XXXX)" style="width:100%;padding:12px 14px;border:1.5px solid var(--sage);border-radius:8px;font-family:var(--cha-font-body);font-size:.9rem;color:var(--text);background:#fff;outline:none;margin-bottom:10px;box-sizing:border-box;text-transform:uppercase;letter-spacing:.1em">
     <div id="tokenMsg" style="font-size:.75rem;color:var(--cha-red);text-align:center;min-height:18px;margin-bottom:10px"></div>
     <button id="tokenSubmit" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Unlock Now</button>
     <div style="margin-top:16px;border-top:1px solid var(--sage);padding-top:16px">
       <p style="font-size:.72rem;color:var(--text-light);text-align:center;margin-bottom:10px;line-height:1.55">Don't have a token yet?</p>
-      <button id="buyPhaseBtn" style="width:100%;background:transparent;color:var(--olive);border:1.5px solid var(--olive);padding:13px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Buy Phase 2 &mdash; <span class="unlock-price">R100.00</span></button>
+      <button id="buyPhaseBtn" style="width:100%;background:transparent;color:var(--olive);border:1.5px solid var(--olive);padding:13px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">Buy the Heritage Pass &mdash; <span class="unlock-price">R100.00</span></button>
     </div>
   </div>
 </div>
@@ -640,7 +640,7 @@ nav::-webkit-scrollbar{display:none}
   <div style="background:var(--cream);border-radius:14px;padding:28px 24px;max-width:340px;width:100%;position:relative;box-shadow:0 8px 36px rgba(30,35,24,.25)">
     <button id="buyModalClose" style="position:absolute;top:14px;right:14px;background:rgba(74,82,64,.1);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;color:var(--olive);display:flex;align-items:center;justify-content:center">&#215;</button>
     <div style="font-size:2rem;text-align:center;margin-bottom:10px">&#128274;</div>
-    <div style="font-family:var(--cha-font-display);font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:4px;text-align:center">Unlock Phase 2</div>
+    <div style="font-family:var(--cha-font-display);font-size:1.4rem;font-weight:600;color:var(--olive);margin-bottom:4px;text-align:center">Unlock the Heritage Pass</div>
     <p style="font-size:.8rem;color:var(--text-light);text-align:center;margin-bottom:6px;line-height:1.5">Access all <span class="site-count-total">31</span> heritage sites &amp; vouchers</p>
     <div style="text-align:center;margin-bottom:18px">
       <span class="unlock-price" style="font-family:var(--cha-font-display);font-size:2rem;font-weight:700;color:var(--text)">R100.00</span>
@@ -856,7 +856,7 @@ function looksLikeToken(token) {
 function labelFor(type) {
   if (type === 'admin') return 'Admin Token';
   if (type === 'promo') return 'Promo Token';
-  return 'Trail Pass';
+  return 'Heritage Pass';
 }
 
 // ── Pricing ──────────────────────────────────────────────────────────
@@ -999,7 +999,7 @@ function handleUrlToken() {
 function showUnlockSuccess(label) {
   var modal = document.getElementById('unlockSuccessModal');
   if (modal) {
-    document.getElementById('unlockSuccessLabel').textContent = label || 'Phase 2 Access';
+    document.getElementById('unlockSuccessLabel').textContent = label || 'Heritage Pass';
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   }
@@ -1377,6 +1377,8 @@ function trailKey(v) {
 
 function renderFreeSites() {
   var html = '';
+  var freeCount = SITES.filter(function(s) { return FREE_SITES.indexOf(s.id) !== -1; }).length;
+  [].forEach.call(document.querySelectorAll('.free-site-count'), function(el){ el.textContent = freeCount; });
   // Listed in the curated CONFIG.freeSitesOrder sequence — deliberately not
   // the walking order used by the trail blocks below, and not feed order.
   SITES.filter(function(s) { return FREE_SITES.indexOf(s.id) !== -1; })
@@ -1449,7 +1451,7 @@ function renderTrail() {
     var v = visited[s.id];
     var free = canAccess(s.id);
     var yr = siteYear(s);
-    var lockBadge = !free ? '<span class="lock-badge">&#128274; Phase 2</span>' : '';
+    var lockBadge = !free ? '<span class="lock-badge">&#128274; Heritage Pass</span>' : '';
     var cat = s.cat || (s.bp ? 'Blue Plaque Site' : 'Heritage Site');
     var statusBadge = cat === 'Blue Plaque Site'
       ? '<span class="status-badge status-bp">&#128308; Blue Plaque</span>'
@@ -1771,7 +1773,7 @@ function checkVoucherConditions(p) {
   var cond = p.condition || 'paid';
   if (cond === 'paid' || cond.indexOf('paid') === 0) {
     if (!isUnlocked()) {
-      return { ok: false, reason: 'Purchase Phase 2 (' + formatPrice(currentPriceCents) + ') to unlock this voucher.' };
+      return { ok: false, reason: 'Buy the Heritage Pass (' + formatPrice(currentPriceCents) + ') to unlock this voucher.' };
     }
   }
 
