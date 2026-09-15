@@ -8,6 +8,7 @@
 #   tests/test-app-browser.js    item 1 (server-confirmed redemption only)
 #                                item 5 (stored-XSS escaping of feed data)
 #   tests/test-build-zip.php     tools/build-zip.sh produces a correctly-prefixed plugin zip
+#   tests/test-app-deep-link.js  ?site={id} deep link + the localStorage hand-off across Paystack
 #
 # Requires: php CLI, node, and a Chrome/Chromium binary. No WordPress, no
 # database and no network access to the live site — the PHP tests stub WP and
@@ -20,6 +21,9 @@ for t in tests/test-checkout.php tests/test-redeem-stock.php tests/test-webhook-
   echo "=== $t ==="
   php "$t" || fail=1
 done
+
+echo "=== tests/test-app-deep-link.js ==="
+node tests/test-app-deep-link.js || fail=1
 
 echo "=== tests/test-app-browser.js ==="
 node tests/test-app-browser.js || fail=1

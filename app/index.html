@@ -810,6 +810,145 @@ var visited = JSON.parse(localStorage.getItem(CONFIG.lsPrefix + 'visited') || '{
 
 var FREE_SITES = []; // per-site `free` flag comes from the cha/v1/content feed
 
+// ── Deep link: ?site={id} (blue-plaque QR → app instead of the website) ──
+// Query-param handling precedent: handleUrlToken() below already owns
+// ?token / ?trxref / ?reference / ?externalReference / ?status for the
+// Paystack return. ?site= must never fight that flow, so every helper here
+// treats "a payment-return param is present" as "not a deep link" outright.
+function paymentReturnParamsPresent(sp) {
+  return !!(sp.get('token') || sp.get('trxref') || sp.get('reference') || sp.get('externalReference') || sp.get('status'));
+}
+
+// Same normalisation the server side applies (sanitize_title(trim($raw)) in
+// CHA_Short_Links::resolve()) — case and stray whitespace must not matter.
+// Site ids are all lowercase-with-hyphens, so trim+lowercase is equivalent.
+function normalizeSiteId(raw) {
+  return (typeof raw === 'string') ? raw.trim().toLowerCase() : '';
+}
+
+// '' when absent, malformed, or riding along with a Paystack return (that
+// flow owns the modal — see handleUrlToken()).
+function computeDeepLinkSiteId(search) {
+  var sp = new URLSearchParams(search);
+  if (paymentReturnParamsPresent(sp)) return '';
+  return normalizeSiteId(sp.get('site') || '');
+}
+
+var DEEP_LINK_SITE_ID = '';
+try { DEEP_LINK_SITE_ID = computeDeepLinkSiteId(window.location.search); } catch (e) {}
+
+// Set once — by the deep link above, or by a just-completed Paystack purchase
+// that needs to reopen the site it was unlocking (see handleUrlToken()) — and
+// consumed exactly once, from mergeRemoteSites()'s callback and again right
+// after a successful unlock, whichever runs second.
+//
+// _sitesFeedSettled guards against a genuine race: verify-token and the
+// content feed are two independent fetches, and either can settle first. If
+// a successful unlock called openPendingSiteIfReady() while the feed was
+// still loading, treating an empty SITES as "not found" would show the
+// not-found notice and consume the pending id for good — the feed arriving
+// moments later would then have nothing left to open. So this only resolves
+// for real once the feed has actually settled (mergeRemoteSites()'s cb, which
+// sets the flag right before calling back); until then it's a no-op that
+// leaves the pending id in place for that callback to act on.
+var _siteToOpenOnceLoaded = DEEP_LINK_SITE_ID;
+var _sitesFeedSettled = false;
+
+function openPendingSiteIfReady() {
+  if (!_siteToOpenOnceLoaded || !_sitesFeedSettled) return;
+  var id = _siteToOpenOnceLoaded;
+  _siteToOpenOnceLoaded = '';
+  var s = SITES.find(function(x) { return x.id === id; });
+  if (s) {
+    // Tag the base entry the detail will sit on top of with {tab:'trail'},
+    // since it's otherwise the browser's own null-state entry from the
+    // original navigation. Needed for closeDetail()'s own history.back()
+    // path (the X button, and the "Explore the Full Trail" button below) —
+    // that path removes 'open' BEFORE popstate fires, so the popstate
+    // handler falls through to its e.state.tab fallback rather than taking
+    // the already-open branch a physical Back press hits instead. Plain
+    // replaceState(), not pushState() — modifying the current entry isn't
+    // "creating" one, so this isn't subject to the skip intervention below.
+    history.replaceState({ tab: 'trail' }, '');
+    stripSiteParamFromUrl();
+    openDetailWithHistory(id, true);
+  } else {
+    showAppNotice('Couldn’t find that site — here’s the full Heritage Trail instead.', true);
+  }
+}
+
+// Drop ?site= from the address bar before openDetailWithHistory() pushes its
+// own history entry, so reload/share/back never re-trigger the deep link and
+// the stack stays exactly [trail] -> [detail]. Every other query param (and
+// the hash) is preserved untouched; replaceState never adds a history entry.
+function stripSiteParamFromUrl() {
+  try {
+    var url = new URL(window.location.href);
+    if (!url.searchParams.has('site')) return;
+    url.searchParams.delete('site');
+    var qs = url.searchParams.toString();
+    history.replaceState(history.state, document.title, url.pathname + (qs ? '?' + qs : '') + url.hash);
+  } catch (e) {}
+}
+
+// ── Preserve the unlock target across the Paystack payment redirect ──
+// Paystack returns the buyer to CHECKOUT_REDIRECT_URL (the bare app origin)
+// with only its own ?trxref=&reference= appended, so the site the buyer was
+// trying to unlock has to survive that round trip some other way.
+// storePendingUnlockSite() is called right before handing off to checkout
+// (see the #buySubmit handler); consumePendingUnlockSite() is read exactly
+// once, by handleUrlToken(), when the buyer lands back with a token to verify.
+var PENDING_UNLOCK_KEY = CONFIG.lsPrefix + 'pendingUnlockSite';
+var PENDING_UNLOCK_MAX_AGE_MS = 2 * 60 * 60 * 1000; // ~2h: long enough for a slow checkout, short enough that a stale abandoned attempt is never resurrected.
+
+function storePendingUnlockSite(id) {
+  if (!id) return;
+  try { localStorage.setItem(PENDING_UNLOCK_KEY, JSON.stringify({ id: id, ts: Date.now() })); } catch (e) {}
+}
+
+function clearPendingUnlockSite() {
+  try { localStorage.removeItem(PENDING_UNLOCK_KEY); } catch (e) {}
+}
+
+// Single-use: reads and removes in one step, so a page reload after the
+// return trip can never reopen the same site twice. '' if nothing was
+// stored, it was malformed, or it is older than PENDING_UNLOCK_MAX_AGE_MS.
+function consumePendingUnlockSite() {
+  var id = '';
+  try {
+    var raw = localStorage.getItem(PENDING_UNLOCK_KEY);
+    if (raw) {
+      var data = JSON.parse(raw);
+      if (data && data.id && typeof data.ts === 'number' && (Date.now() - data.ts) <= PENDING_UNLOCK_MAX_AGE_MS) {
+        id = data.id;
+      }
+    }
+  } catch (e) {}
+  clearPendingUnlockSite();
+  return id;
+}
+
+// Self-contained, auto-hiding notice visible on every tab (unlike
+// showMapMsg(), which only ever renders inside the map panel) — used when a
+// deep-linked/reopened site id resolves to nothing in the feed.
+function showAppNotice(msg, isError) {
+  var el = document.getElementById('appNotice');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'appNotice';
+    el.style.cssText = 'position:fixed;top:70px;left:12px;right:12px;z-index:150;' +
+      'background:#fff;border-radius:8px;padding:10px 16px;font-size:.8rem;font-family:var(--cha-font-body);' +
+      'box-shadow:0 2px 12px rgba(0,0,0,.18);text-align:center;';
+    document.getElementById('app').appendChild(el);
+  }
+  el.style.color = isError ? 'var(--cha-red)' : 'var(--cha-green)';
+  el.style.borderLeft = isError ? '3px solid var(--cha-red)' : '3px solid var(--cha-green)';
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.style.display = 'none'; }, 4000);
+}
+
 // ═══════════════════════════════════════════════════════
 // TOKEN SYSTEM
 // Tokens are OPAQUE to the app — no secret, no hashing. Every type
@@ -950,6 +1089,7 @@ function handleUrlToken() {
   // If Paystack reported a non-complete status, show a friendly message
   var status = params.get('status') || '';
   if (!token && (status === 'failed' || status === 'closed')) {
+    clearPendingUnlockSite(); // the checkout this was for did not go through
     setTimeout(function() {
       showTokenModal('');
       document.getElementById('tokenMsg').textContent = 'Payment was not completed. Please try again or contact support.';
@@ -960,6 +1100,10 @@ function handleUrlToken() {
   if (!token) return;
 
   window.history.replaceState({}, document.title, window.location.pathname);
+
+  // Single-use: whichever site (if any) this checkout was unlocking — reused
+  // only if verification below actually succeeds; stale or absent → ''.
+  var pendingUnlockId = consumePendingUnlockSite();
 
   var msgMap = {
     not_paid:     "We couldn\u2019t confirm this purchase yet. Check your email for the token, or contact support.",
@@ -983,6 +1127,15 @@ function handleUrlToken() {
     verifyAndStore(token, function(label) {
       hideTokenModal();
       showUnlockSuccess(label);
+      // Reopen the site this purchase was for, now unlocked — the same
+      // instant reopen the manual-token path gets (see #tokenSubmit's click
+      // handler above), just carried across the Paystack redirect via
+      // localStorage instead of the tokenModal dataset, which does not
+      // survive a page reload.
+      if (pendingUnlockId) {
+        _siteToOpenOnceLoaded = pendingUnlockId;
+        openPendingSiteIfReady();
+      }
     }, function(reason) {
       if (reason === 'not_paid' && attempts < MAX) {
         attempts++;
@@ -1021,13 +1174,21 @@ document.getElementById('btnStart').addEventListener('click', function() {
     try {
       var welcomeSeen = localStorage.getItem('welcomeSeen') === '1';
       var sp = new URLSearchParams(window.location.search);
-      var isPaymentRedirect = !!(sp.get('token') || sp.get('trxref') || sp.get('reference') || sp.get('externalReference') || sp.get('status'));
-      if (!welcomeSeen && !isPaymentRedirect) openWelcome();
+      var isPaymentRedirect = paymentReturnParamsPresent(sp);
+      // A deep link (?site=) must not have onboarding thrown over the detail
+      // view it's about to open — same reasoning as the payment-redirect case
+      // above. This only skips SHOWING the overlay right now: 'welcomeSeen'
+      // is written only by the overlay's own Start button (below), so a
+      // first-time plaque visitor still gets onboarding on a later, ordinary
+      // visit.
+      if (!welcomeSeen && !isPaymentRedirect && !DEEP_LINK_SITE_ID) openWelcome();
     } catch(e) {}
     // Check URL for token from Paystack payment redirect
     handleUrlToken();
-    // Fetch remote sites + live price from the feed — async, re-renders on arrival
-    mergeRemoteSites();
+    // Fetch remote sites + live price from the feed — async, re-renders on
+    // arrival; also resolves any pending deep-link/post-unlock site once the
+    // feed has it (see openPendingSiteIfReady).
+    mergeRemoteSites(openPendingSiteIfReady);
     // Re-verify any stored unlock so a server-side revoke takes effect (online only).
     reverifyStoredToken();
     // Silently start GPS in the background so it is ready when user stamps
@@ -1207,6 +1368,10 @@ document.getElementById('buySubmit').addEventListener('click', function() {
   .then(function(res) { return res.json(); })
   .then(function(data) {
     if (data && data.payment_url) {
+      // Paystack returns to the bare app origin with only its own
+      // ?trxref=&reference= — persist which site this checkout was for so
+      // handleUrlToken() can reopen it (now unlocked) once the buyer is back.
+      storePendingUnlockSite(document.getElementById('tokenModal').dataset.pendingId || '');
       window.location.href = data.payment_url;
     } else {
       throw new Error(data && data.message ? data.message : 'No payment URL returned.');
@@ -1525,7 +1690,7 @@ function renderTrail() {
   });
 }
 
-function openDetail(id) {
+function openDetail(id, isDeepLink) {
   var s = null;
   SITES.forEach(function(x) { if (x.id === id) s = x; });
   cfTrack('site_open', {site_id: id});
@@ -1546,6 +1711,9 @@ function openDetail(id) {
     ? '<button class="btn-stamp stamped">&#10003; Stamp Already Collected</button>'
     : '<button class="btn-stamp geo-checking" id="stamp-btn" disabled>&#8987; Checking location&hellip;</button>' +
       '<div class="geo-msg" id="geo-msg"></div>';
+  var exploreTrailHtml = isDeepLink
+    ? '<button id="exploreTrailBtn" style="width:100%;background:var(--olive);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--cha-font-body);font-weight:700;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;margin-top:18px">Explore the Full Trail</button>'
+    : '';
   document.getElementById('detailContent').innerHTML =
     photoHtml +
     '<div class="detail-body">' +
@@ -1558,7 +1726,20 @@ function openDetail(id) {
       '<div class="detail-divider"></div>' +
       storyHtml + stampHtml +
       '<a class="btn-maps" href="' + safeUrl(s.map) + '" target="_blank"' + (safeUrl(s.map) === '#' ? ' style="opacity:.4;pointer-events:none"' : '') + '>Open in Google Maps &#8599;</a>' +
+      exploreTrailHtml +
     '</div>';
+  if (isDeepLink) {
+    // Just closeDetail() — no explicit switchTab() here. closeDetail()
+    // removes 'open' before calling history.back(), so the resulting
+    // popstate finds the overlay already closed and falls back to whatever
+    // tab e.state carries; history.back() dispatches that popstate
+    // asynchronously, so a switchTab() call made right here would run
+    // BEFORE it and then get overwritten once it fires. openPendingSiteIfReady()
+    // tags the base entry with {tab:'trail'} up front instead, so the
+    // fallback resolves to 'trail' correctly on its own, whenever popstate
+    // actually runs.
+    document.getElementById('exploreTrailBtn').addEventListener('click', closeDetail);
+  }
   if (!stamped) {
     checkGeoForStamp(id, s);
   }
@@ -1572,13 +1753,65 @@ function closeDetail() {
   if (history.state && history.state.detailOpen) history.back();
 }
 
-function openDetailWithHistory(id) {
+// Chrome's history manipulation intervention marks a pushState()'d entry
+// "skippable" by the physical/gesture Back button whenever it's created
+// without user activation on the document — exactly the case for a
+// deep-linked (or post-unlock-reopened) detail, which opens from an async
+// callback on page load, not a tap. A skippable entry is skipped over
+// entirely by the browser's own Back UI (though not by the history.back()/
+// forward() APIs, which is why a scripted history.back() in a browser test
+// never reproduces this). The visible symptom: pressing Back on a
+// deep-linked detail exits the app instead of revealing the trail underneath.
+//
+// Fix: for a deep link / reopen only, open the detail WITHOUT pushing state
+// yet, and arm a one-shot listener for the user's first interaction
+// anywhere on the page. That interaction itself grants user activation, so
+// the pushState() it triggers creates a normal, non-skippable entry —
+// physical Back then behaves exactly like the tap-to-open path already
+// does. If the detail is closed via its own button before any interaction
+// fires, no entry is ever created (closeDetail()'s own history.state.
+// detailOpen check is false), so nothing is left behind to need a second
+// back press later.
+//
+// The event list matters: per the HTML spec, only a small set of trusted
+// input events grant user activation — keydown (non-modifier), mousedown,
+// pointerdown for a mouse pointer, pointerup for a non-mouse pointer, and
+// touchend — plus click, which by the time it fires has activation already.
+// scroll, wheel and touchstart do NOT grant activation, so a pushState()
+// made from one of those handlers would still be flagged skippable.
+var DEFERRED_PUSH_EVENTS = ['pointerup', 'touchend', 'click', 'keydown'];
+
+function armDeferredHistoryPush() {
+  var fired = false;
+  function onFirstInteraction() {
+    if (fired) return;
+    fired = true;
+    DEFERRED_PUSH_EVENTS.forEach(function(evt) {
+      document.removeEventListener(evt, onFirstInteraction, true);
+    });
+    history.pushState({ detailOpen: true }, '');
+  }
+  DEFERRED_PUSH_EVENTS.forEach(function(evt) {
+    document.addEventListener(evt, onFirstInteraction, { capture: true, passive: true });
+  });
+}
+
+// deferPush: true only for a programmatic open with no user gesture behind
+// it (deep link / post-unlock reopen — see openPendingSiteIfReady()). Every
+// normal tap-to-open call site is unchanged: pushState happens synchronously,
+// inside the click handler's own activation, exactly as before.
+function openDetailWithHistory(id, deferPush) {
   if (!canAccess(id)) {
     showTokenModal(id);
     return;
   }
-  history.pushState({ detailOpen: true }, '');
-  openDetail(id);
+  if (deferPush) {
+    openDetail(id, true);
+    armDeferredHistoryPush();
+  } else {
+    history.pushState({ detailOpen: true }, '');
+    openDetail(id);
+  }
 }
 
 window.addEventListener('popstate', function(e) {
@@ -2273,7 +2506,11 @@ updateSiteCounts();
 // Fetch content.json and merge remote sites into SITES.
 // Same-ID sites override the hardcoded entry; new IDs are appended.
 // Called after splash — runs async and re-renders when data arrives.
-function mergeRemoteSites() {
+function mergeRemoteSites(cb) {
+  function done() {
+    _sitesFeedSettled = true;
+    if (typeof cb === 'function') cb();
+  }
   fetch(CHA_API_BASE + '/cha/v1/content')
     .then(function(r) { return r.json(); })
     .then(function(data) {
@@ -2320,14 +2557,15 @@ function mergeRemoteSites() {
         renderMap();
       }
     })
-    .catch(function() {}); // offline or empty — stay with hardcoded sites
+    .then(done, done); // fires exactly once, whether the feed loaded, was empty, or failed outright
 }
 
-// Auto-skip splash on a Paystack return (?token / ?trxref / ?reference / ?status)
-// so the unlock/confirming flow isn't hidden behind the splash.
+// Auto-skip splash on a Paystack return (?token / ?trxref / ?reference /
+// ?status) or a plaque/QR deep link (?site=) so neither flow is hidden behind
+// the splash — see DEEP_LINK_SITE_ID and openPendingSiteIfReady() above.
 (function() {
   var sp = new URLSearchParams(window.location.search);
-  if (sp.get('token') || sp.get('trxref') || sp.get('reference') || sp.get('externalReference') || sp.get('status')) {
+  if (paymentReturnParamsPresent(sp) || DEEP_LINK_SITE_ID) {
     setTimeout(function() {
       var b = document.getElementById('btnStart');
       if (b) b.click();

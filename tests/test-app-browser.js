@@ -355,6 +355,64 @@ async function gotoAppOnly(page, url) {
     await fetch(`${ORIGIN}/?feed=ok`);
 
     /* ---------------------------------------------------------------- */
+    group('Deep link — ?site={id} opens the detail in a real browser');
+
+    // tests/test-app-deep-link.js proves the orchestration in a Node vm; this
+    // group proves the parts only a real browser can: the welcome overlay is
+    // not thrown over the detail, ?site= is stripped from the address bar
+    // while other params survive, and the history entry is only pushed once
+    // the user interacts (Chrome's back-button skip intervention).
+    await page.evalIn(`localStorage.removeItem('welcomeSeen'); return true;`).catch(() => {});
+    await page.goto(`${ORIGIN}/?feed=ok`);
+    const controlWelcome = await page.evalIn(`return document.getElementById('welcomeOverlay').classList.contains('open');`);
+    ok(controlWelcome, 'control: an ordinary first visit does show the welcome overlay');
+    await page.evalIn(`localStorage.removeItem('welcomeSeen'); return true;`);
+    await page.goto(`${ORIGIN}/?feed=ok&site=MOCK-SITE-ONE`);
+    await sleep(600); // openPendingSiteIfReady() runs from mergeRemoteSites()'s settle callback
+    const deep = await page.evalIn(`
+      var wo = document.getElementById('welcomeOverlay');
+      return {
+        open: document.getElementById('detail-view').classList.contains('open'),
+        title: document.getElementById('detailHeaderTitle').textContent,
+        search: location.search,
+        hasCta: !!document.getElementById('exploreTrailBtn'),
+        welcomeShown: !!(wo && wo.classList.contains('open')),
+        stateBefore: JSON.stringify(history.state)
+      };
+    `);
+    ok(deep.open, 'the deep-linked site detail is open');
+    is(deep.title, 'Mock Site One', 'it is the site named in ?site= (case-insensitive)');
+    is(deep.search, '?feed=ok', '?site= is stripped from the address bar; other params are preserved');
+    ok(deep.hasCta, 'the "Explore the Full Trail" CTA is rendered for a deep link');
+    is(deep.welcomeShown, false, 'the first-visit welcome overlay is not shown over a deep-linked detail');
+    is(deep.stateBefore, '{"tab":"trail"}', 'no detail history entry yet — the base entry is tagged {tab:"trail"} instead');
+
+    const afterTap = await page.evalIn(`
+      document.body.click();
+      return JSON.stringify(history.state);
+    `);
+    is(afterTap, '{"detailOpen":true}', 'the first user interaction pushes the (non-skippable) detail entry');
+
+    const ctaClosed = await page.evalIn(`
+      document.getElementById('exploreTrailBtn').click();
+      return document.getElementById('detail-view').classList.contains('open');
+    `);
+    is(ctaClosed, false, 'the CTA closes the detail');
+
+    await page.goto(`${ORIGIN}/?feed=ok&site=no-such-site`);
+    await sleep(600);
+    const missing = await page.evalIn(`
+      var n = document.getElementById('appNotice');
+      return {
+        open: document.getElementById('detail-view').classList.contains('open'),
+        notice: n ? n.textContent : '',
+        visible: !!(n && n.style.display === 'block')
+      };
+    `);
+    is(missing.open, false, 'an unknown site id opens nothing');
+    ok(missing.visible && missing.notice.indexOf('find that site') !== -1, 'an unknown site id shows the not-found notice');
+
+    /* ---------------------------------------------------------------- */
     if (ONLY !== 'item1') {
     group('Item 5 — stored XSS in WordPress feed fields');
 
