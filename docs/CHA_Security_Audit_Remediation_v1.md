@@ -3,8 +3,12 @@
 **Audit:** GitHub Copilot review of `whitelabel-heritage-trail`, 26 Aug 2026
 **Brief:** `CHA_Security_Audit_Remediation_Build_Brief_ClaudeCode_v1.md`
 **Branch:** `trail-grouping-and-order`
-**Status:** all five items fixed and tested locally. **Nothing has been deployed** — no
-`wrangler deploy`, no plugin re-upload. Awaiting Danie's approval.
+**Status (updated 15 Sep 2026): deployed and live.** All five items fixed, tested
+and deployed. Front-end: the live `trail.clarensheritage.org` `index.html`, `sw.js` and
+`manifest.json` were verified byte-identical (SHA-256) to this repo's 3 Sep versions.
+Plugin: Danie confirmed the 3 Sep `cha-heritage-trail.zip` is uploaded (re-uploaded
+15 Sep to be sure). The live Paystack transaction test has passed twice (Danie).
+*(Original 26 Aug status: fixed and tested locally, nothing deployed, awaiting approval.)*
 
 Items are numbered as in the brief. They were worked in the brief's priority order
 (3 → 2 → 4 → 1 → 5); they are written up here in item order for cross-reference.

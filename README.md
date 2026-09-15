@@ -5,8 +5,8 @@
 > (die oorspronklike enkel-lêer app, foto's, Cloudflare Worker-skrip) is
 > geargiveer in `_archive/pre-whitelabel-2026-09-01/` -- sien die
 > `README.md.MIGRATION_NOTE.md` daar vir volledige geskiedenis-verwysings.
-> `whitelabel-heritage-trail` bly voorlopig die repo wat trail.clarensheritage.org
-> werklik ontplooi totdat hierdie repo se ontplooiing eksplisiet oorgeskakel word.
+> **15 Sep 2026:** trail.clarensheritage.org word nou uit *hierdie* repo ontplooi —
+> die lewendige `app/`-lêers is byte-vir-byte gelyk aan hierdie repo se 3 Sep-weergawe.
 
 
 PWA front-end + WordPress plugin for the Clarens Heritage Trail, forked from
@@ -169,15 +169,31 @@ lookup were both correct. Fixed in commit `4744cfd` (regex relaxed to 6+
 characters) and deployed via `wrangler deploy`; re-tested live and
 confirmed working.
 
-### 5. Retire the old plugin (brief §6) — still open, do this last
+### 5. Retire the old plugin (brief §6) — ✅ done 15 Sep 2026
+
+Status: step 1 ✅ (live Paystack test passed twice). Step 4 ✅ — verified
+15 Sep: the live `cha/v1` route list no longer contains the old plugin's
+`/stitch-webhook` or `voucher-status/(?P<partner_id>…)` routes, so
+`cha-trail-admin` is no longer active. Step 3 ✅ (15 Sep): the live DB prefix
+is `htage_`; `htage_cha_trail_purchases` (33 rows) was exported to
+`htage_cha_trail_purchases.sql` (structure + data, no DROP TABLE; verified 1
+CREATE TABLE, 33 rows) and stored off-server. `htage_cha_trail_access_tokens`
+does **not exist** in the live DB (already gone), so there is nothing to back
+up or drop for it. Before dropping, all 14 paid tokens in the old table were
+confirmed present (and `paid`) in `htage_cha_purchases`; the other 19 rows were
+unpaid `pending` attempts. Step 5 ✅ — `cha-trail-admin` no longer appears in
+WP Admin → Plugins. Step 6 ✅ — `htage_cha_trail_purchases` dropped 15 Sep; the
+remaining `htage_cha_*` tables are the new plugin's (`purchases`,
+`access_tokens`, `redemptions`), and the live `cha/v1` feed and `verify-token`
+were checked working afterwards. Step 7 ✅ — `cht-heritage-trail` archived
+on GitHub (read-only) 15 Sep 2026.
 
 Strict order, each step must succeed before the next (this is irreversible
 from step 3 onward):
 
 1. New plugin fully live (promo/admin tokens and vouchers confirmed
-   working; new purchases confirmed in sandbox — **the real, live
-   transaction test is still the one open item, see the acceptance
-   checklist below**).
+   working; new purchases confirmed in sandbox and live — ✅ the real,
+   live transaction test has passed twice).
 2. §5.2 migration script run **and its verification test passed** — ✅ done,
    see step 4 above.
 3. **Back up** the old `wp_cha_trail_purchases` and
@@ -200,9 +216,9 @@ deploy model (Cloudflare Worker, not Pages; manual `wrangler deploy`; no git
 integration). `trail.clarensheritage.org` has already been cut over from
 the old `clarens-heritage-trail` repo's maintenance page to this `/app` —
 independently confirmed via a live browser visit. Free sites are already
-usable by real visitors; it's specifically the paid Phase 2 unlock that
-still needs the live Paystack transaction test (see below) before the app
-can be advertised with full confidence.
+usable by real visitors, and the paid Phase 2 unlock has passed the live
+Paystack transaction test (twice), so the app can be advertised with full
+confidence.
 
 ## Acceptance checklist (brief §10)
 
@@ -214,10 +230,9 @@ can be advertised with full confidence.
 - [x] Price nowhere hardcoded outside `class-cha-settings.php` (verified by
       the brief's own grep test — only false-positive millisecond timeouts
       remain elsewhere).
-- [ ] `/checkout` + `/verify-token` working end-to-end with a real small
-      Paystack transaction — sandbox confirmed; the **live**, non-sandbox
-      transaction is the **one remaining item** before full launch
-      confidence (see `docs/CHA_Development_Plan_v0.10.md` §4, §7).
+- [x] `/checkout` + `/verify-token` working end-to-end with a real small
+      Paystack transaction — sandbox confirmed, and the live, non-sandbox
+      transaction has passed twice (confirmed by Danie, Sep 2026).
 - [x] Existing payers' migrated tokens unlock correctly — `scripts/migrate-existing-payers.php`
       run against the live DB and empirically confirmed with a real,
       pre-existing legacy token (§4 above; the front-end pre-check bug this
@@ -229,8 +244,9 @@ can be advertised with full confidence.
 - [x] Donate panel present and extended: real EFT banking details plus a
       "Donate via card (Stitch)" button to Clarens's own Stitch Express
       payment link, independently verified live (commit `9d06f07`).
-- [ ] Old plugin + tables removed only after the §5 sequence — still open,
-      do this last (the §5.2 migration prerequisite is now verified done).
+- [x] Old plugin + tables removed only after the §5 sequence — done 15 Sep
+      2026 (backup taken, plugin deleted, old table dropped, old
+      `cht-heritage-trail` repo archived).
 - [x] Front-end still targets Cloudflare Workers Static Assets
       (`wrangler.jsonc`, not Pages) — deployed and live at
       `trail.clarensheritage.org` (§6 above).

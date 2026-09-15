@@ -2,7 +2,7 @@
 
 ## `tests/test-app-browser.js` — reported intermittent failure
 
-**Status: Open — unverified, not reproduced, not fixed.** (investigated 3 Sep 2026)
+**Status: Closed — not reproducible (15 Sep 2026).** Originally left open after the 3 Sep investigation; see the 15 Sep follow-up at the end of this entry.
 
 **Reported:** an earlier session's report claimed the browser suite "failed
 1-in-4 runs" and attributed it to "pre-existing headless-Chrome flakiness" —
@@ -69,3 +69,23 @@ entry.
 rerun first), and record `dmesg`/`journalctl` output and `free -h` /
 `uptime` at that exact moment. That evidence — tying a specific failure to
 specific host conditions — is what this investigation didn't have.
+
+**Follow-up (15 Sep 2026) — closed as not reproducible.** Re-ran the full
+`tests/run.sh` 12 times back-to-back on a *different*, clean machine (a
+cloud container, not the shared desktop), against the repo as of commit
+"Investigate browser-suite flakiness claim" (3 Sep). Result: **12/12 runs
+passed** — PHP suites 19/24/34 passed, browser suite **51 passed, 0 failed**
+every time. Combined with the 3 Sep runs that is 24/24 across two machines,
+and there has been no recorded recurrence since. Two harness notes from this
+run, neither an app defect:
+
+- On a machine without internet access to `unpkg.com`, the browser suite
+  fails *deterministically* (not intermittently) with
+  `Cannot read properties of null (reading 'eachLayer')`, because Leaflet
+  loads from the CDN. Serving `leaflet.js`/`leaflet.css` locally for the test
+  run removes this. Don't mistake this for the flakiness above.
+- As root (e.g. in a container) Chrome needs `--no-sandbox`; the harness
+  doesn't pass it, so wrap the binary if running as root.
+
+If the original symptom (`partners:0, sites:0`) ever recurs, reopen this
+entry and follow the "If it recurs" steps above.
