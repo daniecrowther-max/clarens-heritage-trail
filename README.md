@@ -58,9 +58,46 @@ covered in step 2 below.)
 /app                 # PWA front-end — Cloudflare Workers Static Assets
 /wordpress-plugin    # cha/v1 REST namespace, CPTs, Paystack, importer
 /scripts             # one-off migration scripts (see below)
+/tools               # build-zip.sh — the only supported plugin zip builder
+/tests               # run.sh runs every suite below; no WordPress or network needed
 .env.example          # copy to .env on the WordPress host, fill in real values
 wrangler.jsonc         # Cloudflare Workers deploy config for /app
 ```
+
+## Tests
+
+`bash tests/run.sh` runs everything (php + node + a headless Chrome):
+
+| Suite | Covers |
+|---|---|
+| `tests/test-checkout.php` | /checkout rate limit; no payment URL without a purchase row |
+| `tests/test-redeem-stock.php` | atomic voucher stock; first-ever redemption |
+| `tests/test-webhook-idempotency.php` | Paystack webhook signature, idempotency, races |
+| `tests/test-build-zip.php` | `tools/build-zip.sh` output has exactly one `cha-heritage-trail/` top level and matches `git ls-tree` |
+| `tests/test-short-links.php` | `/s/{site_id}` QR redirect: resolve, repoint via `{id}` base, host allowlist scoping, scan counter, CSV |
+| `tests/test-category-model.php` | data-driven categories: palette assignment, WCAG, glyph seeding, importer matcher, reversible migration |
+| `tests/test-category-render.js` | `categoryFor()`/`safeColour()` and card rendering against hostile feed values |
+| `tests/test-app-deep-link.js` | `?site={id}` deep link and the localStorage hand-off across the Paystack redirect |
+| `tests/test-app-browser.js` | real Chrome against `tests/mock-api-server.js`: server-confirmed redemption, XSS, unlock price, deep link, category colours |
+
+## Features added 15 Sep 2026 (plugin 0.2.0) — ported from GRHS
+
+See `docs/CHA_Development_Plan_v0.11.md` for what was ported, what was
+skipped and why, and the deploy order. In short:
+
+- **Data-driven categories.** Each Heritage Category carries a colour and a
+  glyph (Heritage Sites → Heritage Categories); the feed ships a
+  `categories` block and `catSlug` per site; the app renders badge and card
+  accent from it. Per-site `ac`/`dot` are retired (one-shot migration with a
+  backup; `wp cha category-styles status|restore|discard`).
+- **QR short links.** `/s/{site_id}` → the site's page, or — once
+  `wp cha short-links base https://trail.clarensheritage.org/?site={id}` is
+  set — the app's deep link. Read-only Heritage Sites → Plaque Links screen
+  with a manufacturing CSV.
+- **App deep link.** `trail.clarensheritage.org/?site={id}` opens that site
+  directly, survives the Paystack checkout, and Back behaves.
+- **"Heritage Pass"** replaces "Phase 2"/"Trail Pass" in visitor copy and emails.
+- **`tools/build-zip.sh`** replaces the hand-typed `git archive` command.
 
 ## What's built vs what needs you
 

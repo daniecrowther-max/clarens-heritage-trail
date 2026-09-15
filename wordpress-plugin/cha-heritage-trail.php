@@ -3,7 +3,7 @@
  * Plugin Name:       CHA Heritage Trail
  * Plugin URI:        https://github.com/daniecrowther-max/whitelabel-heritage-trail
  * Description:       Content model for the Clarens Heritage Trail — Heritage Site and Partner/Voucher post types, taxonomy and meta fields. Feeds the PWA app via the cha/v1 REST namespace.
- * Version:           0.1.0
+ * Version:           0.2.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Clarens Heritage Association
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CHA_VERSION', '0.1.0' );
+define( 'CHA_VERSION', '0.2.0' );
 define( 'CHA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CHA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 

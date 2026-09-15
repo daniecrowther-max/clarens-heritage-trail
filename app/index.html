@@ -13,7 +13,7 @@
 :root{
   /* ── Clarens brand tokens ───────────────────────────────────────────
      Taken verbatim from the live Clarens app (clarens-heritage-trail
-     repo, commit a8627de) — the real palette, not GRHS's. */
+     repo, commit a8627de). */
   --cha-green:#4E5530;
   --cha-red:#520410;
   --cha-charcoal:#1e2318;
@@ -1027,7 +1027,7 @@ function categoryFor(s) {
 // Cheap, opaque format pre-check — instant UX only, NEVER an authority.
 // Real validation is server-side (verify-token). Accepts BOTH the current
 // CHT-XXXX-XXXX-XXXX-XXXX format AND the shorter legacy CHT-XXXX-XXXX format
-// used before the GRHS-pattern migration (migrated payers' tokens were kept
+// used before the Paystack migration (migrated payers' tokens were kept
 // byte-for-byte, so this must not reject them by shape — see
 // migrate-existing-payers.php and CHA_Development_Plan §8).
 function looksLikeToken(token) {
