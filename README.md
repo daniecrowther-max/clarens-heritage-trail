@@ -86,24 +86,24 @@ A subaccount for CHA has been created in the Paystack dashboard:
 
 ### 2. Deploy the plugin, test end-to-end in sandbox — ✅ done
 
-**Build the deploy zip with this exact command — do not zip the
-`/wordpress-plugin` folder directly.** The repo's directory is named
-`wordpress-plugin/`, but the plugin is deployed on the WordPress host as
-`wp-content/plugins/cha-heritage-trail/` — a different name. A zip whose
-top-level folder is `wordpress-plugin/` (e.g. from `git archive` without
-`--prefix`, or from zipping the folder as-is) installs as a *second,
-duplicate* plugin instead of updating the live one. Build from the repo root:
+**Build the deploy zip with `tools/build-zip.sh` — do not zip the
+`/wordpress-plugin` folder directly and do not hand-roll `git archive`.** The
+repo's directory is named `wordpress-plugin/`, but the plugin is deployed on
+the WordPress host as `wp-content/plugins/cha-heritage-trail/` — a different
+name. A zip whose top-level folder is anything else (`wordpress-plugin/`, a
+version-stamped name, or no folder at all) installs as a *second, duplicate*
+plugin instead of updating the live one. From the repo root:
 
 ```
-git archive --format=zip --prefix=cha-heritage-trail/ -o cha-heritage-trail.zip HEAD:wordpress-plugin
+tools/build-zip.sh
 ```
 
-(Swap `HEAD` for another ref/tree-ish if building from something other than
-the current commit.) Verify before uploading:
-
-```
-unzip -Z1 cha-heritage-trail.zip | grep -v '^cha-heritage-trail/' && echo "WRONG PREFIX" || echo "ok"
-```
+It runs `git archive` against **HEAD** (never the working tree — commit
+first), writes `dist/cha-heritage-trail.zip`, then inspects the archive and
+refuses to leave a zip behind unless its single top-level entry is exactly
+`cha-heritage-trail/`. It prints the entry count and SHA-256.
+`tests/test-build-zip.php` (part of `tests/run.sh`) runs the script and
+checks the zip's file set against `git ls-tree`.
 
 Upload the resulting zip via WP Admin → Plugins → Add New → Upload Plugin
 (it will offer to replace the existing `cha-heritage-trail` install), or

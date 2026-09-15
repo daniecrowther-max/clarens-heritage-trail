@@ -7,6 +7,7 @@
 #   tests/test-webhook-idempotency.php  webhook idempotency (open item, added 26 Aug 2026)
 #   tests/test-app-browser.js    item 1 (server-confirmed redemption only)
 #                                item 5 (stored-XSS escaping of feed data)
+#   tests/test-build-zip.php     tools/build-zip.sh produces a correctly-prefixed plugin zip
 #
 # Requires: php CLI, node, and a Chrome/Chromium binary. No WordPress, no
 # database and no network access to the live site — the PHP tests stub WP and
@@ -15,7 +16,7 @@ set -u
 cd "$(dirname "$0")/.."
 
 fail=0
-for t in tests/test-checkout.php tests/test-redeem-stock.php tests/test-webhook-idempotency.php; do
+for t in tests/test-checkout.php tests/test-redeem-stock.php tests/test-webhook-idempotency.php tests/test-build-zip.php; do
   echo "=== $t ==="
   php "$t" || fail=1
 done
