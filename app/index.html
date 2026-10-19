@@ -1335,9 +1335,11 @@ function verifyAndStore(token, onValid, onInvalid) {
 }
 
 // On-load re-verify: makes a server-side "Revoke" actually take effect on the
-// device. Graceful by design — it only LOCKS on a definitive server "invalid".
-// Offline, a network error, or a rate-limit → keep the stored unlock, so nobody
-// gets locked out on a trail with no signal. Runs only when there's connectivity.
+// device. Graceful by design — it only LOCKS on a definitive server "invalid":
+// HTTP 200 with JSON valid === false. Offline, a network error, a rate-limit,
+// a 404 (e.g. rest_no_route while the plugin is being replaced), a 5xx or a
+// non-JSON body → keep the stored unlock, so nobody gets locked out by a server
+// fault or on a trail with no signal. Runs only when there's connectivity.
 function reverifyStoredToken() {
   if (localStorage.getItem(CONFIG.lsPrefix + 'verified') !== '1') return;
   if (!navigator.onLine) return; // offline → trust the stored flag
@@ -1345,12 +1347,11 @@ function reverifyStoredToken() {
   if (!token) return;
   fetch(CHA_VERIFY_URL + '?token=' + encodeURIComponent(token) + '&_=' + Date.now())
     .then(function(res) {
-      if (res.status === 429) return null; // rate-limited → no verdict, keep unlock
-      return res.json();
+      if (res.status !== 200) return null; // 404 / 429 / 5xx → no verdict, keep unlock
+      return res.json();                   // non-JSON throws → .catch → keep unlock
     })
     .then(function(data) {
-      if (!data) return;               // no definitive answer → keep unlock
-      if (data.valid === true) return; // still valid → nothing to do
+      if (!data || data.valid !== false) return; // only an explicit "invalid" locks
       // Server says the token is no longer valid (revoked / expired) → lock.
       localStorage.removeItem(CONFIG.lsPrefix + 'verified');
       localStorage.removeItem(CONFIG.lsPrefix + 'token');
