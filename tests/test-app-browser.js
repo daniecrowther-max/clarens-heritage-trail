@@ -366,6 +366,58 @@ async function runRedeem(page, scenario) {
     `);
     is(acAttr, 'card-accent ', 'a non-token `ac` value is dropped rather than written into class=');
     }
+
+    /* ---------------------------------------------------------------- */
+    if (ONLY !== 'item1' && ONLY !== 'item5') {
+    group('On-load re-verify — only an explicit 200 valid:false clears the unlock');
+
+    // Each case swaps fetch for one that answers verify-token with a real
+    // Response of the given shape, re-runs the on-load check, and reports
+    // what is left in localStorage.
+    const reverifyCases = [
+      ['404 with an HTML body', 404, 'text/html', '<html><body>404 Not Found</body></html>', true],
+      ['500 with a JSON body', 500, 'application/json',
+        JSON.stringify({ code: 'internal_server_error', message: 'There has been a critical error on this website.', data: { status: 500 } }), true],
+      ['404 rest_no_route (cha/v1 missing)', 404, 'application/json',
+        JSON.stringify({ code: 'rest_no_route', message: 'No route was found matching the URL and request method.', data: { status: 404 } }), true],
+      ['200 valid:false (revoked)', 200, 'application/json',
+        JSON.stringify({ valid: false, type: 'purchase', paid: false }), false],
+    ];
+
+    for (const [label, status, type, body, keeps] of reverifyCases) {
+      await page.goto(`${ORIGIN}/?scenario=ok`);
+      await page.evalIn(UNLOCK + 'return true;');
+      await page.goto(`${ORIGIN}/?scenario=ok`);
+      await sleep(300); // let the real on-load re-verify (mock: valid) settle
+
+      await page.evalIn(`
+        var realFetch = window.fetch;
+        window.fetch = function(url, opts) {
+          if (String(url).indexOf('/cha/v1/verify-token') !== -1) {
+            return Promise.resolve(new Response(${JSON.stringify(body)},
+              { status: ${status}, headers: { 'Content-Type': '${type}' } }));
+          }
+          return realFetch.apply(this, arguments);
+        };
+        reverifyStoredToken();
+        return true;
+      `);
+      await sleep(300);
+
+      const st = await page.evalIn(`
+        return {
+          verified: localStorage.getItem('cht_verified'),
+          token:    localStorage.getItem('cht_token'),
+          type:     localStorage.getItem('cht_type')
+        };
+      `);
+      if (keeps) {
+        is(st, { verified: '1', token: 'CHT-TEST-0001-0002-0003', type: 'purchase' }, `${label}: the unlock is kept`);
+      } else {
+        is(st, { verified: null, token: null, type: null }, `${label}: the unlock is cleared`);
+      }
+    }
+    }
   } catch (e) {
     failed++;
     console.error('\n  ERROR ' + (e && e.stack || e));
