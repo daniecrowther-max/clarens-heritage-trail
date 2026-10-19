@@ -47,7 +47,7 @@ already-installed device on its very next load regardless of the SW
 version. This was investigated and confirmed after an earlier, over-broad
 version of this note caused a false alarm on the Donate-modal and
 token-regex fixes (neither touched `sw.js` and neither needed a bump); see
-`docs/CHA_Development_Plan_v0.10.md` §8b for the full trace.
+`docs/archive/CHA_Development_Plan_v0.10.md` §8b for the full trace.
 
 (The WordPress plugin's deploy model is different again — manual zip upload,
 covered in step 2 below.)
@@ -82,7 +82,7 @@ wrangler.jsonc         # Cloudflare Workers deploy config for /app
 
 ## Features added 15 Sep 2026 (plugin 0.2.0) — ported from GRHS
 
-See `docs/CHA_Development_Plan_v0.11.md` for what was ported, what was
+See `docs/archive/CHA_Development_Plan_v0.11.md` for what was ported, what was
 skipped and why, and the deploy order. In short:
 
 - **Data-driven categories.** Each Heritage Category carries a colour and a
@@ -110,7 +110,7 @@ migrated and verified against the production database, and a Paystack
 sandbox transaction has run end-to-end. The steps below are kept as the
 deploy runbook — most are done (marked ✅); the one still open is the final
 **live** (non-sandbox) Paystack transaction test, after which the old
-plugin can be retired. See `docs/CHA_Development_Plan_v0.10.md` for the
+plugin can be retired. See `docs/archive/CHA_Development_Plan_v0.10.md` for the
 full history.
 
 ### 1. Paystack subaccount (brief §8) — ✅ done

@@ -8,7 +8,7 @@
  * site_id — the importer never rewrites a slug on re-import, and an editor
  * can retitle a page at any time. That is the concrete reason the redirect
  * resolves via the site_id meta rather than by encoding a page URL directly
- * onto a plaque etched for decades — see docs/CHA_Development_Plan_v0.11.md.
+ * onto a plaque etched for decades — see docs/archive/CHA_Development_Plan_v0.11.md.
  *
  * What this cannot prove: that a real WordPress rewrite rule actually routes
  * a request into parse_request, or what LiteSpeed/a browser do on the wire.

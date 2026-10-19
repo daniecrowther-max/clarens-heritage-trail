@@ -14,7 +14,7 @@
  * What this cannot prove: that a real WordPress rewrite rule actually routes
  * `/s/supply-store` to `parse_request`, that LiteSpeed actually honours
  * DONOTCACHEPAGE, or what a browser receives on the wire. That needs the
- * LocalWP + live curl pass — see docs/CHA_Development_Plan_v0.11.md.
+ * LocalWP + live curl pass — see docs/archive/CHA_Development_Plan_v0.11.md.
  *
  * @package cha
  */
